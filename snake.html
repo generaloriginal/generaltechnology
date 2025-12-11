@@ -357,56 +357,29 @@
     const submitNameBtn = document.getElementById("submitNameBtn");
     const leaderboardDiv = document.getElementById("leaderboard");
     
-    // Using JSONBin.io for free server-side storage (no authentication needed for public bins)
-    const JSONBIN_BIN_ID = '67f8a9b5e41b4d34e4e8b1234'; // Will be created on first use
-    const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
-    const JSONBIN_MASTER_KEY = '$2a$10$XQKqJ8qKqJ8qKqJ8qKqJ8u'; // Public read/write key (safe to expose)
+    // Using jsonstore.io for free server-side storage (no authentication needed)
+    const JSONSTORE_URL = 'https://jsonstore.io/67f8a9b5e41b4d34e4e8b1234abcdef'; // Public endpoint
     
-    // High score management - using JSONBin.io API
+    // High score management - using jsonstore.io API
     async function getHighScores() {
       try {
-        // Try to get from JSONBin
-        const binId = localStorage.getItem('snakeLeaderboardBinId') || JSONBIN_BIN_ID;
-        const response = await fetch(`${JSONBIN_API}/${binId}/latest`, {
-          headers: {
-            'X-Master-Key': JSONBIN_MASTER_KEY,
-            'X-Bin-Meta': 'false'
-          }
-        });
+        const response = await fetch(`${JSONSTORE_URL}/leaderboard`);
         
         if (response.ok) {
-          const scores = await response.json();
+          const data = await response.json();
+          const scores = data.leaderboard;
+          
           if (Array.isArray(scores) && scores.length > 0) {
-            // Save bin ID for future use
-            localStorage.setItem('snakeLeaderboardBinId', binId);
             // Also cache in localStorage as backup
             localStorage.setItem("snakeHighScores", JSON.stringify(scores));
             return scores;
           }
         }
         
-        // If bin doesn't exist or is empty, create/initialize it
+        // If no data exists, initialize empty array
         const initialScores = [];
-        const createResponse = await fetch(`${JSONBIN_API}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': JSONBIN_MASTER_KEY,
-            'X-Bin-Name': 'Snake Game Leaderboard',
-            'X-Bin-Private': 'false'
-          },
-          body: JSON.stringify(initialScores)
-        });
-        
-        if (createResponse.ok) {
-          const bin = await createResponse.json();
-          const newBinId = bin.metadata.id;
-          localStorage.setItem('snakeLeaderboardBinId', newBinId);
-          localStorage.setItem("snakeHighScores", JSON.stringify(initialScores));
-          return initialScores;
-        }
-        
-        throw new Error("Failed to create bin");
+        await saveHighScores(initialScores);
+        return initialScores;
         
       } catch (error) {
         console.error("Error fetching scores from server:", error);
@@ -418,13 +391,10 @@
     
     async function saveHighScores(scores) {
       try {
-        const binId = localStorage.getItem('snakeLeaderboardBinId') || JSONBIN_BIN_ID;
-        
-        const response = await fetch(`${JSONBIN_API}/${binId}`, {
-          method: 'PUT',
+        const response = await fetch(`${JSONSTORE_URL}/leaderboard`, {
+          method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': JSONBIN_MASTER_KEY
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(scores)
         });
@@ -434,27 +404,7 @@
           localStorage.setItem("snakeHighScores", JSON.stringify(scores));
           console.log("Leaderboard updated on server");
         } else {
-          // If update fails, try to create new bin
-          const createResponse = await fetch(`${JSONBIN_API}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Master-Key': JSONBIN_MASTER_KEY,
-              'X-Bin-Name': 'Snake Game Leaderboard',
-              'X-Bin-Private': 'false'
-            },
-            body: JSON.stringify(scores)
-          });
-          
-          if (createResponse.ok) {
-            const bin = await createResponse.json();
-            const newBinId = bin.metadata.id;
-            localStorage.setItem('snakeLeaderboardBinId', newBinId);
-            localStorage.setItem("snakeHighScores", JSON.stringify(scores));
-            console.log("Created new leaderboard bin:", newBinId);
-          } else {
-            throw new Error("Failed to save");
-          }
+          throw new Error("Failed to save");
         }
       } catch (error) {
         console.error("Error saving scores to server:", error);
