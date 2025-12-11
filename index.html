@@ -31,12 +31,42 @@
       max-width: 80vw;
       max-height: 80vh;
       display: block;
+      position: relative;
+    }
+
+    .logo-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* Clickable hotspot over the O in TECHNOLOGY */
+    .o-hotspot {
+      position: absolute;
+      /* Positioned over the O in TECHNOLOGY - adjust these values based on your image */
+      /* These are approximate - you may need to fine-tune */
+      bottom: 25%;
+      right: 15%;
+      width: 3.5%;
+      height: 4%;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 10;
+      /* Optional: uncomment to see the hotspot area for debugging */
+      /* background: rgba(255, 0, 0, 0.3); */
+    }
+
+    .o-hotspot:hover {
+      /* Optional: add a subtle glow effect on hover */
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
   </style>
 </head>
 <body>
   <div class="centered-logo">
-    <img src="IMG_3550.jpg" alt="General Technology Logo">
+    <div class="logo-container">
+      <img src="IMG_3550.jpg" alt="General Technology Logo">
+      <a href="launchpad.html" class="o-hotspot" title="Go to Launchpad"></a>
+    </div>
   </div>
 </body>
 </html>
