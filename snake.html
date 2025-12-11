@@ -233,15 +233,13 @@
     ground.position.y = 0;
     scene.add(ground);
 
-    // Snake head
+    // Snake head - create a group to hold head and face features
+    const snakeHeadGroup = new THREE.Group();
+    
+    // Snake head body
     const snakeHeadGeo = new THREE.SphereGeometry(1, 32, 32);
     const snakeHeadMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     const snakeHead = new THREE.Mesh(snakeHeadGeo, snakeHeadMat);
-    snakeHead.position.set(0, 1, 0);
-    scene.add(snakeHead);
-    
-    // Snake head face - create a group to hold head and face features
-    const snakeHeadGroup = new THREE.Group();
     snakeHeadGroup.add(snakeHead);
     
     // More human-like face features
@@ -755,7 +753,14 @@
     function animate() {
       requestAnimationFrame(animate);
       
+      // Always render the scene, even when game is paused/stopped
       if (!gameRunning) {
+        // Still update camera to follow snake (even when stopped)
+        const desiredCameraPos = cameraOffset.clone();
+        desiredCameraPos.applyEuler(snakeHeadGroup.rotation);
+        desiredCameraPos.add(snakeHeadGroup.position);
+        camera.position.lerp(desiredCameraPos, 0.1);
+        camera.lookAt(snakeHeadGroup.position);
         renderer.render(scene, camera);
         return;
       }
@@ -772,16 +777,14 @@
       snakeHeadGroup.position.addScaledVector(forward, snakeSpeed * deltaTime);
 
       // Check wall collision (end game if outside bounds) - make it get much closer to wall
-      // Only check if game is actually running
-      if (gameRunning) {
-        const headRadius = 0.3; // Much smaller so snake gets closer to wall before hitting
-        if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
-            snakeHeadGroup.position.x >= arenaSize - headRadius ||
-            snakeHeadGroup.position.z <= -arenaSize + headRadius || 
-            snakeHeadGroup.position.z >= arenaSize - headRadius) {
-          gameOver("You hit the wall!");
-          return;
-        }
+      const headRadius = 0.3; // Much smaller so snake gets closer to wall before hitting
+      
+      if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
+          snakeHeadGroup.position.x >= arenaSize - headRadius ||
+          snakeHeadGroup.position.z <= -arenaSize + headRadius || 
+          snakeHeadGroup.position.z >= arenaSize - headRadius) {
+        gameOver("You hit the wall!");
+        return;
       }
       
       // Clamp position to prevent going further out
