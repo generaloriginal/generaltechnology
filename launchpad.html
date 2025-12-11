@@ -55,22 +55,28 @@
     }
 
     .apps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 30px;
-      max-width: 800px;
+      justify-content: center;
+      align-items: center;
       margin: 0 auto;
     }
 
     .app-card {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 20px;
-      padding: 30px 20px;
+      padding: 30px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s ease;
       border: 2px solid transparent;
       backdrop-filter: blur(10px);
+      width: 150px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .app-card:hover {
@@ -101,17 +107,14 @@
     }
 
     @media (max-width: 768px) {
-      .launchpad-title {
-        font-size: 2em;
-      }
-      
       .apps-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 20px;
       }
       
       .app-card {
-        padding: 25px 15px;
+        width: 120px;
+        height: 120px;
+        padding: 20px;
       }
       
       .app-icon {
