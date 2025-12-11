@@ -357,60 +357,93 @@
     const submitNameBtn = document.getElementById("submitNameBtn");
     const leaderboardDiv = document.getElementById("leaderboard");
     
-    // Using jsonstore.io for free server-side storage (no authentication needed)
-    const JSONSTORE_URL = 'https://jsonstore.io/67f8a9b5e41b4d34e4e8b1234abcdef'; // Public endpoint
+    // Using Supabase for persistent server-side storage (free tier)
+    // Replace these with your Supabase project credentials
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., 'https://xxxxx.supabase.co'
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Public anon key (safe to expose)
     
-    // High score management - using jsonstore.io API
+    let useSupabase = false;
+    
+    // Check if Supabase is configured
+    if (SUPABASE_URL && SUPABASE_URL !== 'YOUR_SUPABASE_URL' && 
+        SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+      useSupabase = true;
+      console.log("Using Supabase for server-side leaderboard");
+    } else {
+      console.log("Supabase not configured - using localStorage (fallback)");
+    }
+    
+    // High score management - using Supabase API
     async function getHighScores() {
-      try {
-        const response = await fetch(`${JSONSTORE_URL}/leaderboard`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          const scores = data.leaderboard;
+      if (useSupabase) {
+        try {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=score.desc&limit=10`, {
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
           
-          if (Array.isArray(scores) && scores.length > 0) {
-            // Also cache in localStorage as backup
-            localStorage.setItem("snakeHighScores", JSON.stringify(scores));
-            return scores;
+          if (response.ok) {
+            const scores = await response.json();
+            if (Array.isArray(scores)) {
+              // Also cache in localStorage as backup
+              localStorage.setItem("snakeHighScores", JSON.stringify(scores));
+              return scores;
+            }
           }
+        } catch (error) {
+          console.error("Error fetching scores from Supabase:", error);
         }
-        
-        // If no data exists, initialize empty array
-        const initialScores = [];
-        await saveHighScores(initialScores);
-        return initialScores;
-        
-      } catch (error) {
-        console.error("Error fetching scores from server:", error);
-        // Fallback to localStorage
-        const scores = localStorage.getItem("snakeHighScores");
-        return scores ? JSON.parse(scores) : [];
       }
+      
+      // Fallback to localStorage
+      const scores = localStorage.getItem("snakeHighScores");
+      return scores ? JSON.parse(scores) : [];
     }
     
     async function saveHighScores(scores) {
-      try {
-        const response = await fetch(`${JSONSTORE_URL}/leaderboard`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(scores)
-        });
-        
-        if (response.ok) {
-          // Also save to localStorage as backup
-          localStorage.setItem("snakeHighScores", JSON.stringify(scores));
-          console.log("Leaderboard updated on server");
-        } else {
-          throw new Error("Failed to save");
+      // Save to localStorage first (always)
+      localStorage.setItem("snakeHighScores", JSON.stringify(scores));
+      
+      if (useSupabase) {
+        try {
+          // Delete all existing scores and insert new ones
+          // First, delete all
+          await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+            method: 'DELETE',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          // Then insert new scores
+          if (scores.length > 0) {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+              method: 'POST',
+              headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify(scores)
+            });
+            
+            if (response.ok) {
+              console.log("Leaderboard updated on Supabase server");
+              return;
+            }
+          }
+        } catch (error) {
+          console.error("Error saving scores to Supabase:", error);
         }
-      } catch (error) {
-        console.error("Error saving scores to server:", error);
-        // Fallback to localStorage
-        localStorage.setItem("snakeHighScores", JSON.stringify(scores));
       }
+      
+      console.log("Scores saved locally (Supabase not configured or unavailable)");
     }
     
     async function addHighScore(name, score) {
