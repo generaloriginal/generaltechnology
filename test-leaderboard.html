@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Leaderboard Diagnostic</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .success { color: green; }
+    .error { color: red; }
+    .info { color: blue; }
+    pre { background: #f0f0f0; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Supabase Leaderboard Diagnostic</h1>
+  <button onclick="testRead()">Test Read</button>
+  <button onclick="testWrite()">Test Write</button>
+  <button onclick="testDelete()">Test Delete All</button>
+  <div id="results"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://bmnixnmqferqlcxublii.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_IidrOPKjc9tkqOwjJMhrrQ_z35awXmc';
+
+    async function testRead() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p class="info">Reading from Supabase...</p>';
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=score.desc`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        const status = response.ok ? 'success' : 'error';
+        
+        results.innerHTML = `
+          <p class="${status}">Status: ${response.status} ${response.statusText}</p>
+          <p>Found ${Array.isArray(data) ? data.length : 0} records</p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (error) {
+        results.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      }
+    }
+
+    async function testWrite() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p class="info">Writing test score...</p>';
+      
+      try {
+        const testData = {
+          name: 'Test User',
+          score: 999,
+          date: new Date().toLocaleDateString()
+        };
+        
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(testData)
+        });
+        
+        const data = await response.json();
+        const status = response.ok ? 'success' : 'error';
+        
+        results.innerHTML = `
+          <p class="${status}">Status: ${response.status} ${response.statusText}</p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (error) {
+        results.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      }
+    }
+
+    async function testDelete() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p class="info">Deleting all scores...</p>';
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const status = response.ok ? 'success' : 'error';
+        results.innerHTML = `<p class="${status}">Status: ${response.status} ${response.statusText}</p>`;
+      } catch (error) {
+        results.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
+
