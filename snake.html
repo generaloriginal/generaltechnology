@@ -777,7 +777,7 @@
       snakeHeadGroup.position.addScaledVector(forward, snakeSpeed * deltaTime);
 
       // Check wall collision (end game if outside bounds) - make it get much closer to wall
-      const headRadius = 0.3; // Much smaller so snake gets closer to wall before hitting
+      const headRadius = 0.15; // Very small so snake gets very close to wall before hitting
       
       if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
           snakeHeadGroup.position.x >= arenaSize - headRadius ||
