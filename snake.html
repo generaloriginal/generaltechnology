@@ -789,9 +789,9 @@
       forward.normalize();
       snakeHeadGroup.position.addScaledVector(forward, snakeSpeed * deltaTime);
 
-      // Check wall collision (end game if outside bounds) - make it get much closer to wall
-      // Zero radius means head center must cross wall boundary before collision
-      const headRadius = 0; // Head must actually cross wall boundary
+      // Check wall collision (end game if outside bounds)
+      // Use actual head radius (1.0) so collision happens when head edge touches ground edge
+      const headRadius = 1.0; // Head sphere radius - collision when edge touches ground edge
       
       if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
           snakeHeadGroup.position.x >= arenaSize - headRadius ||
