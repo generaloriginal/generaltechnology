@@ -417,30 +417,47 @@
       
       if (useSupabase) {
         try {
-          // Delete all existing scores first
-          const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
-            method: 'DELETE',
+          // Get current scores from server first
+          const currentResponse = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=id`, {
             headers: {
               'apikey': SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json'
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
             }
           });
           
-          if (!deleteResponse.ok) {
-            console.warn("Could not delete old scores:", await deleteResponse.text());
+          let currentIds = [];
+          if (currentResponse.ok) {
+            const current = await currentResponse.json();
+            currentIds = current.map(c => c.id);
+          }
+          
+          // Delete all existing scores
+          if (currentIds.length > 0) {
+            const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?id=in.(${currentIds.join(',')})`, {
+              method: 'DELETE',
+              headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!deleteResponse.ok) {
+              const errorText = await deleteResponse.text();
+              console.warn("⚠️ Could not delete old scores:", errorText);
+            }
           }
           
           // Insert new scores - Supabase supports array inserts
           if (scores.length > 0) {
             // Prepare data - only send name, score, date (id and created_at are auto)
             const recordsToInsert = scores.map(s => ({
-              name: s.name || "Anonymous",
+              name: String(s.name || "Anonymous"),
               score: parseInt(s.score) || 0,
-              date: s.date || new Date().toLocaleDateString()
+              date: String(s.date || new Date().toLocaleDateString())
             }));
             
-            console.log("📤 Inserting scores:", recordsToInsert);
+            console.log("📤 Inserting", recordsToInsert.length, "scores:", recordsToInsert);
             
             const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
               method: 'POST',
@@ -455,22 +472,22 @@
             
             if (response.ok) {
               const result = await response.json();
-              console.log("✅ Leaderboard updated on Supabase server:", result.length, "entries saved");
+              console.log("✅ Leaderboard updated! Saved", result.length, "entries to Supabase");
               return;
             } else {
               const errorText = await response.text();
               console.error("❌ Error saving to Supabase:", response.status, errorText);
-              console.error("   Attempted to save:", recordsToInsert);
+              console.error("   Tried to save:", JSON.stringify(recordsToInsert, null, 2));
             }
           } else {
-            console.log("No scores to save");
+            console.log("📭 No scores to save (empty array)");
           }
         } catch (error) {
           console.error("❌ Error saving scores to Supabase:", error);
         }
       }
       
-      console.log("Scores saved locally (Supabase not configured or unavailable)");
+      console.log("💾 Scores saved locally (Supabase not configured or unavailable)");
     }
     
     async function addHighScore(name, score) {
