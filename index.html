@@ -39,22 +39,21 @@
       max-width: 500px;
     }
 
-    /* Crop wrapper - adjust the padding to crop the image */
+    /* Crop wrapper - using clip-path for precise cropping */
     .logo-cropped {
-      overflow: hidden;
       display: inline-block;
       width: 100%;
-      /* Adjust these padding values to crop the image */
-      /* Positive padding = shows less, negative = shows more */
-      padding: 15% 10%; /* Crops 15% from top/bottom, 10% from sides */
+      position: relative;
+      /* Adjust clip-path percentages to crop the image */
+      /* Format: clip-path: inset(top right bottom left); */
+      /* Example: inset(20% 15% 20% 15%) crops 20% from top/bottom, 15% from sides */
+      clip-path: inset(20% 15% 20% 15%);
     }
 
     .logo-cropped img {
       width: 100%;
       height: auto;
       display: block;
-      /* Adjust this margin to fine-tune vertical position */
-      margin: -10% 0; /* Negative margin shifts image up/down */
     }
 
     .launchpad-title {
