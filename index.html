@@ -15,7 +15,7 @@
 
     html, body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      background: #000000;
       font-family: 'Inter', sans-serif;
       color: #ffffff;
       overflow-x: hidden;
@@ -39,18 +39,7 @@
       max-width: 500px;
     }
 
-    /* Crop wrapper - using clip-path for precise cropping */
-    .logo-cropped {
-      display: inline-block;
-      width: 100%;
-      position: relative;
-      /* Adjust clip-path percentages to crop the image */
-      /* Format: clip-path: inset(top right bottom left); */
-      /* Example: inset(20% 15% 20% 15%) crops 20% from top/bottom, 15% from sides */
-      clip-path: inset(20% 15% 20% 15%);
-    }
-
-    .logo-cropped img {
+    .logo-container img {
       width: 100%;
       height: auto;
       display: block;
@@ -136,9 +125,7 @@
   <div class="container">
     <div class="logo-section">
       <div class="logo-container">
-        <div class="logo-cropped">
-          <img src="IMG_3550.jpg" alt="General Technology">
-        </div>
+        <img src="IMG_3550.jpg" alt="General Technology">
       </div>
     </div>
 
