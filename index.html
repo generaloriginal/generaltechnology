@@ -43,21 +43,22 @@
     .o-hotspot {
       position: absolute;
       /* Positioned over the O in TECHNOLOGY - adjust these values based on your image */
-      /* These are approximate - you may need to fine-tune */
-      bottom: 25%;
-      right: 15%;
-      width: 3.5%;
-      height: 4%;
+      /* The O is in the bottom line "TECHNOLOGY", last letter, so it's on the right side */
+      bottom: 20%;
+      right: 8%;
+      width: 4%;
+      height: 5%;
       border-radius: 50%;
       cursor: pointer;
       z-index: 10;
-      /* Optional: uncomment to see the hotspot area for debugging */
-      /* background: rgba(255, 0, 0, 0.3); */
+      /* Make it visible for debugging - remove background to make invisible */
+      background: rgba(255, 0, 0, 0.3);
+      display: block;
     }
 
     .o-hotspot:hover {
       /* Optional: add a subtle glow effect on hover */
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      background: rgba(255, 0, 0, 0.5);
     }
   </style>
 </head>
