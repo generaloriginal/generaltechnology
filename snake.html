@@ -197,7 +197,7 @@
 </head>
 <body>
   <div id="score">Score: 0 / 50</div>
-  <div id="version">v1.0.5</div>
+  <div id="version">v1.0.6</div>
   <div id="gameOverlay">
     <h2 id="overlayTitle">Game Over!</h2>
     <p id="overlayMessage">You hit the wall!</p>
@@ -237,6 +237,9 @@
     const dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.position.set(10, 20, 10);
     scene.add(dirLight);
+
+    // Arena size - define before using it
+    const arenaSize = 80;
 
     // Ground - size should match arena boundaries (arenaSize * 2)
     const groundGeo = new THREE.PlaneGeometry(arenaSize * 2, arenaSize * 2);
@@ -340,7 +343,6 @@
     const apple = new THREE.Mesh(appleGeo, appleMat);
     scene.add(apple);
 
-    const arenaSize = 80;
     function randomApplePosition() {
       const x = (Math.random() * 2 - 1) * arenaSize;
       const z = (Math.random() * 2 - 1) * arenaSize;
