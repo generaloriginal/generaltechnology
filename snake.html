@@ -197,7 +197,7 @@
 </head>
 <body>
   <div id="score">Score: 0 / 50</div>
-  <div id="version">v1.0.6</div>
+  <div id="version">v1.0.7</div>
   <div id="gameOverlay">
     <h2 id="overlayTitle">Game Over!</h2>
     <p id="overlayMessage">You hit the wall!</p>
@@ -337,18 +337,30 @@
       segments.push(seg);
     }
 
-    // Apple
+    // Apples - multiple apples on the board
     const appleGeo = new THREE.SphereGeometry(0.7, 16, 16);
     const appleMat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-    const apple = new THREE.Mesh(appleGeo, appleMat);
-    scene.add(apple);
+    const apples = [];
+    const MAX_APPLES = 5; // Number of apples on the board at once
 
-    function randomApplePosition() {
+    function createApple() {
+      const apple = new THREE.Mesh(appleGeo, appleMat);
+      randomApplePosition(apple);
+      scene.add(apple);
+      apples.push(apple);
+      return apple;
+    }
+
+    function randomApplePosition(apple) {
       const x = (Math.random() * 2 - 1) * arenaSize;
       const z = (Math.random() * 2 - 1) * arenaSize;
       apple.position.set(x, 0.7, z);
     }
-    randomApplePosition();
+
+    // Initialize multiple apples
+    for (let i = 0; i < MAX_APPLES; i++) {
+      createApple();
+    }
 
     // Game state
     let gameRunning = true;
@@ -686,8 +698,10 @@
       score = 0;
       updateScoreDisplay();
       
-      // Reset apple position
-      randomApplePosition();
+      // Reset apples
+      apples.forEach(apple => {
+        randomApplePosition(apple);
+      });
       
       // Hide overlay and name entry
       gameOverlay.classList.remove("show");
@@ -824,19 +838,27 @@
         segments[i].position.set(pos.x, 0.8, pos.z);
       }
 
-      // Apple collision
+      // Apple collision - check all apples
       const eatRadius = 1.5;
-      if (snakeHeadGroup.position.distanceTo(apple.position) < eatRadius) {
-        // Eat apple
-        score += 1;
-        updateScoreDisplay();
-        addSegment();
-        randomApplePosition();
-        
-        // Check win condition
-        if (score >= WIN_SCORE) {
-          gameWin();
-          return;
+      for (let i = apples.length - 1; i >= 0; i--) {
+        const apple = apples[i];
+        if (snakeHeadGroup.position.distanceTo(apple.position) < eatRadius) {
+          // Eat apple
+          score += 1;
+          updateScoreDisplay();
+          addSegment();
+          
+          // Remove eaten apple and create a new one
+          scene.remove(apple);
+          apples.splice(i, 1);
+          createApple();
+          
+          // Check win condition
+          if (score >= WIN_SCORE) {
+            gameWin();
+            return;
+          }
+          break; // Only eat one apple per frame
         }
       }
 
