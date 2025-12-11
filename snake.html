@@ -651,21 +651,27 @@
     });
     
     function restartGame() {
-      // Reset game state
-      gameRunning = true;
-      gameWon = false;
-      nameSubmitted = false; // Reset submission flag
-      score = 0;
-      updateScoreDisplay();
+      // FIRST: Stop the game and reset position BEFORE restarting
+      gameRunning = false;
       
-      // Reset snake
+      // Reset snake position IMMEDIATELY (before game starts)
       snakeHeadGroup.position.set(0, 1, 0);
       snakeHeadGroup.rotation.y = 0;
       
       // Clear body segments
       segments.forEach(seg => scene.remove(seg));
       segments.length = 0;
-      headPositions.length = 0;
+      headPositions.length = 0; // Clear position history
+      
+      // Reset input
+      turnInput = 0;
+      isPointerDown = false;
+      
+      // Reset game state
+      gameWon = false;
+      nameSubmitted = false;
+      score = 0;
+      updateScoreDisplay();
       
       // Reset apple position
       randomApplePosition();
@@ -673,7 +679,12 @@
       // Hide overlay and name entry
       gameOverlay.classList.remove("show");
       nameEntry.classList.remove("show");
-      submitNameBtn.disabled = false; // Re-enable button
+      submitNameBtn.disabled = false;
+      
+      // NOW start the game (after everything is reset)
+      gameRunning = true;
+      
+      console.log("🔄 Game restarted - snake at center:", snakeHeadGroup.position);
     }
     
     restartBtn.addEventListener("click", (e) => {
