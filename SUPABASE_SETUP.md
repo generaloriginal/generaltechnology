@@ -59,6 +59,12 @@
    const SUPABASE_ANON_KEY = 'your-long-anon-key-here';
    ```
 
+**Note about GitHub Secret Scanning:**
+- The Supabase **anon key is SAFE to expose** - it's designed for client-side use
+- If GitHub flags it when you push, it's a false positive
+- You can safely allow it: GitHub will show a link to allow the secret
+- The anon key only works with Row Level Security (RLS) policies you set
+
 ## Step 7: Test It!
 
 1. Open your game

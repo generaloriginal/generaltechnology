@@ -359,8 +359,10 @@
     
     // Using Supabase for persistent server-side storage (free tier)
     // Replace these with your Supabase project credentials
+    // NOTE: The anon key is SAFE to expose - it's designed for client-side use
+    // If GitHub flags it, you can allow it (it's a false positive)
     const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., 'https://xxxxx.supabase.co'
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Public anon key (safe to expose)
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Public anon key (safe to expose in client code)
     
     let useSupabase = false;
     
