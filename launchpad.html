@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>general.technology</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: #000000;
+      font-family: 'Inter', sans-serif;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .logo-container {
+      display: inline-block;
+      position: relative;
+      margin: 0 auto;
+      max-width: 500px;
+    }
+
+    .logo-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .launchpad-title {
+      text-align: center;
+      font-size: 2.5em;
+      font-weight: 700;
+      margin-bottom: 50px;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .app-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      backdrop-filter: blur(10px);
+    }
+
+    .app-card:hover {
+      transform: translateY(-10px);
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .app-card:active {
+      transform: translateY(-5px);
+    }
+
+    .app-icon {
+      font-size: 4em;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    .app-name {
+      font-size: 1.3em;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .app-description {
+      font-size: 0.9em;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    @media (max-width: 768px) {
+      .launchpad-title {
+        font-size: 2em;
+      }
+      
+      .apps-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+      }
+      
+      .app-card {
+        padding: 25px 15px;
+      }
+      
+      .app-icon {
+        font-size: 3em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-section">
+      <div class="logo-container">
+        <img src="IMG_3550.jpg" alt="General Technology">
+      </div>
+    </div>
+
+    <h1 class="launchpad-title">Launchpad</h1>
+
+    <div class="apps-grid">
+      <a href="snake.html" class="app-card" style="text-decoration: none; color: inherit;">
+        <span class="app-icon">🐍</span>
+        <div class="app-name">Snake Game</div>
+        <div class="app-description">3D Snake with Leaderboard</div>
+      </a>
+
+      <!-- More apps can be added here -->
+      <!-- 
+      <a href="app2.html" class="app-card" style="text-decoration: none; color: inherit;">
+        <span class="app-icon">📱</span>
+        <div class="app-name">App Name</div>
+        <div class="app-description">Description</div>
+      </a>
+      -->
+    </div>
+  </div>
+</body>
+</html>
