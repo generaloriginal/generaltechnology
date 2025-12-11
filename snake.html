@@ -491,13 +491,27 @@
     }
     
     async function addHighScore(name, score) {
+      console.log("🎯 addHighScore called with:", name, "score:", score);
+      
+      // Don't save scores of 0
+      if (score === 0 || score < 0) {
+        console.warn("⚠️ Not saving score of 0 or negative");
+        return await getHighScores();
+      }
+      
       const scores = await getHighScores();
       const date = new Date().toLocaleDateString();
-      scores.push({ name: name || "Anonymous", score: score, date: date });
+      
+      // Remove any existing entry with same name and score (avoid duplicates)
+      const filtered = scores.filter(s => !(s.name === name && s.score === score));
+      filtered.push({ name: name || "Anonymous", score: score, date: date });
+      
       // Sort by score (highest first)
-      scores.sort((a, b) => b.score - a.score);
+      filtered.sort((a, b) => b.score - a.score);
       // Keep only top scores
-      const topScores = scores.slice(0, TOP_SCORES_COUNT);
+      const topScores = filtered.slice(0, TOP_SCORES_COUNT);
+      
+      console.log("💾 Saving top scores:", topScores);
       await saveHighScores(topScores);
       return topScores;
     }
