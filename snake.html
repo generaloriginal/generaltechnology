@@ -548,6 +548,11 @@
     let nameSubmitted = false; // Track if name has been submitted for this game
     
     async function gameOver(reason) {
+      // Prevent multiple calls
+      if (!gameRunning) {
+        return; // Already game over, don't process again
+      }
+      
       gameRunning = false;
       nameSubmitted = false; // Reset for new game
       overlayTitle.textContent = "Game Over!";
@@ -569,6 +574,11 @@
     }
     
     async function gameWin() {
+      // Prevent multiple calls
+      if (!gameRunning) {
+        return; // Already game over, don't process again
+      }
+      
       gameRunning = false;
       gameWon = true;
       nameSubmitted = false; // Reset for new game
@@ -627,9 +637,15 @@
       }, 1000);
     }
     
-    submitNameBtn.addEventListener("click", submitName);
+    submitNameBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      submitName();
+    });
     nameInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
         submitName();
       }
     });
@@ -660,7 +676,11 @@
       submitNameBtn.disabled = false; // Re-enable button
     }
     
-    restartBtn.addEventListener("click", restartGame);
+    restartBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      restartGame();
+    });
 
     // Head path history for body following
     const headPositions = [];
@@ -741,13 +761,16 @@
       snakeHeadGroup.position.addScaledVector(forward, snakeSpeed * deltaTime);
 
       // Check wall collision (end game if outside bounds) - make it get much closer to wall
-      const headRadius = 0.3; // Much smaller so snake gets closer to wall before hitting
-      if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
-          snakeHeadGroup.position.x >= arenaSize - headRadius ||
-          snakeHeadGroup.position.z <= -arenaSize + headRadius || 
-          snakeHeadGroup.position.z >= arenaSize - headRadius) {
-        gameOver("You hit the wall!");
-        return;
+      // Only check if game is actually running
+      if (gameRunning) {
+        const headRadius = 0.3; // Much smaller so snake gets closer to wall before hitting
+        if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
+            snakeHeadGroup.position.x >= arenaSize - headRadius ||
+            snakeHeadGroup.position.z <= -arenaSize + headRadius || 
+            snakeHeadGroup.position.z >= arenaSize - headRadius) {
+          gameOver("You hit the wall!");
+          return;
+        }
       }
       
       // Clamp position to prevent going further out
