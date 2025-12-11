@@ -17,10 +17,11 @@
       left: 50%;
       transform: translateX(-50%);
       color: #ffffff;
-      font-size: 20px;
+      font-size: clamp(24px, 5vw, 32px);
       font-weight: bold;
       text-shadow: 0 0 4px #000;
       z-index: 10;
+      padding: 5px 15px;
     }
     #gameOverlay {
       position: absolute;
@@ -35,34 +36,150 @@
       flex-direction: column;
       z-index: 100;
       color: #ffffff;
-      font-size: 32px;
+      font-size: clamp(28px, 6vw, 40px);
       font-weight: bold;
       text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
     }
     #gameOverlay.show {
       display: flex;
     }
     #gameOverlay h2 {
       margin: 0 0 20px 0;
-      font-size: 48px;
+      font-size: clamp(36px, 8vw, 64px);
     }
     #gameOverlay p {
       margin: 10px 0;
-      font-size: 24px;
+      font-size: clamp(20px, 4.5vw, 32px);
     }
     #restartBtn {
       margin-top: 30px;
-      padding: 15px 40px;
-      font-size: 20px;
+      padding: clamp(12px, 3vw, 18px) clamp(30px, 8vw, 50px);
+      font-size: clamp(18px, 4vw, 24px);
       background: #00ff00;
       color: #000;
       border: none;
       border-radius: 10px;
       cursor: pointer;
       font-weight: bold;
+      touch-action: manipulation;
     }
     #restartBtn:hover {
       background: #00cc00;
+    }
+    #nameEntry {
+      margin-top: 20px;
+      display: none;
+    }
+    #nameEntry.show {
+      display: block;
+    }
+    #nameEntry p {
+      font-size: clamp(18px, 4vw, 24px);
+      margin-bottom: 15px;
+    }
+    
+    /* Mobile-specific adjustments */
+    @media (max-width: 768px) {
+      #score {
+        top: 5px;
+        font-size: 28px;
+      }
+      #gameOverlay {
+        padding: 15px;
+      }
+      #gameOverlay h2 {
+        font-size: 42px;
+        margin-bottom: 15px;
+      }
+      #gameOverlay p {
+        font-size: 22px;
+      }
+      #leaderboard {
+        max-height: 250px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      #score {
+        font-size: 24px;
+      }
+      #gameOverlay h2 {
+        font-size: 36px;
+      }
+      #gameOverlay p {
+        font-size: 20px;
+      }
+    }
+    #nameInput {
+      padding: clamp(12px, 3vw, 15px) clamp(15px, 4vw, 20px);
+      font-size: clamp(18px, 4vw, 22px);
+      border: 2px solid #00ff00;
+      border-radius: 5px;
+      background: #000;
+      color: #fff;
+      text-align: center;
+      width: clamp(200px, 60vw, 300px);
+      margin: 10px;
+    }
+    #nameInput:focus {
+      outline: none;
+      border-color: #00cc00;
+    }
+    #submitNameBtn {
+      padding: clamp(12px, 3vw, 15px) clamp(25px, 6vw, 35px);
+      font-size: clamp(18px, 4vw, 22px);
+      background: #00ff00;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 10px;
+      touch-action: manipulation;
+    }
+    #submitNameBtn:hover {
+      background: #00cc00;
+    }
+    #leaderboard {
+      margin-top: 30px;
+      max-height: 300px;
+      overflow-y: auto;
+      width: 90%;
+      max-width: 400px;
+    }
+    #leaderboard h3 {
+      margin: 20px 0 10px 0;
+      font-size: clamp(24px, 5vw, 36px);
+      color: #00ff00;
+    }
+    .leaderboard-entry {
+      display: flex;
+      justify-content: space-between;
+      padding: clamp(10px, 2.5vw, 12px) clamp(15px, 4vw, 20px);
+      margin: 5px 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      font-size: clamp(16px, 3.5vw, 22px);
+    }
+    .leaderboard-entry.highlight {
+      background: rgba(0, 255, 0, 0.3);
+      border: 2px solid #00ff00;
+    }
+    .leaderboard-rank {
+      font-weight: bold;
+      color: #00ff00;
+      margin-right: 15px;
+      min-width: 30px;
+    }
+    .leaderboard-name {
+      flex: 1;
+      text-align: left;
+    }
+    .leaderboard-score {
+      font-weight: bold;
+      color: #ffff00;
     }
   </style>
 </head>
@@ -72,6 +189,12 @@
     <h2 id="overlayTitle">Game Over!</h2>
     <p id="overlayMessage">You hit the wall!</p>
     <p>Final Score: <span id="finalScore">0</span></p>
+    <div id="nameEntry">
+      <p style="font-size: 20px; margin-bottom: 10px;">Enter your name for the leaderboard:</p>
+      <input type="text" id="nameInput" placeholder="Your Name" maxlength="20" />
+      <button id="submitNameBtn">Submit</button>
+    </div>
+    <div id="leaderboard"></div>
     <button id="restartBtn">Play Again</button>
   </div>
 
@@ -218,15 +341,73 @@
     let gameRunning = true;
     let gameWon = false;
     const WIN_SCORE = 50; // Win condition: eat 50 apples
+    const TOP_SCORES_COUNT = 10; // Number of top scores to keep
     
     // Score
     let score = 0;
+    let currentPlayerName = "";
     const scoreDiv = document.getElementById("score");
     const gameOverlay = document.getElementById("gameOverlay");
     const overlayTitle = document.getElementById("overlayTitle");
     const overlayMessage = document.getElementById("overlayMessage");
     const finalScoreSpan = document.getElementById("finalScore");
     const restartBtn = document.getElementById("restartBtn");
+    const nameEntry = document.getElementById("nameEntry");
+    const nameInput = document.getElementById("nameInput");
+    const submitNameBtn = document.getElementById("submitNameBtn");
+    const leaderboardDiv = document.getElementById("leaderboard");
+    
+    // High score management
+    function getHighScores() {
+      const scores = localStorage.getItem("snakeHighScores");
+      return scores ? JSON.parse(scores) : [];
+    }
+    
+    function saveHighScores(scores) {
+      localStorage.setItem("snakeHighScores", JSON.stringify(scores));
+    }
+    
+    function addHighScore(name, score) {
+      const scores = getHighScores();
+      const date = new Date().toLocaleDateString();
+      scores.push({ name: name || "Anonymous", score: score, date: date });
+      // Sort by score (highest first)
+      scores.sort((a, b) => b.score - a.score);
+      // Keep only top scores
+      const topScores = scores.slice(0, TOP_SCORES_COUNT);
+      saveHighScores(topScores);
+      return topScores;
+    }
+    
+    function isTopScore(score) {
+      const scores = getHighScores();
+      // If less than 10 scores, always qualify
+      if (scores.length < TOP_SCORES_COUNT) return true;
+      // Check if score is higher than the lowest top score
+      const lowestTopScore = scores[TOP_SCORES_COUNT - 1].score;
+      return score > lowestTopScore;
+    }
+    
+    function displayLeaderboard(highlightIndex = -1) {
+      const scores = getHighScores();
+      if (scores.length === 0) {
+        leaderboardDiv.innerHTML = "<h3>Leaderboard</h3><p>No scores yet. Be the first!</p>";
+        return;
+      }
+      
+      let html = "<h3>Top " + TOP_SCORES_COUNT + " Scores</h3>";
+      scores.forEach((entry, index) => {
+        const highlight = index === highlightIndex ? "highlight" : "";
+        html += `
+          <div class="leaderboard-entry ${highlight}">
+            <span class="leaderboard-rank">#${index + 1}</span>
+            <span class="leaderboard-name">${entry.name}</span>
+            <span class="leaderboard-score">${entry.score}</span>
+          </div>
+        `;
+      });
+      leaderboardDiv.innerHTML = html;
+    }
     
     function updateScoreDisplay() {
       scoreDiv.textContent = "Score: " + score + " / " + WIN_SCORE;
@@ -238,6 +419,17 @@
       overlayTitle.textContent = "Game Over!";
       overlayMessage.textContent = reason;
       finalScoreSpan.textContent = score;
+      
+      // Check if score qualifies for leaderboard
+      if (isTopScore(score)) {
+        nameEntry.classList.add("show");
+        nameInput.focus();
+        nameInput.value = "";
+      } else {
+        nameEntry.classList.remove("show");
+      }
+      
+      displayLeaderboard();
       gameOverlay.classList.add("show");
     }
     
@@ -247,8 +439,43 @@
       overlayTitle.textContent = "You Win! 🎉";
       overlayMessage.textContent = "You ate " + WIN_SCORE + " apples!";
       finalScoreSpan.textContent = score;
+      
+      // Check if score qualifies for leaderboard
+      if (isTopScore(score)) {
+        nameEntry.classList.add("show");
+        nameInput.focus();
+        nameInput.value = "";
+      } else {
+        nameEntry.classList.remove("show");
+      }
+      
+      displayLeaderboard();
       gameOverlay.classList.add("show");
     }
+    
+    function submitName() {
+      const name = nameInput.value.trim() || "Anonymous";
+      currentPlayerName = name;
+      const updatedScores = addHighScore(name, score);
+      
+      // Find the index of the newly added score
+      const newIndex = updatedScores.findIndex(entry => 
+        entry.name === name && entry.score === score
+      );
+      
+      // Hide name entry
+      nameEntry.classList.remove("show");
+      
+      // Update leaderboard with highlight
+      displayLeaderboard(newIndex);
+    }
+    
+    submitNameBtn.addEventListener("click", submitName);
+    nameInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        submitName();
+      }
+    });
     
     function restartGame() {
       // Reset game state
@@ -269,8 +496,9 @@
       // Reset apple position
       randomApplePosition();
       
-      // Hide overlay
+      // Hide overlay and name entry
       gameOverlay.classList.remove("show");
+      nameEntry.classList.remove("show");
     }
     
     restartBtn.addEventListener("click", restartGame);
@@ -412,6 +640,9 @@
     }
 
     animate();
+    
+    // Initialize leaderboard on page load
+    displayLeaderboard();
 
     // Handle resize
     window.addEventListener("resize", () => {
