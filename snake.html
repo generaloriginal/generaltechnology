@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D Snake - Three.js Starter</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 0 4px #000;
+      z-index: 10;
+    }
+    #gameOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 100;
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: bold;
+      text-align: center;
+    }
+    #gameOverlay.show {
+      display: flex;
+    }
+    #gameOverlay h2 {
+      margin: 0 0 20px 0;
+      font-size: 48px;
+    }
+    #gameOverlay p {
+      margin: 10px 0;
+      font-size: 24px;
+    }
+    #restartBtn {
+      margin-top: 30px;
+      padding: 15px 40px;
+      font-size: 20px;
+      background: #00ff00;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #restartBtn:hover {
+      background: #00cc00;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0 / 50</div>
+  <div id="gameOverlay">
+    <h2 id="overlayTitle">Game Over!</h2>
+    <p id="overlayMessage">You hit the wall!</p>
+    <p>Final Score: <span id="finalScore">0</span></p>
+    <button id="restartBtn">Play Again</button>
+  </div>
+
+  <!-- Three.js from CDN -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+  <script>
+    // === Basic setup ===
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x66ccff);
+
+    const camera = new THREE.PerspectiveCamera(
+      60,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(10, 20, 10);
+    scene.add(dirLight);
+
+    // Ground
+    const groundGeo = new THREE.PlaneGeometry(200, 200);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x55aa55 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = 0;
+    scene.add(ground);
+
+    // Snake head
+    const snakeHeadGeo = new THREE.SphereGeometry(1, 32, 32);
+    const snakeHeadMat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+    const snakeHead = new THREE.Mesh(snakeHeadGeo, snakeHeadMat);
+    snakeHead.position.set(0, 1, 0);
+    scene.add(snakeHead);
+    
+    // Snake head face - create a group to hold head and face features
+    const snakeHeadGroup = new THREE.Group();
+    snakeHeadGroup.add(snakeHead);
+    
+    // More human-like face features
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac }); // Skin tone
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x4a3728 }); // Brown hair
+    
+    // Larger, more human-like eyes
+    const eyeGeo = new THREE.SphereGeometry(0.25, 16, 16);
+    
+    // Left eye (bigger)
+    const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+    leftEye.position.set(-0.35, 0.15, 0.75);
+    snakeHeadGroup.add(leftEye);
+    const leftPupil = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), pupilMat);
+    leftPupil.position.set(-0.35, 0.15, 0.82);
+    snakeHeadGroup.add(leftPupil);
+    
+    // Right eye (bigger)
+    const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+    rightEye.position.set(0.35, 0.15, 0.75);
+    snakeHeadGroup.add(rightEye);
+    const rightPupil = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), pupilMat);
+    rightPupil.position.set(0.35, 0.15, 0.82);
+    snakeHeadGroup.add(rightPupil);
+    
+    // Eyebrows
+    const eyebrowGeo = new THREE.BoxGeometry(0.4, 0.08, 0.05);
+    const eyebrowMat = new THREE.MeshStandardMaterial({ color: 0x2d1810 });
+    const leftEyebrow = new THREE.Mesh(eyebrowGeo, eyebrowMat);
+    leftEyebrow.position.set(-0.35, 0.4, 0.7);
+    leftEyebrow.rotation.z = -0.2;
+    snakeHeadGroup.add(leftEyebrow);
+    const rightEyebrow = new THREE.Mesh(eyebrowGeo, eyebrowMat);
+    rightEyebrow.position.set(0.35, 0.4, 0.7);
+    rightEyebrow.rotation.z = 0.2;
+    snakeHeadGroup.add(rightEyebrow);
+    
+    // Nose
+    const noseGeo = new THREE.ConeGeometry(0.1, 0.3, 8);
+    const nose = new THREE.Mesh(noseGeo, skinMat);
+    nose.rotation.x = Math.PI / 2;
+    nose.position.set(0, 0.05, 0.85);
+    snakeHeadGroup.add(nose);
+    
+    // Mouth (more human-like)
+    const mouthGeo = new THREE.TorusGeometry(0.2, 0.04, 8, 16, Math.PI);
+    const mouthMat = new THREE.MeshStandardMaterial({ color: 0x8b0000 });
+    const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+    mouth.rotation.x = Math.PI / 2;
+    mouth.position.set(0, -0.25, 0.75);
+    snakeHeadGroup.add(mouth);
+    
+    // Add some "hair" or head detail on top
+    const hairGeo = new THREE.SphereGeometry(0.6, 16, 16);
+    const hair = new THREE.Mesh(hairGeo, hairMat);
+    hair.position.set(0, 0.5, 0.2);
+    hair.scale.set(1, 0.6, 1.2);
+    snakeHeadGroup.add(hair);
+    
+    // Add the group to scene instead of just the head
+    snakeHeadGroup.position.set(0, 1, 0);
+    scene.add(snakeHeadGroup);
+
+    // Snake body segments
+    const segmentCountStart = 0;
+    const segmentSpacing = 2.0; // distance between segments in samples
+    const segments = [];
+
+    const segmentGeo = new THREE.SphereGeometry(0.8, 16, 16);
+    const segmentMat = new THREE.MeshStandardMaterial({ color: 0x008800 });
+
+    function addSegment() {
+      const seg = new THREE.Mesh(segmentGeo, segmentMat);
+      // Position segment on the ground like a snake
+      seg.position.set(snakeHeadGroup.position.x, 0.8, snakeHeadGroup.position.z);
+      scene.add(seg);
+      segments.push(seg);
+    }
+
+    // Apple
+    const appleGeo = new THREE.SphereGeometry(0.7, 16, 16);
+    const appleMat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const apple = new THREE.Mesh(appleGeo, appleMat);
+    scene.add(apple);
+
+    const arenaSize = 80;
+    function randomApplePosition() {
+      const x = (Math.random() * 2 - 1) * arenaSize;
+      const z = (Math.random() * 2 - 1) * arenaSize;
+      apple.position.set(x, 0.7, z);
+    }
+    randomApplePosition();
+
+    // Game state
+    let gameRunning = true;
+    let gameWon = false;
+    const WIN_SCORE = 50; // Win condition: eat 50 apples
+    
+    // Score
+    let score = 0;
+    const scoreDiv = document.getElementById("score");
+    const gameOverlay = document.getElementById("gameOverlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayMessage = document.getElementById("overlayMessage");
+    const finalScoreSpan = document.getElementById("finalScore");
+    const restartBtn = document.getElementById("restartBtn");
+    
+    function updateScoreDisplay() {
+      scoreDiv.textContent = "Score: " + score + " / " + WIN_SCORE;
+    }
+    updateScoreDisplay();
+    
+    function gameOver(reason) {
+      gameRunning = false;
+      overlayTitle.textContent = "Game Over!";
+      overlayMessage.textContent = reason;
+      finalScoreSpan.textContent = score;
+      gameOverlay.classList.add("show");
+    }
+    
+    function gameWin() {
+      gameRunning = false;
+      gameWon = true;
+      overlayTitle.textContent = "You Win! 🎉";
+      overlayMessage.textContent = "You ate " + WIN_SCORE + " apples!";
+      finalScoreSpan.textContent = score;
+      gameOverlay.classList.add("show");
+    }
+    
+    function restartGame() {
+      // Reset game state
+      gameRunning = true;
+      gameWon = false;
+      score = 0;
+      updateScoreDisplay();
+      
+      // Reset snake
+      snakeHeadGroup.position.set(0, 1, 0);
+      snakeHeadGroup.rotation.y = 0;
+      
+      // Clear body segments
+      segments.forEach(seg => scene.remove(seg));
+      segments.length = 0;
+      headPositions.length = 0;
+      
+      // Reset apple position
+      randomApplePosition();
+      
+      // Hide overlay
+      gameOverlay.classList.remove("show");
+    }
+    
+    restartBtn.addEventListener("click", restartGame);
+
+    // Head path history for body following
+    const headPositions = [];
+    const maxHistory = 10000; // large buffer
+
+    // Movement
+    const clock = new THREE.Clock();
+    let snakeSpeed = 10; // units per second
+    let turnInput = 0;   // -1 to +1 based on drag
+
+    // Input handling (mouse + touch)
+    let isPointerDown = false;
+    let lastPointerX = 0;
+
+    function onPointerDown(x) {
+      if (!gameRunning) return;
+      isPointerDown = true;
+      lastPointerX = x;
+    }
+
+    function onPointerMove(x) {
+      if (!isPointerDown || !gameRunning) return;
+      const deltaX = x - lastPointerX;
+      lastPointerX = x;
+      // Adjust sensitivity as needed
+      const sensitivity = 0.002;
+      turnInput = deltaX * sensitivity;
+    }
+
+    function onPointerUp() {
+      isPointerDown = false;
+      turnInput = 0;
+    }
+
+    // Mouse events
+    window.addEventListener("mousedown", (e) => onPointerDown(e.clientX));
+    window.addEventListener("mousemove", (e) => onPointerMove(e.clientX));
+    window.addEventListener("mouseup", onPointerUp);
+
+    // Touch events
+    window.addEventListener("touchstart", (e) => {
+      if (e.touches.length > 0) {
+        onPointerDown(e.touches[0].clientX);
+      }
+    });
+    window.addEventListener("touchmove", (e) => {
+      if (e.touches.length > 0) {
+        onPointerMove(e.touches[0].clientX);
+      }
+    });
+    window.addEventListener("touchend", onPointerUp);
+    window.addEventListener("touchcancel", onPointerUp);
+
+    // Camera offset
+    const cameraOffset = new THREE.Vector3(0, 8, -15);
+
+    // Helper vector reused
+    const forward = new THREE.Vector3();
+
+    // Main animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      if (!gameRunning) {
+        renderer.render(scene, camera);
+        return;
+      }
+      
+      const deltaTime = clock.getDelta();
+
+      // Rotate snake based on input (yaw around Y)
+      snakeHeadGroup.rotation.y -= turnInput; // sign chosen for natural feel
+
+      // Move snake forward
+      forward.set(0, 0, 1);
+      forward.applyEuler(snakeHeadGroup.rotation);
+      forward.normalize();
+      snakeHeadGroup.position.addScaledVector(forward, snakeSpeed * deltaTime);
+
+      // Check wall collision (end game if outside bounds) - make it get much closer to wall
+      const headRadius = 0.3; // Much smaller so snake gets closer to wall before hitting
+      if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
+          snakeHeadGroup.position.x >= arenaSize - headRadius ||
+          snakeHeadGroup.position.z <= -arenaSize + headRadius || 
+          snakeHeadGroup.position.z >= arenaSize - headRadius) {
+        gameOver("You hit the wall!");
+        return;
+      }
+      
+      // Clamp position to prevent going further out
+      snakeHeadGroup.position.x = Math.max(-arenaSize + headRadius, Math.min(arenaSize - headRadius, snakeHeadGroup.position.x));
+      snakeHeadGroup.position.z = Math.max(-arenaSize + headRadius, Math.min(arenaSize - headRadius, snakeHeadGroup.position.z));
+
+      // Record head position in history (only X and Z, Y stays constant for snake-like movement)
+      const headPos = snakeHeadGroup.position.clone();
+      headPos.y = 1.0; // Keep head at consistent height
+      headPositions.push(headPos);
+      if (headPositions.length > maxHistory) {
+        headPositions.shift();
+      }
+
+      // Update body segment positions - keep them on the ground like a snake
+      for (let i = 0; i < segments.length; i++) {
+        const index = headPositions.length - 1 - (i + 1) * segmentSpacing;
+        if (index < 0) continue;
+        const pos = headPositions[Math.floor(index)];
+        // Keep segments on the ground (Y = 0.8 for 0.8 radius sphere to sit on ground)
+        segments[i].position.set(pos.x, 0.8, pos.z);
+      }
+
+      // Apple collision
+      const eatRadius = 1.5;
+      if (snakeHeadGroup.position.distanceTo(apple.position) < eatRadius) {
+        // Eat apple
+        score += 1;
+        updateScoreDisplay();
+        addSegment();
+        randomApplePosition();
+        
+        // Check win condition
+        if (score >= WIN_SCORE) {
+          gameWin();
+          return;
+        }
+      }
+
+      // Camera follow
+      const desiredCameraPos = cameraOffset.clone();
+      desiredCameraPos.applyEuler(snakeHeadGroup.rotation);
+      desiredCameraPos.add(snakeHeadGroup.position);
+
+      camera.position.lerp(desiredCameraPos, 0.1);
+      camera.lookAt(snakeHeadGroup.position);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Handle resize
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
