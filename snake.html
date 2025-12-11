@@ -545,15 +545,18 @@
     }
     updateScoreDisplay();
     
+    let nameSubmitted = false; // Track if name has been submitted for this game
+    
     async function gameOver(reason) {
       gameRunning = false;
+      nameSubmitted = false; // Reset for new game
       overlayTitle.textContent = "Game Over!";
       overlayMessage.textContent = reason;
       finalScoreSpan.textContent = score;
       
       // Check if score qualifies for leaderboard
       const qualifies = await isTopScore(score);
-      if (qualifies) {
+      if (qualifies && !nameSubmitted) {
         nameEntry.classList.add("show");
         nameInput.focus();
         nameInput.value = "";
@@ -568,13 +571,14 @@
     async function gameWin() {
       gameRunning = false;
       gameWon = true;
+      nameSubmitted = false; // Reset for new game
       overlayTitle.textContent = "You Win! 🎉";
       overlayMessage.textContent = "You ate " + WIN_SCORE + " apples!";
       finalScoreSpan.textContent = score;
       
       // Check if score qualifies for leaderboard
       const qualifies = await isTopScore(score);
-      if (qualifies) {
+      if (qualifies && !nameSubmitted) {
         nameEntry.classList.add("show");
         nameInput.focus();
         nameInput.value = "";
@@ -587,11 +591,25 @@
     }
     
     async function submitName() {
+      // Prevent double submission
+      if (nameSubmitted) {
+        console.log("⚠️ Name already submitted for this game");
+        return;
+      }
+      
       const name = nameInput.value.trim() || "Anonymous";
       currentPlayerName = name;
       
+      // Mark as submitted immediately
+      nameSubmitted = true;
+      
       // Log the score being saved for debugging
       console.log("💾 Saving score:", name, score);
+      
+      // Hide name entry immediately to prevent re-submission
+      nameEntry.classList.remove("show");
+      nameInput.value = ""; // Clear the input
+      submitNameBtn.disabled = true; // Disable button to prevent double-submit
       
       const updatedScores = await addHighScore(name, score);
       
@@ -600,11 +618,13 @@
         entry.name === name && entry.score === score
       );
       
-      // Hide name entry
-      nameEntry.classList.remove("show");
-      
       // Update leaderboard with highlight
       await displayLeaderboard(newIndex);
+      
+      // Re-enable button after a short delay (though it won't matter since nameSubmitted is true)
+      setTimeout(() => {
+        submitNameBtn.disabled = false;
+      }, 1000);
     }
     
     submitNameBtn.addEventListener("click", submitName);
@@ -618,6 +638,7 @@
       // Reset game state
       gameRunning = true;
       gameWon = false;
+      nameSubmitted = false; // Reset submission flag
       score = 0;
       updateScoreDisplay();
       
@@ -636,6 +657,7 @@
       // Hide overlay and name entry
       gameOverlay.classList.remove("show");
       nameEntry.classList.remove("show");
+      submitNameBtn.disabled = false; // Re-enable button
     }
     
     restartBtn.addEventListener("click", restartGame);
