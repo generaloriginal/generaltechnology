@@ -493,12 +493,6 @@
     async function addHighScore(name, score) {
       console.log("🎯 addHighScore called with:", name, "score:", score);
       
-      // Don't save scores of 0
-      if (score === 0 || score < 0) {
-        console.warn("⚠️ Not saving score of 0 or negative");
-        return await getHighScores();
-      }
-      
       const scores = await getHighScores();
       const date = new Date().toLocaleDateString();
       
