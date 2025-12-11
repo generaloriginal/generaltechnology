@@ -431,14 +431,16 @@
             console.warn("Could not delete old scores:", await deleteResponse.text());
           }
           
-          // Insert new scores one by one (Supabase REST API handles arrays)
+          // Insert new scores - Supabase supports array inserts
           if (scores.length > 0) {
             // Prepare data - only send name, score, date (id and created_at are auto)
             const recordsToInsert = scores.map(s => ({
-              name: s.name,
-              score: s.score,
+              name: s.name || "Anonymous",
+              score: parseInt(s.score) || 0,
               date: s.date || new Date().toLocaleDateString()
             }));
+            
+            console.log("📤 Inserting scores:", recordsToInsert);
             
             const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
               method: 'POST',
@@ -446,17 +448,19 @@
                 'apikey': SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
                 'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
+                'Prefer': 'return=representation'
               },
               body: JSON.stringify(recordsToInsert)
             });
             
             if (response.ok) {
-              console.log("✅ Leaderboard updated on Supabase server");
+              const result = await response.json();
+              console.log("✅ Leaderboard updated on Supabase server:", result.length, "entries saved");
               return;
             } else {
               const errorText = await response.text();
               console.error("❌ Error saving to Supabase:", response.status, errorText);
+              console.error("   Attempted to save:", recordsToInsert);
             }
           } else {
             console.log("No scores to save");
@@ -560,6 +564,10 @@
     async function submitName() {
       const name = nameInput.value.trim() || "Anonymous";
       currentPlayerName = name;
+      
+      // Log the score being saved for debugging
+      console.log("💾 Saving score:", name, score);
+      
       const updatedScores = await addHighScore(name, score);
       
       // Find the index of the newly added score
