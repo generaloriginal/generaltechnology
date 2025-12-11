@@ -197,7 +197,7 @@
 </head>
 <body>
   <div id="score">Score: 0 / 50</div>
-  <div id="version">v1.0.3</div>
+  <div id="version">v1.0.4</div>
   <div id="gameOverlay">
     <h2 id="overlayTitle">Game Over!</h2>
     <p id="overlayMessage">You hit the wall!</p>
@@ -790,8 +790,8 @@
       snakeHeadGroup.position.addScaledVector(forward, snakeSpeed * deltaTime);
 
       // Check wall collision (end game if outside bounds) - make it get much closer to wall
-      // Using slightly less than head radius so head visually overlaps wall before collision
-      const headRadius = 0.5; // Head can visually go into wall a bit before collision
+      // Very small value so head gets extremely close to wall before collision
+      const headRadius = 0.05; // Head gets very close to wall, almost touching
       
       if (snakeHeadGroup.position.x <= -arenaSize + headRadius || 
           snakeHeadGroup.position.x >= arenaSize - headRadius ||
