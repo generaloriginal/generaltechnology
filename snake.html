@@ -378,7 +378,7 @@
     async function getHighScores() {
       if (useSupabase) {
         try {
-          const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=*&order=score.desc&limit=10`, {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?select=name,score,date&order=score.desc&limit=10`, {
             headers: {
               'apikey': SUPABASE_ANON_KEY,
               'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -388,14 +388,21 @@
           
           if (response.ok) {
             const scores = await response.json();
-            if (Array.isArray(scores)) {
+            console.log("📊 Fetched scores from Supabase:", scores.length, "entries");
+            if (Array.isArray(scores) && scores.length > 0) {
               // Also cache in localStorage as backup
               localStorage.setItem("snakeHighScores", JSON.stringify(scores));
               return scores;
+            } else if (Array.isArray(scores)) {
+              console.log("📭 No scores in database yet");
+              return [];
             }
+          } else {
+            const errorText = await response.text();
+            console.error("❌ Error fetching from Supabase:", response.status, errorText);
           }
         } catch (error) {
-          console.error("Error fetching scores from Supabase:", error);
+          console.error("❌ Error fetching scores from Supabase:", error);
         }
       }
       
@@ -410,9 +417,8 @@
       
       if (useSupabase) {
         try {
-          // Delete all existing scores and insert new ones
-          // First, delete all
-          await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+          // Delete all existing scores first
+          const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
             method: 'DELETE',
             headers: {
               'apikey': SUPABASE_ANON_KEY,
@@ -421,8 +427,19 @@
             }
           });
           
-          // Then insert new scores
+          if (!deleteResponse.ok) {
+            console.warn("Could not delete old scores:", await deleteResponse.text());
+          }
+          
+          // Insert new scores one by one (Supabase REST API handles arrays)
           if (scores.length > 0) {
+            // Prepare data - only send name, score, date (id and created_at are auto)
+            const recordsToInsert = scores.map(s => ({
+              name: s.name,
+              score: s.score,
+              date: s.date || new Date().toLocaleDateString()
+            }));
+            
             const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
               method: 'POST',
               headers: {
@@ -431,16 +448,21 @@
                 'Content-Type': 'application/json',
                 'Prefer': 'return=minimal'
               },
-              body: JSON.stringify(scores)
+              body: JSON.stringify(recordsToInsert)
             });
             
             if (response.ok) {
-              console.log("Leaderboard updated on Supabase server");
+              console.log("✅ Leaderboard updated on Supabase server");
               return;
+            } else {
+              const errorText = await response.text();
+              console.error("❌ Error saving to Supabase:", response.status, errorText);
             }
+          } else {
+            console.log("No scores to save");
           }
         } catch (error) {
-          console.error("Error saving scores to Supabase:", error);
+          console.error("❌ Error saving scores to Supabase:", error);
         }
       }
       
