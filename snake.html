@@ -698,10 +698,12 @@
       score = 0;
       updateScoreDisplay();
       
-      // Reset apples
-      apples.forEach(apple => {
-        randomApplePosition(apple);
-      });
+      // Reset apples - remove all and recreate
+      apples.forEach(apple => scene.remove(apple));
+      apples.length = 0;
+      for (let i = 0; i < MAX_APPLES; i++) {
+        createApple();
+      }
       
       // Hide overlay and name entry
       gameOverlay.classList.remove("show");
