@@ -133,7 +133,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.5</div>
+    <div id="version">v1.0.6</div>
   </div>
 
 <script>
@@ -667,7 +667,7 @@ async function addHighScore(name, score, accuracy) {
 async function displayLeaderboard() {
   const scores = await getHighScores();
   if (scores.length === 0) {
-    lbBody.innerHTML = '<tr><td colspan="4" class="tiny">No scores yet.</td></tr>';
+    lbBody.innerHTML = '<tr><td colspan="5" class="tiny">No scores yet.</td></tr>';
     return;
   }
   
