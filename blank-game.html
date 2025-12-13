@@ -694,9 +694,8 @@ renderStats();
 async function getHighScores() {
   if (useSupabase) {
     try {
-      // Fetch more than 10 to allow for client-side normalization sorting
-      // Try to fetch with new columns, but fall back if they don't exist
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy&order=score.desc&limit=50`, {
+      // Try to fetch with new columns first (email, pack)
+      let response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy,email,pack&order=score.desc&limit=50`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -705,6 +704,20 @@ async function getHighScores() {
           'Prefer': 'return=representation'
         }
       });
+      
+      // If that fails (columns don't exist), try without email and pack
+      if (!response.ok && response.status !== 404) {
+        console.log("⚠️ Trying fetch without email/pack columns...");
+        response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy&order=score.desc&limit=50`, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          }
+        });
+      }
       
       if (response.ok) {
         const scores = await response.json();
@@ -776,8 +789,8 @@ async function saveHighScores(scores) {
   
   if (useSupabase) {
     try {
-      // Get current IDs
-      const currentResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=id`, {
+      // Get ALL existing scores from database first
+      const getAllResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=*&limit=1000`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -786,36 +799,74 @@ async function saveHighScores(scores) {
         }
       });
       
-      if (currentResponse.ok) {
-        const currentScores = await currentResponse.json();
-        const currentIds = currentScores.map(s => s.id);
-        
-        // Delete existing scores
-        if (currentIds.length > 0) {
-          const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?id=in.(${currentIds.join(',')})`, {
-            method: 'DELETE',
-            headers: {
-              'apikey': SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=representation'
-            }
-          });
-        }
+      let existingScores = [];
+      if (getAllResponse.ok) {
+        existingScores = await getAllResponse.json();
+        console.log("📊 Found", existingScores.length, "existing scores in database");
       }
       
-      // Insert new scores
-      if (scores.length > 0) {
-        // Remove accuracy field if it's null/undefined to avoid column errors
-        // (The accuracy column may not exist in the database yet)
-        const scoresToSave = scores.map(s => {
+      // Merge existing scores with new scores, avoiding duplicates
+      const scoreMap = new Map();
+      
+      // Add existing scores to map
+      existingScores.forEach(s => {
+        const key = `${s.name}_${s.score}_${s.date}`;
+        scoreMap.set(key, {
+          name: s.name,
+          score: s.score,
+          date: s.date,
+          duration: s.duration || 30,
+          accuracy: s.accuracy || null,
+          email: s.email || null,
+          pack: s.pack || null
+        });
+      });
+      
+      // Add/update with new scores
+      scores.forEach(s => {
+        const key = `${s.name}_${s.score}_${s.date}`;
+        scoreMap.set(key, s);
+      });
+      
+      // Convert back to array, sort, and keep top 10
+      const allScores = Array.from(scoreMap.values());
+      allScores.sort((a, b) => {
+        const aNorm = a.duration ? a.score / a.duration : 0;
+        const bNorm = b.duration ? b.score / b.duration : 0;
+        return bNorm - aNorm;
+      });
+      const topScores = allScores.slice(0, 10);
+      
+      // Get IDs of scores to delete (ones not in top 10)
+      const topKeys = new Set(topScores.map(s => `${s.name}_${s.score}_${s.date}`));
+      const idsToDelete = existingScores
+        .filter(s => !topKeys.has(`${s.name}_${s.score}_${s.date}`))
+        .map(s => s.id);
+      
+      // Delete scores that are no longer in top 10
+      if (idsToDelete.length > 0) {
+        const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?id=in.(${idsToDelete.join(',')})`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      
+      // Insert/update scores that are new or changed
+      const existingKeys = new Set(existingScores.map(s => `${s.name}_${s.score}_${s.date}`));
+      const newScores = topScores.filter(s => !existingKeys.has(`${s.name}_${s.score}_${s.date}`));
+      
+      if (newScores.length > 0) {
+        const scoresToSave = newScores.map(s => {
           const scoreData = {
             name: s.name,
             score: s.score,
             date: s.date,
             duration: s.duration
           };
-          // Only include optional fields if they're not null/undefined
           if (s.accuracy != null) {
             scoreData.accuracy = s.accuracy;
           }
@@ -841,16 +892,15 @@ async function saveHighScores(scores) {
         
         if (response.ok) {
           const result = await response.json();
-          console.log("✅ Leaderboard updated! Saved", result.length, "entries to Supabase");
+          console.log("✅ Leaderboard updated! Saved", result.length, "new entries to Supabase");
           supabaseSuccess = true;
         } else {
           const errorText = await response.text();
           console.error("❌ Error saving to Supabase:", response.status, errorText);
-          // If table doesn't exist (404), fall back to localStorage
-          if (response.status === 404) {
-            console.log("⚠️ Supabase table not found, using localStorage");
-          }
         }
+      } else {
+        console.log("✅ No new scores to add");
+        supabaseSuccess = true;
       }
     } catch (error) {
       console.error("❌ Error saving scores to Supabase:", error);
