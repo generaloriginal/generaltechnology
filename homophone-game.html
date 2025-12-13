@@ -133,7 +133,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.4</div>
+    <div id="version">v1.0.5</div>
   </div>
 
 <script>
@@ -521,7 +521,10 @@ async function getHighScores() {
         const mapped = scores.map(s => ({
           name: s.name || "Anonymous",
           score: s.score || 0,
-          date: s.date || new Date().toLocaleDateString(),
+          date: s.date || (() => {
+            const now = new Date();
+            return now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          })(),
           duration: s.duration || 30, // Default to 30 if missing
           accuracy: s.accuracy || null
         }));
@@ -639,7 +642,8 @@ async function saveHighScores(scores) {
 
 async function addHighScore(name, score, accuracy) {
   const scores = await getHighScores();
-  const date = new Date().toLocaleDateString();
+  const now = new Date();
+  const date = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const duration = selectedDuration; // Store the duration used for this game
   
   // Remove any existing entry with same name and score (avoid duplicates)
