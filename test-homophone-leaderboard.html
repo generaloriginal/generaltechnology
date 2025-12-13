@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Homophone Leaderboard</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #0b1020;
+      color: #eef1ff;
+    }
+    .section {
+      background: rgba(18,26,51,.92);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    button {
+      background: rgba(96,165,250,.35);
+      border: 1px solid rgba(96,165,250,.45);
+      color: #eef1ff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: rgba(96,165,250,.5);
+    }
+    .error {
+      color: #fb7185;
+    }
+    .success {
+      color: #2dd4bf;
+    }
+    pre {
+      background: rgba(0,0,0,.3);
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Homophone Leaderboard Diagnostic</h1>
+  
+  <div class="section">
+    <h2>Supabase Connection</h2>
+    <div id="connection-status">Checking...</div>
+    <button onclick="testConnection()">Test Connection</button>
+  </div>
+
+  <div class="section">
+    <h2>Read Scores</h2>
+    <button onclick="readScores()">Read All Scores</button>
+    <div id="read-results"></div>
+  </div>
+
+  <div class="section">
+    <h2>Write Test Score</h2>
+    <button onclick="writeTestScore()">Add Test Score</button>
+    <div id="write-results"></div>
+  </div>
+
+  <div class="section">
+    <h2>Delete All Scores</h2>
+    <button onclick="deleteAllScores()" style="background: rgba(251,113,133,.35); border-color: rgba(251,113,133,.45);">Delete All</button>
+    <div id="delete-results"></div>
+  </div>
+
+  <div class="section">
+    <h2>Raw Data</h2>
+    <pre id="raw-data"></pre>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://bmnixnmqferqlcxublii.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_IidrOPKjc9tkqOwjJMhrrQ_z35awXmc';
+    const LEADERBOARD_TABLE = 'homophone_leaderboard';
+
+    async function testConnection() {
+      const statusDiv = document.getElementById('connection-status');
+      statusDiv.textContent = 'Testing...';
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=count`, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          statusDiv.innerHTML = '<span class="success">✅ Connected to Supabase</span>';
+        } else {
+          const errorText = await response.text();
+          statusDiv.innerHTML = `<span class="error">❌ Error: ${response.status} - ${errorText}</span>`;
+        }
+      } catch (error) {
+        statusDiv.innerHTML = `<span class="error">❌ Connection failed: ${error.message}</span>`;
+      }
+    }
+
+    async function readScores() {
+      const resultsDiv = document.getElementById('read-results');
+      resultsDiv.textContent = 'Reading...';
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=*&order=id.desc`, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const scores = await response.json();
+          document.getElementById('raw-data').textContent = JSON.stringify(scores, null, 2);
+          
+          if (scores.length === 0) {
+            resultsDiv.innerHTML = '<span class="error">No scores found in database</span>';
+          } else {
+            let html = `<p class="success">Found ${scores.length} score(s):</p>`;
+            html += '<table><thead><tr><th>ID</th><th>Name</th><th>Score</th><th>Duration</th><th>Accuracy</th><th>Date</th></tr></thead><tbody>';
+            scores.forEach(s => {
+              html += `<tr>
+                <td>${s.id}</td>
+                <td>${s.name || 'N/A'}</td>
+                <td>${s.score || 0}</td>
+                <td>${s.duration || 'N/A'}</td>
+                <td>${s.accuracy || 'N/A'}</td>
+                <td>${s.date || 'N/A'}</td>
+              </tr>`;
+            });
+            html += '</tbody></table>';
+            resultsDiv.innerHTML = html;
+          }
+        } else {
+          const errorText = await response.text();
+          resultsDiv.innerHTML = `<span class="error">❌ Error: ${response.status} - ${errorText}</span>`;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    async function writeTestScore() {
+      const resultsDiv = document.getElementById('write-results');
+      resultsDiv.textContent = 'Writing...';
+      
+      const testScore = {
+        name: 'Test User',
+        score: 25,
+        date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        duration: 30,
+        accuracy: 85
+      };
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(testScore)
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          resultsDiv.innerHTML = `<span class="success">✅ Test score added! ID: ${result[0].id}</span>`;
+          readScores(); // Refresh the list
+        } else {
+          const errorText = await response.text();
+          resultsDiv.innerHTML = `<span class="error">❌ Error: ${response.status} - ${errorText}</span>`;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    async function deleteAllScores() {
+      if (!confirm('Are you sure you want to delete ALL scores?')) return;
+      
+      const resultsDiv = document.getElementById('delete-results');
+      resultsDiv.textContent = 'Deleting...';
+      
+      try {
+        // First get all IDs
+        const getResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=id`, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (getResponse.ok) {
+          const scores = await getResponse.json();
+          if (scores.length === 0) {
+            resultsDiv.innerHTML = '<span class="error">No scores to delete</span>';
+            return;
+          }
+          
+          const ids = scores.map(s => s.id);
+          const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?id=in.(${ids.join(',')})`, {
+            method: 'DELETE',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (deleteResponse.ok) {
+            resultsDiv.innerHTML = `<span class="success">✅ Deleted ${ids.length} score(s)</span>`;
+            readScores(); // Refresh the list
+          } else {
+            const errorText = await deleteResponse.text();
+            resultsDiv.innerHTML = `<span class="error">❌ Error: ${deleteResponse.status} - ${errorText}</span>`;
+          }
+        } else {
+          const errorText = await getResponse.text();
+          resultsDiv.innerHTML = `<span class="error">❌ Error fetching IDs: ${errorText}</span>`;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    // Auto-run connection test on load
+    window.onload = () => {
+      testConnection();
+      readScores();
+    };
+  </script>
+</body>
+</html>
+
