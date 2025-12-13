@@ -667,10 +667,11 @@ saveBtn.onclick=async function(e){
   const name=nameInput.value.trim()||"Anonymous";
   if(!name)return;
   const currentScore=score; // Capture current score
+  const currentAccuracy=total?Math.round(correct/total*100):100; // Capture current accuracy
   nameSubmitted=true;
   saveBtn.disabled=true;
   try {
-    await addHighScore(name,currentScore);
+    await addHighScore(name,currentScore,currentAccuracy);
     await displayLeaderboard();
     elToast.textContent=`Score saved!`;
     elToast.className="toast good";
