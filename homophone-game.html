@@ -47,7 +47,8 @@
     }
     .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
     .answers.three{grid-template-columns:repeat(3,minmax(0,1fr))}
-    @media (max-width:560px){.answers.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    .answers.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+    @media (max-width:560px){.answers.three{grid-template-columns:repeat(2,minmax(0,1fr))}.answers.five{grid-template-columns:repeat(3,minmax(0,1fr))}}
     button{
       cursor:pointer;border:1px solid rgba(255,255,255,.14);
       background:rgba(255,255,255,.07);color:var(--text);
@@ -136,8 +137,10 @@
       <div class="card">
         <label>Pack</label>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
-          <button class="packBtn" id="packBtn2" data-words="2">2 words</button>
-          <button class="packBtn" id="packBtn3" data-words="3">3 words</button>
+          <button class="packBtn" id="packBtnHomophone2" data-category="homophone" data-words="2">Homophone 2 word</button>
+          <button class="packBtn" id="packBtnHomophone3" data-category="homophone" data-words="3">Homophone 3 word</button>
+          <button class="packBtn" id="packBtnTenses" data-category="tenses">Tenses</button>
+          <button class="packBtn" id="packBtnPrepositions" data-category="prepositions">Prepositions</button>
         </div>
 
         <label style="margin-top:14px;">Round length</label>
@@ -177,6 +180,7 @@ const PACKS = [
   {
     id: "bad_bed",
     title: "BAD vs BED (2 words)",
+    category: "homophone",
     options: ["bad","bed"],
     hint: "",
     items: [
@@ -195,6 +199,7 @@ const PACKS = [
   {
     id: "right_write",
     title: "RIGHT vs WRITE (2 words)",
+    category: "homophone",
     options: ["right","write"],
     hint: "",
     items: [
@@ -213,6 +218,7 @@ const PACKS = [
   {
     id: "here_hear",
     title: "HERE vs HEAR (2 words)",
+    category: "homophone",
     options: ["here","hear"],
     hint: "",
     items: [
@@ -231,6 +237,7 @@ const PACKS = [
   {
     id: "see_sea",
     title: "SEE vs SEA (2 words)",
+    category: "homophone",
     options: ["see","sea"],
     hint: "",
     items: [
@@ -249,6 +256,7 @@ const PACKS = [
   {
     id: "meat_meet",
     title: "MEAT vs MEET (2 words)",
+    category: "homophone",
     options: ["meat","meet"],
     hint: "",
     items: [
@@ -267,6 +275,7 @@ const PACKS = [
   {
     id: "peace_piece",
     title: "PEACE vs PIECE (2 words)",
+    category: "homophone",
     options: ["peace","piece"],
     hint: "",
     items: [
@@ -285,6 +294,7 @@ const PACKS = [
   {
     id: "break_brake",
     title: "BREAK vs BRAKE (2 words)",
+    category: "homophone",
     options: ["break","brake"],
     hint: "",
     items: [
@@ -303,6 +313,7 @@ const PACKS = [
   {
     id: "buy_by",
     title: "BUY vs BY (2 words)",
+    category: "homophone",
     options: ["buy","by"],
     hint: "",
     items: [
@@ -321,6 +332,7 @@ const PACKS = [
   {
     id: "to_too_two",
     title: "TO / TOO / TWO (3 words)",
+    category: "homophone",
     options: ["to","too","two"],
     hint: "",
     items: [
@@ -341,6 +353,7 @@ const PACKS = [
   {
     id: "their_there_theyre",
     title: "THEIR / THERE / THEY'RE (3 words)",
+    category: "homophone",
     options: ["their","there","they're"],
     hint: "",
     items: [
@@ -361,6 +374,7 @@ const PACKS = [
   {
     id: "your_youre_yore",
     title: "YOUR / YOU'RE / YORE (3 words)",
+    category: "homophone",
     options: ["your","you're","yore"],
     hint: "",
     items: [
@@ -381,6 +395,7 @@ const PACKS = [
   {
     id: "where_wear_ware",
     title: "WHERE / WEAR / WARE (3 words)",
+    category: "homophone",
     options: ["where","wear","ware"],
     hint: "",
     items: [
@@ -401,6 +416,7 @@ const PACKS = [
   {
     id: "its_its",
     title: "ITS / IT'S (2 words)",
+    category: "homophone",
     options: ["its","it's"],
     hint: "",
     items: [
@@ -414,6 +430,67 @@ const PACKS = [
       { s: "____ important to study hard.", a: "it's", e: "" },
       { s: "The car lost ____ mirror.", a: "its", e: "" },
       { s: "____ been a long week.", a: "it's", e: "" }
+    ]
+  },
+  {
+    id: "tenses_past_present_future",
+    title: "TENSES: Past / Present / Future",
+    category: "tenses",
+    options: ["went","go","will"],
+    hint: "",
+    items: [
+      { s: "I ____ to the store yesterday.", a: "went", e: "" },
+      { s: "I ____ to school every day.", a: "go", e: "" },
+      { s: "I ____ visit my family next week.", a: "will", e: "" },
+      { s: "She ____ to the library last week.", a: "went", e: "" },
+      { s: "She ____ to work every morning.", a: "go", e: "" },
+      { s: "She ____ start a new job tomorrow.", a: "will", e: "" },
+      { s: "We ____ to the park yesterday.", a: "went", e: "" },
+      { s: "We ____ to the gym every week.", a: "go", e: "" },
+      { s: "We ____ have a party next Saturday.", a: "will", e: "" },
+      { s: "They ____ to the beach last weekend.", a: "went", e: "" },
+      { s: "They ____ to church every Sunday.", a: "go", e: "" },
+      { s: "They ____ travel to Europe next year.", a: "will", e: "" },
+      { s: "He ____ to the doctor last month.", a: "went", e: "" },
+      { s: "He ____ to class every day.", a: "go", e: "" },
+      { s: "He ____ graduate in June.", a: "will", e: "" },
+      { s: "I ____ to the movies last Friday.", a: "went", e: "" },
+      { s: "I ____ to the store on weekends.", a: "go", e: "" },
+      { s: "I ____ see a new movie this weekend.", a: "will", e: "" }
+    ]
+  },
+  {
+    id: "prepositions_in_on_at_about_with",
+    title: "PREPOSITIONS: In / On / At / About / With",
+    category: "prepositions",
+    options: ["in","on","at","about","with"],
+    hint: "",
+    items: [
+      { s: "I live ____ New York.", a: "in", e: "" },
+      { s: "The book is ____ the table.", a: "on", e: "" },
+      { s: "I'll meet you ____ 3 o'clock.", a: "at", e: "" },
+      { s: "What are you talking ____?", a: "about", e: "" },
+      { s: "I went ____ my friend.", a: "with", e: "" },
+      { s: "She works ____ a hospital.", a: "in", e: "" },
+      { s: "The picture is hanging ____ the wall.", a: "on", e: "" },
+      { s: "We'll arrive ____ the airport.", a: "at", e: "" },
+      { s: "Tell me ____ your day.", a: "about", e: "" },
+      { s: "I agree ____ you.", a: "with", e: "" },
+      { s: "The cat is ____ the box.", a: "in", e: "" },
+      { s: "Put your shoes ____ the floor.", a: "on", e: "" },
+      { s: "I'll see you ____ school.", a: "at", e: "" },
+      { s: "I'm thinking ____ you.", a: "about", e: "" },
+      { s: "She lives ____ her parents.", a: "with", e: "" },
+      { s: "I'm ____ the kitchen.", a: "in", e: "" },
+      { s: "The keys are ____ the door.", a: "on", e: "" },
+      { s: "Let's meet ____ the park.", a: "at", e: "" },
+      { s: "What is this book ____?", a: "about", e: "" },
+      { s: "I'll come ____ you.", a: "with", e: "" },
+      { s: "She's ____ trouble.", a: "in", e: "" },
+      { s: "The pen is ____ my desk.", a: "on", e: "" },
+      { s: "I'll be there ____ noon.", a: "at", e: "" },
+      { s: "I'm worried ____ you.", a: "about", e: "" },
+      { s: "Can I help ____ that?", a: "with", e: "" }
     ]
   }
 ];
@@ -454,7 +531,8 @@ const lbBody=document.getElementById("lbBody");
 let currentPack=null,currentItem=null;
 let timer=null,running=false,timeLeft=30;
 let score=0,streak=0,correct=0,total=0;
-let selectedWordCount=2; // Default to 2 words
+let selectedCategory="homophone"; // Default category
+let selectedWordCount=2; // For homophone packs
 let selectedDuration=30; // Default to 30 seconds
 let nameSubmitted=false;
 let prevScore=0,prevAcc=100,prevTime=30;
@@ -500,7 +578,10 @@ function nextQ(){
   currentItem=pick(currentPack.items);
   elSentence.textContent=currentItem.s;
   elAnswers.innerHTML="";
-  elAnswers.className="answers"+(currentPack.options.length===3?" three":"");
+  let className="answers";
+  if(currentPack.options.length===3)className+=" three";
+  else if(currentPack.options.length===5)className+=" five";
+  elAnswers.className=className;
   shuffle(currentPack.options).forEach(w=>{
     const b=document.createElement("button");
     b.className="ansBtn";
@@ -542,16 +623,28 @@ function end(){
 }
 function resetGame(){if(timer)clearInterval(timer);running=false;score=streak=correct=total=0;timeLeft=selectedDuration;prevScore=0;prevAcc=100;prevTime=selectedDuration;renderStats();if(currentPack)nextQ()}
 
-function setPackByWordCount(wordCount){
-  selectedWordCount=wordCount;
-  const availablePacks=PACKS.filter(p=>p.options.length===wordCount);
+function setPackByCategory(category,wordCount=null){
+  selectedCategory=category;
+  if(wordCount)selectedWordCount=wordCount;
+  let availablePacks;
+  if(category==="homophone"&&wordCount){
+    availablePacks=PACKS.filter(p=>p.category==="homophone"&&p.options.length===wordCount);
+  }else{
+    availablePacks=PACKS.filter(p=>p.category===category);
+  }
   if(availablePacks.length>0){
     currentPack=pick(availablePacks);
     resetGame();
   }
   // Update button states
   document.querySelectorAll('.packBtn').forEach(btn=>{
-    btn.classList.toggle('active',btn.dataset.words==wordCount);
+    const btnCategory=btn.dataset.category;
+    const btnWords=btn.dataset.words;
+    if(category==="homophone"&&wordCount){
+      btn.classList.toggle('active',btnCategory===category&&btnWords==wordCount);
+    }else{
+      btn.classList.toggle('active',btnCategory===category);
+    }
   });
 }
 
@@ -566,8 +659,10 @@ function setDuration(duration){
 }
 
 // Pack selection buttons
-document.getElementById("packBtn2").onclick=()=>setPackByWordCount(2);
-document.getElementById("packBtn3").onclick=()=>setPackByWordCount(3);
+document.getElementById("packBtnHomophone2").onclick=()=>setPackByCategory("homophone",2);
+document.getElementById("packBtnHomophone3").onclick=()=>setPackByCategory("homophone",3);
+document.getElementById("packBtnTenses").onclick=()=>setPackByCategory("tenses");
+document.getElementById("packBtnPrepositions").onclick=()=>setPackByCategory("prepositions");
 
 // Duration selection buttons
 document.getElementById("durationBtn15").onclick=()=>setDuration(15);
@@ -579,7 +674,7 @@ startBtn.onclick=start;
 resetBtn.onclick=resetGame;
 
 // Initialize with default pack
-setPackByWordCount(2);
+setPackByCategory("homophone",2);
 setDuration(30); // Default to 30 seconds
 renderStats();
 
