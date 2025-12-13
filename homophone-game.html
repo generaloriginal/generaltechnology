@@ -107,6 +107,7 @@
 
         <label style="margin-top:14px;">Round length</label>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+          <button class="durationBtn" id="durationBtn15" data-duration="15">15 seconds</button>
           <button class="durationBtn" id="durationBtn30" data-duration="30">30 seconds</button>
           <button class="durationBtn" id="durationBtn60" data-duration="60">60 seconds</button>
           <button class="durationBtn" id="durationBtn90" data-duration="90">90 seconds</button>
@@ -133,7 +134,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.7</div>
+    <div id="version">v1.0.8</div>
   </div>
 
 <script>
@@ -487,6 +488,7 @@ document.getElementById("packBtn2").onclick=()=>setPackByWordCount(2);
 document.getElementById("packBtn3").onclick=()=>setPackByWordCount(3);
 
 // Duration selection buttons
+document.getElementById("durationBtn15").onclick=()=>setDuration(15);
 document.getElementById("durationBtn30").onclick=()=>setDuration(30);
 document.getElementById("durationBtn60").onclick=()=>setDuration(60);
 document.getElementById("durationBtn90").onclick=()=>setDuration(90);
