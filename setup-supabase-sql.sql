@@ -20,3 +20,4 @@ CREATE INDEX IF NOT EXISTS idx_leaderboard_created_at ON leaderboard(created_at 
 -- Verify the table was created
 SELECT * FROM leaderboard LIMIT 1;
 
+

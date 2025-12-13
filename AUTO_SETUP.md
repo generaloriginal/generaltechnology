@@ -42,3 +42,4 @@ The game will automatically:
 - Write new scores to Supabase
 - Show shared leaderboard to all players
 
+

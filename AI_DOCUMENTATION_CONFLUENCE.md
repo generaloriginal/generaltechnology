@@ -1,0 +1,266 @@
+# General Technology - AI Assistant Documentation (Confluence Ready)
+
+**Purpose:** This document is formatted for Confluence import.
+
+**Last Updated:** 2025-01-27
+
+---
+
+## Confluence Page Content
+
+h1. General Technology - AI Assistant Documentation
+
+*Last Updated:* 2025-01-27
+
+----
+
+h2. Overview
+
+The General Technology project contains web-based games with persistent leaderboards powered by Supabase. The project includes:
+
+* *Snake Game* - Classic snake game with online leaderboard
+* *Homophone Game* - Word game with leaderboard tracking
+* *Launchpad* - Project landing page
+
+All games use Supabase for backend data storage and real-time leaderboard updates.
+
+----
+
+h2. Project Structure
+
+{code}
+generaltechnology/
+├── index.html              # Main landing page
+├── snake.html              # Snake game
+├── homophone-game.html     # Homophone game
+├── launchpad.html          # Launchpad page
+├── README.md               # Project overview
+├── AUTO_SETUP.md           # Quick setup guide
+├── SUPABASE_SETUP.md       # Detailed Supabase setup
+├── setup-supabase-sql.sql  # SQL setup script
+├── setup-supabase.js       # Node.js setup script
+└── *.sql                   # Database setup scripts
+{code}
+
+----
+
+h2. Key Components
+
+|||Component||Purpose||Location||
+|Snake Game|Classic snake game with leaderboard|snake.html|
+|Homophone Game|Word game with leaderboard|homophone-game.html|
+|Launchpad|Project landing page|launchpad.html|
+|Supabase Backend|Database and API for leaderboards|Supabase Cloud|
+|Setup Scripts|Automated database setup|setup-*.sql, setup-*.js|
+
+----
+
+h2. Architecture
+
+h3. System Architecture
+
+The project uses a client-server architecture:
+
+# *Frontend:* HTML/CSS/JavaScript games running in the browser
+# *Backend:* Supabase (PostgreSQL database + REST API)
+# *Data Flow:* Games → Supabase API → PostgreSQL → Leaderboard display
+
+*See diagrams section below for visual architecture diagrams.*
+
+h3. Leaderboard Flow
+
+# *Player completes game and submits score*
+# *Game sends POST request to Supabase API*
+# *Supabase stores score in {{leaderboard}} table*
+# *Game fetches top scores via GET request*
+# *Leaderboard displays in real-time*
+
+*See diagrams section below for detailed flow diagrams.*
+
+----
+
+h2. Setup & Configuration
+
+h3. Prerequisites
+
+* Supabase account (free tier available)
+* Web server (GitHub Pages, Netlify, or local server)
+
+h3. Quick Setup
+
+# *Create Supabase Project*
+** *Go to* {{https://supabase.com/}}
+** *Create new project*
+** *Get API keys (URL and anon key)*
+
+# *Run Database Setup*
+{code}
+# Option 1: SQL Script (Recommended)
+# Copy setup-supabase-sql.sql to Supabase SQL Editor and run
+
+# Option 2: Node.js Script
+SUPABASE_SERVICE_KEY=your_key node setup-supabase.js
+{code}
+
+# *Configure Games*
+** *Update {{SUPABASE_URL}} in game HTML files*
+** *Update {{SUPABASE_ANON_KEY}} in game HTML files*
+
+# *Deploy*
+** *Push to GitHub and enable Pages*
+** *Or deploy to Netlify/Vercel*
+
+h3. Database Schema
+
+*{{leaderboard}} table:*
+* {{id}} (uuid, primary key)
+* {{name}} (text) - Player name
+* {{score}} (int8) - Game score
+* {{date}} (text) - Date string
+* {{created_at}} (timestamp) - Auto-generated
+
+----
+
+h2. Games
+
+h3. Snake Game
+
+*File:* {{snake.html}}
+
+*Features:*
+* Classic snake gameplay
+* Online leaderboard
+* Score persistence
+* Real-time top scores display
+
+*Configuration:*
+{code}
+const SUPABASE_URL = 'https://xxxxx.supabase.co';
+const SUPABASE_ANON_KEY = 'your-anon-key';
+{code}
+
+h3. Homophone Game
+
+*File:* {{homophone-game.html}}
+
+*Features:*
+* Word matching game
+* Leaderboard tracking
+* Score persistence
+
+*Configuration:*
+Same Supabase configuration as Snake game.
+
+----
+
+h2. Supabase Configuration
+
+h3. API Keys
+
+* *Project URL:* Found in Settings → API
+* *anon public key:* Safe for client-side use
+* *service_role key:* Server-side only (never expose!)*
+
+h3. Row Level Security (RLS)
+
+For simplicity, RLS can be disabled for leaderboard table:
+* Allows public read/write access
+* Suitable for game leaderboards
+* Can be secured later with policies if needed
+
+h3. Free Tier Limits
+
+* 500 MB database storage
+* 2 GB bandwidth/month
+* More than enough for game leaderboards
+
+----
+
+h2. Development
+
+h3. Local Development
+
+# *Start local server:*
+{code}
+# Python
+python3 -m http.server 8000
+
+# Node.js
+npx http-server
+{code}
+
+# *Open in browser:*
+{code}
+http://localhost:8000/snake.html
+{code}
+
+h3. Testing
+
+# *Play game and submit score*
+# *Check Supabase Table Editor for new entry*
+# *Verify leaderboard updates in real-time*
+# *Test with multiple browsers/devices*
+
+----
+
+h2. Troubleshooting
+
+h3. Common Issues
+
+h4. Issue: Scores not saving
+
+* *Check Supabase API keys are correct*
+* *Verify database table exists*
+* *Check browser console for errors*
+* *Verify RLS is disabled or policy allows writes*
+
+h4. Issue: Leaderboard not loading
+
+* *Check network tab for API calls*
+* *Verify Supabase URL is correct*
+* *Check CORS settings in Supabase*
+* *Verify table has data*
+
+h4. Issue: GitHub secret scanning
+
+* *Anon key is safe to expose (designed for client-side)*
+* *If flagged, it's a false positive*
+* *Can safely allow in GitHub settings*
+
+----
+
+h2. Deployment
+
+h3. GitHub Pages
+
+# *Push code to GitHub repository*
+# *Go to Settings → Pages*
+# *Select branch (usually {{main}})*
+# *Site will be available at {{username.github.io/repo-name}}*
+
+h3. Netlify/Vercel
+
+# *Connect GitHub repository*
+# *Configure build settings (no build needed for static files)*
+# *Deploy automatically on push*
+
+----
+
+h2. Architecture Diagrams
+
+*See the diagrams page for visual representations of the system architecture, data flows, and setup workflows.*
+
+*[General Technology - Architecture Diagrams|General Technology - Architecture Diagrams]*
+
+----
+
+h2. Related Documentation
+
+* *[AUTO_SETUP.md|AUTO_SETUP.md]* - Quick setup guide
+* *[SUPABASE_SETUP.md|SUPABASE_SETUP.md]* - Detailed Supabase configuration
+* *[README.md|README.md]* - Project overview
+
+----
+
+*Last Updated:* 2025-01-27  
+*Maintained By:* Xavier

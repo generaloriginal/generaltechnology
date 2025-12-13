@@ -176,8 +176,8 @@
       <div class="card">
         <h1 style="margin:0 0 12px;font-size:20px">Leaderboard</h1>
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Score</th><th>Accuracy</th><th>When</th></tr></thead>
-          <tbody id="lbBody"><tr><td colspan="5" class="tiny">No scores yet.</td></tr></tbody>
+          <thead><tr><th>#</th><th>Name</th><th>Score</th><th>Accuracy</th><th>Pack</th><th>When</th></tr></thead>
+          <tbody id="lbBody"><tr><td colspan="6" class="tiny">No scores yet.</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -693,7 +693,7 @@ async function getHighScores() {
   if (useSupabase) {
     try {
       // Fetch more than 10 to allow for client-side normalization sorting
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy&order=score.desc&limit=50`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy,email,pack&order=score.desc&limit=50`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -715,7 +715,9 @@ async function getHighScores() {
             return now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
           })(),
           duration: s.duration || 30, // Default to 30 if missing
-          accuracy: s.accuracy || null
+          accuracy: s.accuracy || null,
+          email: s.email || null,
+          pack: s.pack || null
         }));
         // Sort by normalized score (score per second)
         mapped.sort((a, b) => {
@@ -744,9 +746,11 @@ async function getHighScores() {
     const scores = stored ? JSON.parse(stored) : [];
     if (scores.length > 0) {
       console.log("📊 Fetched scores from localStorage:", scores.length, "entries");
-      // Ensure all scores have duration (default to 30 if missing)
+      // Ensure all scores have required fields (defaults if missing)
       scores.forEach(s => {
         if (!s.duration) s.duration = 30;
+        if (!s.email) s.email = null;
+        if (!s.pack) s.pack = null;
       });
       // Sort by normalized score (score per second)
       scores.sort((a, b) => {
@@ -808,9 +812,15 @@ async function saveHighScores(scores) {
             date: s.date,
             duration: s.duration
           };
-          // Only include accuracy if it's not null/undefined
+          // Only include optional fields if they're not null/undefined
           if (s.accuracy != null) {
             scoreData.accuracy = s.accuracy;
+          }
+          if (s.email != null) {
+            scoreData.email = s.email;
+          }
+          if (s.pack != null) {
+            scoreData.pack = s.pack;
           }
           return scoreData;
         });
@@ -857,7 +867,7 @@ async function saveHighScores(scores) {
   }
 }
 
-async function addHighScore(name, score, accuracy) {
+async function addHighScore(name, email, score, accuracy, pack) {
   const scores = await getHighScores();
   const now = new Date();
   const date = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -865,7 +875,7 @@ async function addHighScore(name, score, accuracy) {
   
   // Remove any existing entry with same name and score (avoid duplicates)
   const filtered = scores.filter(s => !(s.name === name && s.score === score));
-  filtered.push({ name: name || "Anonymous", score: score, date: date, duration: duration, accuracy: accuracy });
+  filtered.push({ name: name || "Anonymous", email: email || null, score: score, date: date, duration: duration, accuracy: accuracy, pack: pack || null });
   
   // Sort by normalized score (score per second) to account for different game lengths
   // Calculate normalized score: score / duration (higher is better)
@@ -884,14 +894,15 @@ async function addHighScore(name, score, accuracy) {
 async function displayLeaderboard() {
   const scores = await getHighScores();
   if (scores.length === 0) {
-    lbBody.innerHTML = '<tr><td colspan="5" class="tiny">No scores yet.</td></tr>';
+    lbBody.innerHTML = '<tr><td colspan="6" class="tiny">No scores yet.</td></tr>';
     return;
   }
   
   lbBody.innerHTML = scores.map((s, i) => {
     const duration = s.duration ? ` (${s.duration}s)` : '';
     const accuracy = s.accuracy !== undefined ? `${s.accuracy}%` : 'N/A';
-    return `<tr><td>${i+1}</td><td>${s.name}</td><td>${s.score}</td><td>${accuracy}</td><td>${s.date}${duration}</td></tr>`;
+    const pack = s.pack || 'N/A';
+    return `<tr><td>${i+1}</td><td>${s.name}</td><td>${s.score}</td><td>${accuracy}</td><td>${pack}</td><td>${s.date}${duration}</td></tr>`;
   }).join('');
 }
 
@@ -902,12 +913,14 @@ saveBtn.onclick=async function(e){
   if(nameSubmitted)return;
   const name=nameInput.value.trim()||"Anonymous";
   if(!name)return;
+  const email=emailInput.value.trim()||null;
   const currentScore=score; // Capture current score
   const currentAccuracy=total?Math.round(correct/total*100):100; // Capture current accuracy
+  const packName=currentPack?currentPack.title:null; // Get the pack title
   nameSubmitted=true;
   saveBtn.disabled=true;
   try {
-    await addHighScore(name,currentScore,currentAccuracy);
+    await addHighScore(name,email,currentScore,currentAccuracy,packName);
     await displayLeaderboard();
     elToast.textContent=`Score saved!`;
     elToast.className="toast good";
