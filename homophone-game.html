@@ -555,6 +555,18 @@ async function getHighScores() {
     const scores = stored ? JSON.parse(stored) : [];
     if (scores.length > 0) {
       console.log("📊 Fetched scores from localStorage:", scores.length, "entries");
+      // Ensure all scores have duration (default to 30 if missing)
+      scores.forEach(s => {
+        if (!s.duration) s.duration = 30;
+      });
+      // Sort by normalized score (score per second)
+      scores.sort((a, b) => {
+        const aNorm = a.duration ? a.score / a.duration : 0;
+        const bNorm = b.duration ? b.score / b.duration : 0;
+        return bNorm - aNorm;
+      });
+      // Return top 10
+      return scores.slice(0, 10);
     }
     return scores;
   } catch (e) {
