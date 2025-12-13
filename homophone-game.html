@@ -128,12 +128,12 @@
       <div class="card">
         <h1 style="margin:0 0 12px;font-size:20px">Leaderboard</h1>
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Score</th><th>When</th></tr></thead>
-          <tbody id="lbBody"><tr><td colspan="4" class="tiny">No scores yet.</td></tr></tbody>
+          <thead><tr><th>#</th><th>Name</th><th>Score</th><th>Accuracy</th><th>When</th></tr></thead>
+          <tbody id="lbBody"><tr><td colspan="5" class="tiny">No scores yet.</td></tr></tbody>
         </table>
       </div>
     </div>
-    <div id="version">v1.0.2</div>
+    <div id="version">v1.0.3</div>
   </div>
 
 <script>
@@ -503,7 +503,7 @@ renderStats();
 async function getHighScores() {
   if (useSupabase) {
     try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration&order=score.desc&limit=10`, {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy&order=score.desc&limit=10`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -520,7 +520,8 @@ async function getHighScores() {
           name: s.name || "Anonymous",
           score: s.score || 0,
           date: s.date || new Date().toLocaleDateString(),
-          duration: s.duration || null
+          duration: s.duration || null,
+          accuracy: s.accuracy || null
         }));
       } else {
         const errorText = await response.text();
@@ -626,14 +627,14 @@ async function saveHighScores(scores) {
   }
 }
 
-async function addHighScore(name, score) {
+async function addHighScore(name, score, accuracy) {
   const scores = await getHighScores();
   const date = new Date().toLocaleDateString();
   const duration = selectedDuration; // Store the duration used for this game
   
   // Remove any existing entry with same name and score (avoid duplicates)
   const filtered = scores.filter(s => !(s.name === name && s.score === score));
-  filtered.push({ name: name || "Anonymous", score: score, date: date, duration: duration });
+  filtered.push({ name: name || "Anonymous", score: score, date: date, duration: duration, accuracy: accuracy });
   
   // Sort by score (highest first)
   filtered.sort((a, b) => b.score - a.score);
@@ -653,7 +654,8 @@ async function displayLeaderboard() {
   
   lbBody.innerHTML = scores.map((s, i) => {
     const duration = s.duration ? ` (${s.duration}s)` : '';
-    return `<tr><td>${i+1}</td><td>${s.name}</td><td>${s.score}</td><td>${s.date}${duration}</td></tr>`;
+    const accuracy = s.accuracy !== undefined ? `${s.accuracy}%` : 'N/A';
+    return `<tr><td>${i+1}</td><td>${s.name}</td><td>${s.score}</td><td>${accuracy}</td><td>${s.date}${duration}</td></tr>`;
   }).join('');
 }
 
