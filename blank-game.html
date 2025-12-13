@@ -1012,7 +1012,17 @@ saveBtn.onclick=async function(e){
   const email=emailInput.value.trim()||null;
   const currentScore=score; // Capture current score
   const currentAccuracy=total?Math.round(correct/total*100):100; // Capture current accuracy
-  const packName=currentPack?currentPack.title:null; // Get the pack title
+  // Determine pack name based on category to match button labels
+  let packName = null;
+  if (selectedCategory === "homophone" && selectedWordCount === 2) {
+    packName = "Homophone (2)";
+  } else if (selectedCategory === "homophone" && selectedWordCount === 3) {
+    packName = "Homophones (3)";
+  } else if (selectedCategory === "tenses") {
+    packName = "Tenses";
+  } else if (selectedCategory === "prepositions") {
+    packName = "Prepositions";
+  }
   nameSubmitted=true;
   saveBtn.disabled=true;
   try {
