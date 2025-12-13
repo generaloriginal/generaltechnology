@@ -64,9 +64,22 @@
     table{width:100%;border-collapse:collapse;margin-top:8px}
     th,td{font-size:13px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08)}
     th{color:var(--muted);text-align:left;font-weight:700}
+    #version{
+      position:fixed;
+      bottom:10px;
+      right:10px;
+      color:rgba(170,178,213,.6);
+      font-size:12px;
+      z-index:100;
+      padding:5px 10px;
+      background:rgba(18,26,51,.8);
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.08);
+    }
   </style>
 </head>
 <body>
+  <div id="version">v1.0.0</div>
   <div class="wrap">
     <div class="grid">
       <div class="card">
