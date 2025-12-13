@@ -133,7 +133,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.6</div>
+    <div id="version">v1.0.7</div>
   </div>
 
 <script>
@@ -610,6 +610,12 @@ async function saveHighScores(scores) {
       
       // Insert new scores
       if (scores.length > 0) {
+        // Remove accuracy field if it's null/undefined to avoid column errors
+        const scoresToSave = scores.map(s => {
+          const { accuracy, ...rest } = s;
+          return rest; // Only include accuracy if it exists and is not null
+        });
+        
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}`, {
           method: 'POST',
           headers: {
@@ -618,7 +624,7 @@ async function saveHighScores(scores) {
             'Content-Type': 'application/json',
             'Prefer': 'return=representation'
           },
-          body: JSON.stringify(scores)
+          body: JSON.stringify(scoresToSave)
         });
         
         if (response.ok) {
