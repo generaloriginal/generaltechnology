@@ -113,6 +113,7 @@
   <div class="wrap">
     <div class="grid">
       <div class="card">
+        <h1 style="margin:0 0 12px;font-size:20px">Fill in the Blank</h1>
 
         <div class="pillrow">
           <div class="pill" id="timePill">Time: <b id="timeLeft">30</b>s</div>
@@ -135,6 +136,7 @@
       </div>
 
       <div class="card">
+        <h1 style="margin:0 0 12px;font-size:20px">Options</h1>
         <label>Pack</label>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
           <button class="packBtn" id="packBtnHomophone2" data-category="homophone" data-words="2">Homophone 2 word</button>
@@ -693,7 +695,8 @@ async function getHighScores() {
   if (useSupabase) {
     try {
       // Fetch more than 10 to allow for client-side normalization sorting
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy,email,pack&order=score.desc&limit=50`, {
+      // Try to fetch with new columns, but fall back if they don't exist
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=name,score,date,duration,accuracy&order=score.desc&limit=50`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
