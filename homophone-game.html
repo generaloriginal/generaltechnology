@@ -611,9 +611,19 @@ async function saveHighScores(scores) {
       // Insert new scores
       if (scores.length > 0) {
         // Remove accuracy field if it's null/undefined to avoid column errors
+        // (The accuracy column may not exist in the database yet)
         const scoresToSave = scores.map(s => {
-          const { accuracy, ...rest } = s;
-          return rest; // Only include accuracy if it exists and is not null
+          const scoreData = {
+            name: s.name,
+            score: s.score,
+            date: s.date,
+            duration: s.duration
+          };
+          // Only include accuracy if it's not null/undefined
+          if (s.accuracy != null) {
+            scoreData.accuracy = s.accuracy;
+          }
+          return scoreData;
         });
         
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}`, {
