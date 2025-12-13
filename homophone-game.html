@@ -77,12 +77,19 @@
     .pill.highlight-bad{
       animation:highlightPulseBad 0.6s ease-out;
     }
+    .pill.highlight-neutral{
+      animation:highlightPulseNeutral 0.6s ease-out;
+    }
     @keyframes highlightPulseGood{
       0%{background:rgba(45,212,191,.25);border-color:rgba(45,212,191,.45);transform:scale(1.05)}
       100%{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);transform:scale(1)}
     }
     @keyframes highlightPulseBad{
       0%{background:rgba(251,113,133,.25);border-color:rgba(251,113,133,.45);transform:scale(1.05)}
+      100%{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);transform:scale(1)}
+    }
+    @keyframes highlightPulseNeutral{
+      0%{background:rgba(96,165,250,.25);border-color:rgba(96,165,250,.45);transform:scale(1.05)}
       100%{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);transform:scale(1)}
     }
   </style>
@@ -440,17 +447,19 @@ let prevScore=0,prevAcc=100,prevTime=30;
 
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function highlightPill(pillEl,isGood=true){
-  pillEl.classList.remove("highlight-good","highlight-bad");
+function highlightPill(pillEl,color="neutral"){
+  pillEl.classList.remove("highlight-good","highlight-bad","highlight-neutral");
   void pillEl.offsetWidth; // Trigger reflow
-  pillEl.classList.add(isGood?"highlight-good":"highlight-bad");
-  setTimeout(()=>pillEl.classList.remove("highlight-good","highlight-bad"),600);
+  if(color==="good")pillEl.classList.add("highlight-good");
+  else if(color==="bad")pillEl.classList.add("highlight-bad");
+  else pillEl.classList.add("highlight-neutral");
+  setTimeout(()=>pillEl.classList.remove("highlight-good","highlight-bad","highlight-neutral"),600);
 }
 function renderStats(highlightScore=false,highlightAcc=false,highlightTime=false,accIsGood=true){
   const newAcc=total?Math.round(correct/total*100):100;
   if(highlightTime&&timeLeft!==prevTime){
     elTime.textContent=timeLeft;
-    highlightPill(timePill,true);
+    highlightPill(timePill,"neutral");
     prevTime=timeLeft;
   }else if(!highlightTime){
     elTime.textContent=timeLeft;
@@ -458,7 +467,7 @@ function renderStats(highlightScore=false,highlightAcc=false,highlightTime=false
   }
   if(highlightScore&&score!==prevScore){
     elScore.textContent=score;
-    highlightPill(scorePill,true);
+    highlightPill(scorePill,"good");
     prevScore=score;
   }else if(!highlightScore){
     elScore.textContent=score;
@@ -466,7 +475,7 @@ function renderStats(highlightScore=false,highlightAcc=false,highlightTime=false
   }
   if(highlightAcc){
     elAcc.textContent=newAcc;
-    highlightPill(accPill,accIsGood);
+    highlightPill(accPill,accIsGood?"good":"bad");
     prevAcc=newAcc;
   }else{
     elAcc.textContent=newAcc;
