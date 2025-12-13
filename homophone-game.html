@@ -71,6 +71,20 @@
       padding:10px;
       margin-top:10px;
     }
+    .pill.highlight-good{
+      animation:highlightPulseGood 0.6s ease-out;
+    }
+    .pill.highlight-bad{
+      animation:highlightPulseBad 0.6s ease-out;
+    }
+    @keyframes highlightPulseGood{
+      0%{background:rgba(45,212,191,.25);border-color:rgba(45,212,191,.45);transform:scale(1.05)}
+      100%{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);transform:scale(1)}
+    }
+    @keyframes highlightPulseBad{
+      0%{background:rgba(251,113,133,.25);border-color:rgba(251,113,133,.45);transform:scale(1.05)}
+      100%{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);transform:scale(1)}
+    }
   </style>
 </head>
 <body>
@@ -79,9 +93,9 @@
       <div class="card">
 
         <div class="pillrow">
-          <div class="pill">Time: <b id="timeLeft">30</b>s</div>
-          <div class="pill">Score: <b id="score">0</b></div>
-          <div class="pill">Accuracy: <b id="acc">100</b>%</div>
+          <div class="pill" id="timePill">Time: <b id="timeLeft">30</b>s</div>
+          <div class="pill" id="scorePill">Score: <b id="score">0</b></div>
+          <div class="pill" id="accPill">Accuracy: <b id="acc">100</b>%</div>
         </div>
 
         <div id="sentence" class="sentence"></div>
@@ -405,6 +419,9 @@ const elAnswers=document.getElementById("answers");
 const elTime=document.getElementById("timeLeft");
 const elScore=document.getElementById("score");
 const elAcc=document.getElementById("acc");
+const timePill=document.getElementById("timePill");
+const scorePill=document.getElementById("scorePill");
+const accPill=document.getElementById("accPill");
 const startBtn=document.getElementById("startBtn");
 const pauseBtn=document.getElementById("pauseBtn");
 const resetBtn=document.getElementById("resetBtn");
@@ -419,10 +436,43 @@ let score=0,streak=0,correct=0,total=0;
 let selectedWordCount=2; // Default to 2 words
 let selectedDuration=30; // Default to 30 seconds
 let nameSubmitted=false;
+let prevScore=0,prevAcc=100,prevTime=30;
 
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function renderStats(){elTime.textContent=timeLeft;elScore.textContent=score;elAcc.textContent=total?Math.round(correct/total*100):100}
+function highlightPill(pillEl,isGood=true){
+  pillEl.classList.remove("highlight-good","highlight-bad");
+  void pillEl.offsetWidth; // Trigger reflow
+  pillEl.classList.add(isGood?"highlight-good":"highlight-bad");
+  setTimeout(()=>pillEl.classList.remove("highlight-good","highlight-bad"),600);
+}
+function renderStats(highlightScore=false,highlightAcc=false,highlightTime=false,accIsGood=true){
+  const newAcc=total?Math.round(correct/total*100):100;
+  if(highlightTime&&timeLeft!==prevTime){
+    elTime.textContent=timeLeft;
+    highlightPill(timePill,true);
+    prevTime=timeLeft;
+  }else if(!highlightTime){
+    elTime.textContent=timeLeft;
+    prevTime=timeLeft;
+  }
+  if(highlightScore&&score!==prevScore){
+    elScore.textContent=score;
+    highlightPill(scorePill,true);
+    prevScore=score;
+  }else if(!highlightScore){
+    elScore.textContent=score;
+    prevScore=score;
+  }
+  if(highlightAcc){
+    elAcc.textContent=newAcc;
+    highlightPill(accPill,accIsGood);
+    prevAcc=newAcc;
+  }else{
+    elAcc.textContent=newAcc;
+    prevAcc=newAcc;
+  }
+}
 function nextQ(){
   currentItem=pick(currentPack.items);
   elSentence.textContent=currentItem.s;
@@ -439,16 +489,18 @@ function nextQ(){
 function answer(w,b){
   if(!running)return;
   total++;
-  if(w===currentItem.a){correct++;streak++;score++;b.classList.add("good")}
+  const wasCorrect=w===currentItem.a;
+  const timeChanged=!wasCorrect&&timeLeft>0;
+  if(wasCorrect){correct++;streak++;score++;b.classList.add("good")}
   else{streak=0;timeLeft=Math.max(0,timeLeft-2);b.classList.add("bad")}
-  renderStats();
+  renderStats(wasCorrect,true,timeChanged,wasCorrect);
   setTimeout(()=>{if(timeLeft<=0)end();else nextQ()},300);
 }
 function start(){
   if(running)return;
   running=true;
   if(!currentItem)nextQ();
-  timer=setInterval(()=>{timeLeft--;renderStats();if(timeLeft<=0)end()},1000);
+  timer=setInterval(()=>{timeLeft--;renderStats(false,false,true);if(timeLeft<=0)end()},1000);
 }
 function end(){
   clearInterval(timer);
@@ -458,7 +510,7 @@ function end(){
   nameSubmitted=false;
   saveBtn.disabled=!nameInput.value.trim();
 }
-function resetGame(){if(timer)clearInterval(timer);running=false;score=streak=correct=total=0;timeLeft=selectedDuration;renderStats();if(currentPack)nextQ()}
+function resetGame(){if(timer)clearInterval(timer);running=false;score=streak=correct=total=0;timeLeft=selectedDuration;prevScore=0;prevAcc=100;prevTime=selectedDuration;renderStats();if(currentPack)nextQ()}
 
 function setPackByWordCount(wordCount){
   selectedWordCount=wordCount;
