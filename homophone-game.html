@@ -133,7 +133,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.3</div>
+    <div id="version">v1.0.4</div>
   </div>
 
 <script>
@@ -516,13 +516,22 @@ async function getHighScores() {
       if (response.ok) {
         const scores = await response.json();
         console.log("📊 Fetched scores from Supabase:", scores.length, "entries");
-        return scores.map(s => ({
+        // Map and normalize scores (sort by score per second)
+        const mapped = scores.map(s => ({
           name: s.name || "Anonymous",
           score: s.score || 0,
           date: s.date || new Date().toLocaleDateString(),
-          duration: s.duration || null,
+          duration: s.duration || 30, // Default to 30 if missing
           accuracy: s.accuracy || null
         }));
+        // Sort by normalized score (score per second)
+        mapped.sort((a, b) => {
+          const aNorm = a.duration ? a.score / a.duration : 0;
+          const bNorm = b.duration ? b.score / b.duration : 0;
+          return bNorm - aNorm;
+        });
+        // Return top 10
+        return mapped.slice(0, 10);
       } else {
         const errorText = await response.text();
         console.error("❌ Error fetching from Supabase:", response.status, errorText);
@@ -636,8 +645,13 @@ async function addHighScore(name, score, accuracy) {
   const filtered = scores.filter(s => !(s.name === name && s.score === score));
   filtered.push({ name: name || "Anonymous", score: score, date: date, duration: duration, accuracy: accuracy });
   
-  // Sort by score (highest first)
-  filtered.sort((a, b) => b.score - a.score);
+  // Sort by normalized score (score per second) to account for different game lengths
+  // Calculate normalized score: score / duration (higher is better)
+  filtered.sort((a, b) => {
+    const aNorm = a.duration ? a.score / a.duration : 0;
+    const bNorm = b.duration ? b.score / b.duration : 0;
+    return bNorm - aNorm; // Sort descending (highest normalized score first)
+  });
   // Keep only top 10
   const topScores = filtered.slice(0, 10);
   
