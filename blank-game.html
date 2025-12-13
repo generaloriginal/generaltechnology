@@ -866,7 +866,9 @@ async function saveHighScores(scores) {
           .map(s => s.id);
         
         // Delete scores that are no longer in top 10
-        if (idsToDelete.length > 0) {
+        // Only delete if we successfully fetched existing scores and have IDs
+        if (idsToDelete.length > 0 && existingScores.length > 0) {
+          console.log("🗑️ Deleting", idsToDelete.length, "scores that fell out of top 10");
           const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?id=in.(${idsToDelete.join(',')})`, {
             method: 'DELETE',
             headers: {
@@ -875,6 +877,11 @@ async function saveHighScores(scores) {
               'Content-Type': 'application/json'
             }
           });
+          if (!deleteResponse.ok) {
+            console.error("❌ Failed to delete scores:", deleteResponse.status);
+            // Don't proceed with insert if delete failed - data might be inconsistent
+            throw new Error("Failed to clean up old scores");
+          }
         }
         
         // Insert/update scores that are new or changed
@@ -883,9 +890,12 @@ async function saveHighScores(scores) {
       } else {
         // If we can't fetch existing scores, just insert the new ones without deleting anything
         console.log("⚠️ Inserting new scores without managing existing ones (safety mode)");
+        console.log("⚠️ This means existing scores will remain, but leaderboard might exceed 10 entries");
       }
       
+      // Only proceed with save if we have scores to save
       if (newScores.length > 0) {
+        console.log("💾 Preparing to save", newScores.length, "new/updated score(s)");
         const scoresToSave = newScores.map(s => {
           const scoreData = {
             name: s.name,
@@ -919,13 +929,20 @@ async function saveHighScores(scores) {
         if (response.ok) {
           const result = await response.json();
           console.log("✅ Leaderboard updated! Saved", result.length, "new entries to Supabase");
+          console.log("✅ All existing scores preserved");
           supabaseSuccess = true;
         } else {
           const errorText = await response.text();
           console.error("❌ Error saving to Supabase:", response.status, errorText);
+          // If save fails, existing scores should still be intact
+          console.log("⚠️ Save failed, but existing scores should still be safe");
         }
       } else {
-        console.log("✅ No new scores to add");
+        if (canFetchExisting) {
+          console.log("✅ No new scores to add - all scores already in database");
+        } else {
+          console.log("✅ Score already exists or no new scores to add");
+        }
         supabaseSuccess = true;
       }
     } catch (error) {
