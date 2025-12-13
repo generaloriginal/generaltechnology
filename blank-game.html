@@ -183,7 +183,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.10</div>
+    <div id="version">v1.0.11</div>
   </div>
 
 <script>
@@ -1027,6 +1027,15 @@ saveBtn.onclick=async function(e){
   saveBtn.disabled=true;
   try {
     await addHighScore(name,email,currentScore,currentAccuracy,packName);
+    // Save name and email to localStorage for next time
+    try {
+      localStorage.setItem('blank_game_name', name);
+      if (email) {
+        localStorage.setItem('blank_game_email', email);
+      }
+    } catch (e) {
+      console.error("Error saving name/email to localStorage:", e);
+    }
     await displayLeaderboard();
     elToast.textContent=`Score saved!`;
     elToast.className="toast good";
@@ -1046,6 +1055,21 @@ saveBtn.onclick=async function(e){
 nameInput.addEventListener("input",()=>{
   saveBtn.disabled=!nameInput.value.trim()||nameSubmitted;
 });
+
+// Load saved name and email from localStorage on page load
+try {
+  const savedName = localStorage.getItem('blank_game_name');
+  const savedEmail = localStorage.getItem('blank_game_email');
+  if (savedName) {
+    nameInput.value = savedName;
+    saveBtn.disabled = false; // Enable save button if name is pre-filled
+  }
+  if (savedEmail) {
+    emailInput.value = savedEmail;
+  }
+} catch (e) {
+  console.error("Error loading saved name/email from localStorage:", e);
+}
 
 // Load leaderboard on page load
 displayLeaderboard();
