@@ -31,6 +31,20 @@
       margin:12px 0 14px;
       word-break:break-word;
     }
+    .sentence.highlight-good{
+      animation:sentencePulseGood 0.6s ease-out;
+    }
+    .sentence.highlight-bad{
+      animation:sentencePulseBad 0.6s ease-out;
+    }
+    @keyframes sentencePulseGood{
+      0%{background:rgba(45,212,191,.25);border-color:rgba(45,212,191,.45);transform:scale(1.02)}
+      100%{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.16);transform:scale(1)}
+    }
+    @keyframes sentencePulseBad{
+      0%{background:rgba(251,113,133,.25);border-color:rgba(251,113,133,.45);transform:scale(1.02)}
+      100%{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.16);transform:scale(1)}
+    }
     .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
     .answers.three{grid-template-columns:repeat(3,minmax(0,1fr))}
     @media (max-width:560px){.answers.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -495,6 +509,12 @@ function nextQ(){
     elAnswers.appendChild(b);
   });
 }
+function highlightSentence(isGood){
+  elSentence.classList.remove("highlight-good","highlight-bad");
+  void elSentence.offsetWidth; // Trigger reflow
+  elSentence.classList.add(isGood?"highlight-good":"highlight-bad");
+  setTimeout(()=>elSentence.classList.remove("highlight-good","highlight-bad"),600);
+}
 function answer(w,b){
   if(!running)return;
   total++;
@@ -502,6 +522,7 @@ function answer(w,b){
   const timeChanged=!wasCorrect&&timeLeft>0;
   if(wasCorrect){correct++;streak++;score++;b.classList.add("good")}
   else{streak=0;timeLeft=Math.max(0,timeLeft-2);b.classList.add("bad")}
+  highlightSentence(wasCorrect);
   renderStats(wasCorrect,true,timeChanged,wasCorrect);
   setTimeout(()=>{if(timeLeft<=0)end();else nextQ()},300);
 }
