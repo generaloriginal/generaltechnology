@@ -790,7 +790,8 @@ async function saveHighScores(scores) {
   if (useSupabase) {
     try {
       // Get ALL existing scores from database first
-      const getAllResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=*&limit=1000`, {
+      // Try with all columns first, fall back to basic columns if email/pack don't exist
+      let getAllResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=id,name,score,date,duration,accuracy,email,pack&limit=1000`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -799,54 +800,11 @@ async function saveHighScores(scores) {
         }
       });
       
-      let existingScores = [];
-      if (getAllResponse.ok) {
-        existingScores = await getAllResponse.json();
-        console.log("📊 Found", existingScores.length, "existing scores in database");
-      }
-      
-      // Merge existing scores with new scores, avoiding duplicates
-      const scoreMap = new Map();
-      
-      // Add existing scores to map
-      existingScores.forEach(s => {
-        const key = `${s.name}_${s.score}_${s.date}`;
-        scoreMap.set(key, {
-          name: s.name,
-          score: s.score,
-          date: s.date,
-          duration: s.duration || 30,
-          accuracy: s.accuracy || null,
-          email: s.email || null,
-          pack: s.pack || null
-        });
-      });
-      
-      // Add/update with new scores
-      scores.forEach(s => {
-        const key = `${s.name}_${s.score}_${s.date}`;
-        scoreMap.set(key, s);
-      });
-      
-      // Convert back to array, sort, and keep top 10
-      const allScores = Array.from(scoreMap.values());
-      allScores.sort((a, b) => {
-        const aNorm = a.duration ? a.score / a.duration : 0;
-        const bNorm = b.duration ? b.score / b.duration : 0;
-        return bNorm - aNorm;
-      });
-      const topScores = allScores.slice(0, 10);
-      
-      // Get IDs of scores to delete (ones not in top 10)
-      const topKeys = new Set(topScores.map(s => `${s.name}_${s.score}_${s.date}`));
-      const idsToDelete = existingScores
-        .filter(s => !topKeys.has(`${s.name}_${s.score}_${s.date}`))
-        .map(s => s.id);
-      
-      // Delete scores that are no longer in top 10
-      if (idsToDelete.length > 0) {
-        const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?id=in.(${idsToDelete.join(',')})`, {
-          method: 'DELETE',
+      // If that fails, try without email/pack
+      if (!getAllResponse.ok && getAllResponse.status !== 404) {
+        console.log("⚠️ Trying fetch without email/pack columns...");
+        getAllResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?select=id,name,score,date,duration,accuracy&limit=1000`, {
+          method: 'GET',
           headers: {
             'apikey': SUPABASE_ANON_KEY,
             'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -855,9 +813,77 @@ async function saveHighScores(scores) {
         });
       }
       
-      // Insert/update scores that are new or changed
-      const existingKeys = new Set(existingScores.map(s => `${s.name}_${s.score}_${s.date}`));
-      const newScores = topScores.filter(s => !existingKeys.has(`${s.name}_${s.score}_${s.date}`));
+      let existingScores = [];
+      let canFetchExisting = false;
+      if (getAllResponse.ok) {
+        existingScores = await getAllResponse.json();
+        console.log("📊 Found", existingScores.length, "existing scores in database");
+        canFetchExisting = true;
+      } else {
+        console.error("❌ Failed to fetch existing scores:", getAllResponse.status);
+        console.log("⚠️ Will only insert new score without deleting existing ones");
+      }
+      
+      let newScores = scores;
+      
+      if (canFetchExisting) {
+        // Merge existing scores with new scores, avoiding duplicates
+        const scoreMap = new Map();
+        
+        // Add existing scores to map
+        existingScores.forEach(s => {
+          const key = `${s.name}_${s.score}_${s.date}`;
+          scoreMap.set(key, {
+            name: s.name,
+            score: s.score,
+            date: s.date,
+            duration: s.duration || 30,
+            accuracy: s.accuracy || null,
+            email: s.email || null,
+            pack: s.pack || null
+          });
+        });
+        
+        // Add/update with new scores
+        scores.forEach(s => {
+          const key = `${s.name}_${s.score}_${s.date}`;
+          scoreMap.set(key, s);
+        });
+        
+        // Convert back to array, sort, and keep top 10
+        const allScores = Array.from(scoreMap.values());
+        allScores.sort((a, b) => {
+          const aNorm = a.duration ? a.score / a.duration : 0;
+          const bNorm = b.duration ? b.score / b.duration : 0;
+          return bNorm - aNorm;
+        });
+        const topScores = allScores.slice(0, 10);
+        
+        // Get IDs of scores to delete (ones not in top 10)
+        const topKeys = new Set(topScores.map(s => `${s.name}_${s.score}_${s.date}`));
+        const idsToDelete = existingScores
+          .filter(s => !topKeys.has(`${s.name}_${s.score}_${s.date}`))
+          .map(s => s.id);
+        
+        // Delete scores that are no longer in top 10
+        if (idsToDelete.length > 0) {
+          const deleteResponse = await fetch(`${SUPABASE_URL}/rest/v1/${LEADERBOARD_TABLE}?id=in.(${idsToDelete.join(',')})`, {
+            method: 'DELETE',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+        
+        // Insert/update scores that are new or changed
+        const existingKeys = new Set(existingScores.map(s => `${s.name}_${s.score}_${s.date}`));
+        newScores = topScores.filter(s => !existingKeys.has(`${s.name}_${s.score}_${s.date}`));
+      } else {
+        // If we can't fetch existing scores, just insert the new ones without deleting anything
+        console.log("⚠️ Inserting new scores without managing existing ones (safety mode)");
+      }
       
       if (newScores.length > 0) {
         const scoresToSave = newScores.map(s => {
