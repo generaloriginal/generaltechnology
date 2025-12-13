@@ -65,21 +65,15 @@
     th,td{font-size:13px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08)}
     th{color:var(--muted);text-align:left;font-weight:700}
     #version{
-      position:fixed;
-      bottom:10px;
-      right:10px;
+      text-align:right;
       color:rgba(170,178,213,.6);
       font-size:12px;
-      z-index:100;
-      padding:5px 10px;
-      background:rgba(18,26,51,.8);
-      border-radius:8px;
-      border:1px solid rgba(255,255,255,.08);
+      padding:10px;
+      margin-top:10px;
     }
   </style>
 </head>
 <body>
-  <div id="version">v1.0.0</div>
   <div class="wrap">
     <div class="grid">
       <div class="card">
@@ -87,7 +81,6 @@
         <div class="pillrow">
           <div class="pill">Time: <b id="timeLeft">30</b>s</div>
           <div class="pill">Score: <b id="score">0</b></div>
-          <div class="pill">Streak: <b id="streak">0</b></div>
           <div class="pill">Accuracy: <b id="acc">100</b>%</div>
         </div>
 
@@ -140,6 +133,7 @@
         </table>
       </div>
     </div>
+    <div id="version">v1.0.0</div>
   </div>
 
 <script>
@@ -409,7 +403,6 @@ const elSentence=document.getElementById("sentence");
 const elAnswers=document.getElementById("answers");
 const elTime=document.getElementById("timeLeft");
 const elScore=document.getElementById("score");
-const elStreak=document.getElementById("streak");
 const elAcc=document.getElementById("acc");
 const startBtn=document.getElementById("startBtn");
 const pauseBtn=document.getElementById("pauseBtn");
@@ -428,7 +421,7 @@ let nameSubmitted=false;
 
 function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function renderStats(){elTime.textContent=timeLeft;elScore.textContent=score;elStreak.textContent=streak;elAcc.textContent=total?Math.round(correct/total*100):100}
+function renderStats(){elTime.textContent=timeLeft;elScore.textContent=score;elAcc.textContent=total?Math.round(correct/total*100):100}
 function nextQ(){
   currentItem=pick(currentPack.items);
   elSentence.textContent=currentItem.s;
