@@ -187,7 +187,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.14</div>
+    <div id="version">v1.0.15</div>
   </div>
 
 <script>
@@ -567,7 +567,7 @@ function renderStats(highlightScore=false,highlightAcc=false,highlightTime=false
   const newAcc=total?Math.round(correct/total*100):100;
   if(highlightTime&&timeLeft!==prevTime){
     elTime.textContent=timeLeft;
-    highlightPill(timePill,"neutral");
+    highlightPill(timePill,timeLeft===0?"bad":"good");
     prevTime=timeLeft;
   }else if(!highlightTime){
     elTime.textContent=timeLeft;
