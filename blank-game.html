@@ -63,9 +63,15 @@
       padding:14px 12px;border-radius:16px;
       background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
       text-transform:uppercase;letter-spacing:.9px;
+      cursor:pointer;transition:all .2s;
     }
+    .ansBtn:hover:not(:disabled){background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
     .ansBtn.good{outline:3px solid rgba(45,212,191,.45);background:rgba(45,212,191,.15)}
     .ansBtn.bad{outline:3px solid rgba(251,113,133,.45);background:rgba(251,113,133,.12)}
+    .ansBtn:disabled{
+      opacity:0.4;cursor:not-allowed;background:rgba(255,255,255,.03);
+      border-color:rgba(255,255,255,.08);pointer-events:none
+    }
     label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
     select,input[type="text"],input[type="email"]{
       width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
@@ -187,7 +193,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.15</div>
+    <div id="version">v1.0.16</div>
   </div>
 
 <script>
@@ -590,6 +596,12 @@ function renderStats(highlightScore=false,highlightAcc=false,highlightTime=false
     prevAcc=newAcc;
   }
 }
+function updateAnswerButtonsState(){
+  const buttons=document.querySelectorAll('.ansBtn');
+  buttons.forEach(btn=>{
+    btn.disabled=!running;
+  });
+}
 function nextQ(){
   currentItem=pick(currentPack.items);
   elSentence.textContent=currentItem.s;
@@ -602,6 +614,7 @@ function nextQ(){
     const b=document.createElement("button");
     b.className="ansBtn";
     b.textContent=w;
+    b.disabled=!running;
     b.onclick=()=>answer(w,b);
     elAnswers.appendChild(b);
   });
@@ -627,17 +640,19 @@ function start(){
   if(running)return;
   running=true;
   if(!currentItem)nextQ();
+  updateAnswerButtonsState();
   timer=setInterval(()=>{timeLeft--;renderStats(false,false,true);if(timeLeft<=0)end()},1000);
 }
 function end(){
   clearInterval(timer);
   timer=null;
   running=false;
+  updateAnswerButtonsState();
   displayLeaderboard();
   nameSubmitted=false;
   saveBtn.disabled=!nameInput.value.trim();
 }
-function resetGame(){if(timer)clearInterval(timer);running=false;score=streak=correct=total=0;timeLeft=selectedDuration;prevScore=0;prevAcc=100;prevTime=selectedDuration;renderStats();if(currentPack)nextQ()}
+function resetGame(){if(timer)clearInterval(timer);running=false;score=streak=correct=total=0;timeLeft=selectedDuration;prevScore=0;prevAcc=100;prevTime=selectedDuration;renderStats();if(currentPack)nextQ();updateAnswerButtonsState()}
 
 function setPackByCategory(category,wordCount=null){
   selectedCategory=category;
