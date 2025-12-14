@@ -143,7 +143,7 @@
         <h1 style="margin:0 0 12px;font-size:20px">Options</h1>
         <label>Pack</label>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
-          <button class="packBtn" id="packBtnHomophone2" data-category="homophone" data-words="2">Homophone (2)</button>
+          <button class="packBtn" id="packBtnHomophone2" data-category="homophone" data-words="2">Homophones (2)</button>
           <button class="packBtn" id="packBtnHomophone3" data-category="homophone" data-words="3">Homophones (3)</button>
           <button class="packBtn" id="packBtnTenses" data-category="tenses">Tenses</button>
           <button class="packBtn" id="packBtnPrepositions" data-category="prepositions">Prepositions</button>
@@ -187,7 +187,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.13</div>
+    <div id="version">v1.0.14</div>
   </div>
 
 <script>
@@ -1019,7 +1019,7 @@ saveBtn.onclick=async function(e){
   // Determine pack name based on category to match button labels
   let packName = null;
   if (selectedCategory === "homophone" && selectedWordCount === 2) {
-    packName = "Homophone (2)";
+    packName = "Homophones (2)";
   } else if (selectedCategory === "homophone" && selectedWordCount === 3) {
     packName = "Homophones (3)";
   } else if (selectedCategory === "tenses") {
