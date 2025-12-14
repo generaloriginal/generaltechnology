@@ -111,15 +111,19 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="grid">
+    <div class="grid-full">
       <div class="card">
-        <h1 style="margin:0 0 12px;font-size:20px">Fill in the Blank</h1>
-
         <div class="pillrow">
           <div class="pill" id="timePill">Time: <b id="timeLeft">30</b>s</div>
           <div class="pill" id="scorePill">Score: <b id="score">0</b></div>
           <div class="pill" id="accPill">Accuracy: <b id="acc">100</b>%</div>
         </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h1 style="margin:0 0 12px;font-size:20px">Fill in the Blank</h1>
 
         <div id="sentence" class="sentence"></div>
         <div id="answers" class="answers"></div>
@@ -183,7 +187,7 @@
         </table>
       </div>
     </div>
-    <div id="version">v1.0.11</div>
+    <div id="version">v1.0.12</div>
   </div>
 
 <script>
