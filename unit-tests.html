@@ -280,41 +280,190 @@ const DATA = {
         q("u1-g2","grammar",1,"I _____ Brazilian.","am|is|are".split("|"),0,"With 'I', use 'am'."),
         q("u1-g3","grammar",1,"You _____ from Brazil.","am|are|is".split("|"),1,"With 'you', use 'are'."),
         q("u1-g4","grammar",1,"_____ you a student?","Am|Are|Is".split("|"),1,"Questions: 'Are you…?'"),
-        q("u1-g5","grammar",1,"What’s _____ name?","I|you|your".split("|"),2,"Use 'your' for 'you'."),
-        q("u1-g6","grammar",1,"This _____ my friend.","are|is|am".split("|"),1,"'This' is singular → 'is'.")
+        q("u1-g5","grammar",1,"What's _____ name?","I|you|your".split("|"),2,"Use 'your' for 'you'."),
+        q("u1-g6","grammar",1,"This _____ my friend.","are|is|am".split("|"),1,"'This' is singular → 'is'."),
+        q("u1-g7","grammar",1,"It _____ a nice day.","are|is|am".split("|"),1,"'It' is singular → 'is'."),
+        q("u1-g8","grammar",1,"What _____ your job?","are|is|am".split("|"),1,"'What' with singular → 'is'.")
       ],
       vocab: [
-        q("u1-v1","vocab",1,"I’m from _____.","Brazil|Brazilian|Brasília".split("|"),0,"Country: Brazil. Nationality: Brazilian."),
+        q("u1-v1","vocab",1,"I'm from _____.","Brazil|Brazilian|Brasília".split("|"),0,"Country: Brazil. Nationality: Brazilian."),
         q("u1-v2","vocab",1,"She is _____.","Canada|Canadian|Canadan".split("|"),1,"Nationality adjective: Canadian."),
         q("u1-v3","vocab",1,"Hello! Nice to ____ you.","meet|see|look".split("|"),0,"Common phrase: Nice to meet you."),
         q("u1-v4","vocab",1,"Good _____. (at night)","morning|night|afternoon".split("|"),1,"Greeting: Good night."),
-        q("u1-v5","vocab",1,"Spell it: A, B, C… is the _____.","alphabet|address|number".split("|"),0,"Alphabet = letters A–Z.")
+        q("u1-v5","vocab",1,"Spell it: A, B, C… is the _____.","alphabet|address|number".split("|"),0,"Alphabet = letters A–Z."),
+        q("u1-v6","vocab",1,"I'm a _____. (job)","teacher|teach|teaching".split("|"),0,"Job: teacher (noun)."),
+        q("u1-v7","vocab",1,"Numbers: one, two, three, _____.","four|for|fore".split("|"),0,"Number: four."),
+        q("u1-v8","vocab",1,"Good _____! (in the morning)","morning|night|evening".split("|"),0,"Greeting: Good morning.")
       ],
       pron: [
         q("u1-p1","pron",1,"Which word has the **ee** sound (like 'see')?","ship|sheep|shop".split("|"),1,"PT-BR tip: long 'i' sound. sheep ≠ ship.","Hint: ee = longer"),
-        q("u1-p2","pron",1,"Same or different? **ship / sheep**","Same|Different|Not sure".split("|"),1,"Brazilians often mix these. They’re different.","Hint: short vs long vowel"),
+        q("u1-p2","pron",1,"Same or different? **ship / sheep**","Same|Different|Not sure".split("|"),1,"Brazilians often mix these. They're different.","Hint: short vs long vowel"),
         q("u1-p3","pron",1,"Which word ends with a consonant sound?","go|see|cat".split("|"),2,"Avoid adding 'i' at the end: 'cati'."),
-        q("u1-p4","pron",1,"Where is the stress? **HO-tel**","HO-tel|ho-TEL".split("|"),0,"In English it's usually HO-tel (not ho-TEL).")
+        q("u1-p4","pron",1,"Where is the stress? **HO-tel**","HO-tel|ho-TEL".split("|"),0,"In English it's usually HO-tel (not ho-TEL)."),
+        q("u1-p5","pron",1,"Which has /ɪ/ sound (like 'sit')?","seat|sit|set".split("|"),1,"/ɪ/ = short 'i' sound."),
+        q("u1-p6","pron",1,"Which has /i/ sound (like 'see')?","ship|sheep|shop".split("|"),1,"/i/ = long 'ee' sound."),
+        q("u1-p7","pron",1,"Say the number: **5**","five|fife|fiv".split("|"),0,"Number pronunciation: five."),
+        q("u1-p8","pron",1,"Stress: **BRA-zil** or **bra-ZIL**?","BRA-zil|bra-ZIL".split("|"),0,"Country name stress: BRA-zil.")
       ]
     },
     { unit: 2, title: "Great people",
       grammar: [
         q("u2-g1","grammar",2,"He _____ my brother.","are|is|am".split("|"),1,"He/She/It → is."),
         q("u2-g2","grammar",2,"They _____ friends.","is|are|am".split("|"),1,"They → are."),
-        q("u2-g3","grammar",2,"She _____ not from Canada.","is|are|am".split("|"),0,"Negatives: is not / isn’t."),
+        q("u2-g3","grammar",2,"She _____ not from Canada.","is|are|am".split("|"),0,"Negatives: is not / isn't."),
         q("u2-g4","grammar",2,"_____ they from São Paulo?","Is|Are|Am".split("|"),1,"Questions with 'they': Are they…?"),
-        q("u2-g5","grammar",2,"The café is _____ the bank.","next to|next|near to".split("|"),0,"Preposition phrase: next to.")
+        q("u2-g5","grammar",2,"The café is _____ the bank.","next to|next|near to".split("|"),0,"Preposition phrase: next to."),
+        q("u2-g6","grammar",2,"Is she your sister? Yes, she _____.","is|are|am".split("|"),0,"Short answer: Yes, she is."),
+        q("u2-g7","grammar",2,"Are they students? No, they _____.","isn't|aren't|am not".split("|"),1,"Negative short answer: No, they aren't."),
+        q("u2-g8","grammar",2,"The book is _____ the table.","on|in|at".split("|"),0,"Preposition: on the table.")
       ],
       vocab: [
-        q("u2-v1","vocab",2,"My mother’s son is my _____.","uncle|brother|cousin".split("|"),1,"Brother = mother’s son."),
+        q("u2-v1","vocab",2,"My mother's son is my _____.","uncle|brother|cousin".split("|"),1,"Brother = mother's son."),
         q("u2-v2","vocab",2,"She is very _____. (nice, kind)","friendly|hungry|angry".split("|"),0,"friendly = nice/kind"),
-        q("u2-v3","vocab",2,"He’s _____ years old.","twenty|age|old".split("|"),0,"Use a number: twenty."),
-        q("u2-v4","vocab",2,"Today is _____. (date)","Monday|January|Brazil".split("|"),1,"Months: January, February…")
+        q("u2-v3","vocab",2,"He's _____ years old.","twenty|age|old".split("|"),0,"Use a number: twenty."),
+        q("u2-v4","vocab",2,"Today is _____. (date)","Monday|January|Brazil".split("|"),1,"Months: January, February…"),
+        q("u2-v5","vocab",2,"My father's sister is my _____.","aunt|uncle|cousin".split("|"),0,"Aunt = father's sister."),
+        q("u2-v6","vocab",2,"She is _____. (very nice)","friendly|angry|tired".split("|"),0,"friendly = very nice."),
+        q("u2-v7","vocab",2,"Numbers: 11, 12, 13, _____.","fourteen|forty|four".split("|"),0,"Number: fourteen."),
+        q("u2-v8","vocab",2,"My birthday is in _____.","January|Monday|today".split("|"),0,"Months: January, February…")
       ],
       pron: [
         q("u2-p1","pron",2,"Which word has the **th** sound?","think|sink|thing".split("|"),0,"PT-BR: tongue between teeth. 'think' ≠ 'sink'."),
         q("u2-p2","pron",2,"Same or different? **thin / tin**","Same|Different|Not sure".split("|"),1,"thin has 'th' (no PT equivalent)."),
-        q("u2-p3","pron",2,"Which has the **ih** sound (like 'sit')?","seat|sit|set".split("|"),1,"ih = short vowel.")
+        q("u2-p3","pron",2,"Which has the **ih** sound (like 'sit')?","seat|sit|set".split("|"),1,"ih = short vowel."),
+        q("u2-p4","pron",2,"Say the number: **30**","thirty|thirteen|three".split("|"),0,"Number: thirty."),
+        q("u2-p5","pron",2,"Listening: 'She's 25' = She _____ 25.","is|are|am".split("|"),0,"Short form: She's = She is."),
+        q("u2-p6","pron",2,"Which word has /θ/ (th in 'think')?","think|this|that".split("|"),0,"/θ/ = voiceless 'th'."),
+        q("u2-p7","pron",2,"Stress: **FAM-i-ly** or **fam-I-ly**?","FAM-i-ly|fam-I-ly".split("|"),0,"Family stress: FAM-i-ly."),
+        q("u2-p8","pron",2,"Which has short /ɪ/ sound?","seat|sit|set".split("|"),1,"/ɪ/ = short 'i' in 'sit'.")
+      ]
+    },
+    { unit: 3, title: "Come in",
+      grammar: [
+        q("u3-g1","grammar",3,"This is _____ book.","my|me|I".split("|"),0,"Possessive: my book."),
+        q("u3-g2","grammar",3,"That's _____ house.","her|she|hers".split("|"),0,"Possessive adjective: her house."),
+        q("u3-g3","grammar",3,"This is Maria's _____.","book|books|book's".split("|"),0,"Possessive 's: Maria's book."),
+        q("u3-g4","grammar",3,"_____ it your room?","Is|Are|Am".split("|"),0,"Question: Is it your room?"),
+        q("u3-g5","grammar",3,"Is this your bag? Yes, it _____.","is|are|am".split("|"),0,"Short answer: Yes, it is."),
+        q("u3-g6","grammar",3,"Where _____ the kitchen?","is|are|am".split("|"),0,"Information question: Where is…?"),
+        q("u3-g7","grammar",3,"What _____ this?","is|are|am".split("|"),0,"Question: What is this?"),
+        q("u3-g8","grammar",3,"The keys are _____ the table.","on|in|at".split("|"),0,"Preposition: on the table.")
+      ],
+      vocab: [
+        q("u3-v1","vocab",3,"You sleep in the _____.","bedroom|bathroom|kitchen".split("|"),0,"Bedroom = where you sleep."),
+        q("u3-v2","vocab",3,"You cook in the _____.","kitchen|bedroom|bathroom".split("|"),0,"Kitchen = where you cook."),
+        q("u3-v3","vocab",3,"You sit on a _____.","chair|table|bed".split("|"),0,"Chair = furniture to sit on."),
+        q("u3-v4","vocab",3,"Would you like a _____? (drink)","coffee|chair|table".split("|"),0,"Coffee = drink."),
+        q("u3-v5","vocab",3,"The _____ is in the living room.","sofa|bed|shower".split("|"),0,"Sofa = couch in living room."),
+        q("u3-v6","vocab",3,"You take a shower in the _____.","bathroom|bedroom|kitchen".split("|"),0,"Bathroom = where you shower."),
+        q("u3-v7","vocab",3,"Would you like some _____? (food)","bread|coffee|water".split("|"),0,"Bread = food/snack."),
+        q("u3-v8","vocab",3,"You put books on a _____.","shelf|chair|bed".split("|"),0,"Shelf = for storing things.")
+      ],
+      pron: [
+        q("u3-p1","pron",3,"Which starts with /k/ sound?","cat|hat|at".split("|"),0,"/k/ = 'c' in 'cat'."),
+        q("u3-p2","pron",3,"Say: **kitchen**","KITCH-en|kit-CHEN".split("|"),0,"Stress: KITCH-en."),
+        q("u3-p3","pron",3,"Which has /k/ at start?","coffee|sofa|office".split("|"),0,"Coffee starts with /k/."),
+        q("u3-p4","pron",3,"Stress: **BATH-room** or **bath-ROOM**?","BATH-room|bath-ROOM".split("|"),0,"Bathroom stress: BATH-room."),
+        q("u3-p5","pron",3,"Which word starts with /k/?","cup|up|pup".split("|"),0,"Cup starts with /k/."),
+        q("u3-p6","pron",3,"Say: **come in**","come IN|COME in".split("|"),1,"Phrase stress: come IN."),
+        q("u3-p7","pron",3,"Which has /k/ sound?","key|see|bee".split("|"),0,"Key starts with /k/."),
+        q("u3-p8","pron",3,"Listening: 'It's my room' = It _____ my room.","is|are|am".split("|"),0,"Short form: It's = It is.")
+      ]
+    },
+    { unit: 4, title: "I love it",
+      grammar: [
+        q("u4-g1","grammar",4,"I _____ music.","love|loves|loving".split("|"),0,"I/you/we → love (no 's')."),
+        q("u4-g2","grammar",4,"She _____ coffee every morning.","drink|drinks|drinking".split("|"),1,"He/she/it → drinks (with 's')."),
+        q("u4-g3","grammar",4,"They _____ to work by bus.","go|goes|going".split("|"),0,"They/we/you → go (no 's')."),
+        q("u4-g4","grammar",4,"Do you _____ English?","speak|speaks|speaking".split("|"),0,"Questions: Do you speak…?"),
+        q("u4-g5","grammar",4,"Does he _____ here?","work|works|working".split("|"),0,"Questions: Does he work…?"),
+        q("u4-g6","grammar",4,"What time _____ you get up?","do|does|is".split("|"),0,"Questions: What time do you…?"),
+        q("u4-g7","grammar",4,"I _____ breakfast at 7am.","have|has|having".split("|"),0,"I/you/we → have."),
+        q("u4-g8","grammar",4,"He _____ lunch at 12pm.","have|has|having".split("|"),1,"He/she/it → has.")
+      ],
+      vocab: [
+        q("u4-v1","vocab",4,"Monday, Tuesday, Wednesday, _____.","Thursday|Friday|Saturday".split("|"),0,"Days: Thursday."),
+        q("u4-v2","vocab",4,"In the morning, afternoon, _____.","evening|night|day".split("|"),0,"Times: evening."),
+        q("u4-v3","vocab",4,"What time is it? It's 3:00 = It's three _____.","o'clock|clock|hour".split("|"),0,"Time: three o'clock."),
+        q("u4-v4","vocab",4,"I _____ up at 7am.","get|got|getting".split("|"),0,"Routine: get up."),
+        q("u4-v5","vocab",4,"I _____ to work at 8am.","go|went|going".split("|"),0,"Routine: go to work."),
+        q("u4-v6","vocab",4,"I _____ home at 6pm.","come|comes|coming".split("|"),0,"Routine: come home."),
+        q("u4-v7","vocab",4,"On weekdays, weekends, _____.","Sundays|Monday|today".split("|"),0,"Days: Sundays (plural)."),
+        q("u4-v8","vocab",4,"I agree! I _____ too.","do|does|am".split("|"),0,"Agreement: I do too.")
+      ],
+      pron: [
+        q("u4-p1","pron",4,"How many syllables in **coffee**?","2|1|3".split("|"),0,"Coffee = cof-fee (2 syllables)."),
+        q("u4-p2","pron",4,"Stress: **MORN-ing** or **morn-ING**?","MORN-ing|morn-ING".split("|"),0,"Morning stress: MORN-ing."),
+        q("u4-p3","pron",4,"Syllables: **breakfast** = ?","2|1|3".split("|"),0,"Breakfast = break-fast (2 syllables)."),
+        q("u4-p4","pron",4,"Which has 2 syllables?","evening|day|night".split("|"),0,"Evening = e-ven-ing (3), but evening has 3."),
+        q("u4-p5","pron",4,"Stress: **AF-ter-noon** or **af-ter-NOON**?","AF-ter-noon|af-ter-NOON".split("|"),0,"Afternoon stress: AF-ter-noon."),
+        q("u4-p6","pron",4,"Syllables: **o'clock** = ?","2|1|3".split("|"),0,"O'clock = o'-clock (2 syllables)."),
+        q("u4-p7","pron",4,"Listening: 'I do' = I _____ it.","do|does|did".split("|"),0,"Agreement: I do."),
+        q("u4-p8","pron",4,"Stress: **WEEK-day** or **week-DAY**?","WEEK-day|week-DAY".split("|"),0,"Weekday stress: WEEK-day.")
+      ]
+    },
+    { unit: 5, title: "Mondays and fun days",
+      grammar: [
+        q("u5-g1","grammar",5,"_____ a park near here.","There's|There are|It's".split("|"),0,"Singular: There's a park."),
+        q("u5-g2","grammar",5,"_____ many shops in the city.","There's|There are|It's".split("|"),1,"Plural: There are many shops."),
+        q("u5-g3","grammar",5,"There's _____ water in the lake.","a lot of|many|much".split("|"),0,"Non-count: a lot of water."),
+        q("u5-g4","grammar",5,"There are _____ trees.","some|a|an".split("|"),0,"Plural: some trees."),
+        q("u5-g5","grammar",5,"There's _____ milk. (count/non-count)","some|many|a".split("|"),0,"Non-count: some milk."),
+        q("u5-g6","grammar",5,"There are _____ parks. (count/non-count)","many|much|a lot of".split("|"),0,"Count plural: many parks."),
+        q("u5-g7","grammar",5,"Is there a bank? Yes, there _____.","is|are|am".split("|"),0,"Short answer: Yes, there is."),
+        q("u5-g8","grammar",5,"Are there shops? No, there _____.","isn't|aren't|am not".split("|"),1,"Negative: No, there aren't.")
+      ],
+      vocab: [
+        q("u5-v1","vocab",5,"You buy food at a _____.","supermarket|park|bank".split("|"),0,"Supermarket = where you buy food."),
+        q("u5-v2","vocab",5,"You see trees and flowers in a _____.","park|bank|shop".split("|"),0,"Park = nature in city."),
+        q("u5-v3","vocab",5,"You get money from a _____.","bank|park|shop".split("|"),0,"Bank = where you get money."),
+        q("u5-v4","vocab",5,"Nature: trees, flowers, _____.","rivers|buildings|cars".split("|"),0,"Rivers = nature."),
+        q("u5-v5","vocab",5,"Go straight, turn left, turn _____.","right|left|straight".split("|"),0,"Directions: turn right."),
+        q("u5-v6","vocab",5,"The lake is _____ the park.","in|on|at".split("|"),0,"Preposition: in the park."),
+        q("u5-v7","vocab",5,"Places: bank, shop, _____.","restaurant|tree|flower".split("|"),0,"Restaurant = place in city."),
+        q("u5-v8","vocab",5,"Nature: river, lake, _____.","mountain|building|car".split("|"),0,"Mountain = nature.")
+      ],
+      pron: [
+        q("u5-p1","pron",5,"Which has /ɪr/ sound?","here|hear|hair".split("|"),0,"Here has /ɪr/ sound."),
+        q("u5-p2","pron",5,"Which has /ər/ sound?","river|river|river".split("|"),0,"River has /ər/ sound."),
+        q("u5-p3","pron",5,"Stress: **SU-per-mar-ket** or **su-per-MAR-ket**?","SU-per-mar-ket|su-per-MAR-ket".split("|"),0,"Supermarket stress: SU-per-mar-ket."),
+        q("u5-p4","pron",5,"Listening: important words in 'Where's the bank?'","Where's|bank|the".split("|"),1,"Important word: bank."),
+        q("u5-p5","pron",5,"Which has /ɪr/?","near|far|car".split("|"),0,"Near has /ɪr/ sound."),
+        q("u5-p6","pron",5,"Stress: **RES-tau-rant** or **res-TAU-rant**?","RES-tau-rant|res-TAU-rant".split("|"),0,"Restaurant stress: RES-tau-rant."),
+        q("u5-p7","pron",5,"Listening: 'Go straight' - important word?","straight|go|the".split("|"),0,"Important: straight (direction)."),
+        q("u5-p8","pron",5,"Which has /ər/?","river|here|near".split("|"),0,"River has /ər/ sound.")
+      ]
+    },
+    { unit: 6, title: "Review (Units 1-5)",
+      grammar: [
+        q("u6-g1","grammar",6,"I _____ from Brazil.","am|is|are".split("|"),0,"I → am."),
+        q("u6-g2","grammar",6,"She _____ coffee every day.","drink|drinks|drinking".split("|"),1,"She → drinks."),
+        q("u6-g3","grammar",6,"_____ there a bank?","Is|Are|Am".split("|"),0,"Singular: Is there…?"),
+        q("u6-g4","grammar",6,"This is _____ book.","my|me|I".split("|"),0,"Possessive: my."),
+        q("u6-g5","grammar",6,"They _____ friends.","is|are|am".split("|"),1,"They → are."),
+        q("u6-g6","grammar",6,"Do you _____ English?","speak|speaks|speaking".split("|"),0,"Question: Do you speak…?"),
+        q("u6-g7","grammar",6,"There are _____ shops.","many|much|a lot of".split("|"),0,"Plural count: many."),
+        q("u6-g8","grammar",6,"What time _____ you get up?","do|does|is".split("|"),0,"Question: What time do you…?")
+      ],
+      vocab: [
+        q("u6-v1","vocab",6,"I'm a _____. (job)","teacher|teach|teaching".split("|"),0,"Job: teacher."),
+        q("u6-v2","vocab",6,"My mother's son is my _____.","brother|sister|cousin".split("|"),0,"Family: brother."),
+        q("u6-v3","vocab",6,"You cook in the _____.","kitchen|bedroom|bathroom".split("|"),0,"Room: kitchen."),
+        q("u6-v4","vocab",6,"Monday, Tuesday, _____.","Wednesday|Thursday|Friday".split("|"),0,"Day: Wednesday."),
+        q("u6-v5","vocab",6,"You buy food at a _____.","supermarket|park|bank".split("|"),0,"Place: supermarket."),
+        q("u6-v6","vocab",6,"I _____ up at 7am.","get|got|getting".split("|"),0,"Routine: get up."),
+        q("u6-v7","vocab",6,"Nature: trees, flowers, _____.","rivers|buildings|cars".split("|"),0,"Nature: rivers."),
+        q("u6-v8","vocab",6,"Good _____! (morning)","morning|night|evening".split("|"),0,"Greeting: Good morning.")
+      ],
+      pron: [
+        q("u6-p1","pron",6,"Which has /ɪ/ sound?","sit|seat|set".split("|"),0,"/ɪ/ = short 'i' in 'sit'."),
+        q("u6-p2","pron",6,"Which has /i/ sound?","sheep|ship|shop".split("|"),0,"/i/ = long 'ee' in 'sheep'."),
+        q("u6-p3","pron",6,"Which has /θ/ (th)?","think|sink|thing".split("|"),0,"/θ/ = 'th' in 'think'."),
+        q("u6-p4","pron",6,"Stress: **HO-tel** or **ho-TEL**?","HO-tel|ho-TEL".split("|"),0,"Hotel stress: HO-tel."),
+        q("u6-p5","pron",6,"Syllables: **coffee** = ?","2|1|3".split("|"),0,"Coffee = 2 syllables."),
+        q("u6-p6","pron",6,"Which has /k/ at start?","cat|hat|at".split("|"),0,"Cat starts with /k/."),
+        q("u6-p7","pron",6,"Stress: **MORN-ing** or **morn-ING**?","MORN-ing|morn-ING".split("|"),0,"Morning stress: MORN-ing."),
+        q("u6-p8","pron",6,"Which has /ɪr/?","here|hear|hair".split("|"),0,"Here has /ɪr/ sound.")
       ]
     }
   ]
@@ -357,7 +506,8 @@ function init(){
   try {
     const saved = JSON.parse(localStorage.getItem(LS_KEY) || "null");
     if (saved?.config) Object.assign(state.config, saved.config);
-    if (saved?.score) Object.assign(state.score, saved.score);
+    // Don't restore scores - reset them each session
+    // if (saved?.score) Object.assign(state.score, saved.score);
   } catch {}
 
   els.unitSelect.value = String(state.config.unit);  els.setSizeSelect.value = String(state.config.setSize);
@@ -385,13 +535,20 @@ function init(){
 
 function updateDatasetInfo(){ /* header removed */ }
 function persist(){
-  localStorage.setItem(LS_KEY, JSON.stringify({ config: state.config, score: state.score }));
+  // Only save config, not scores (scores reset each session)
+  localStorage.setItem(LS_KEY, JSON.stringify({ config: state.config }));
 }
 
 function startSession(){
   const unitNum = parseInt(els.unitSelect.value, 10);  const setSize = parseInt(els.setSizeSelect.value, 10);
   const unit = DATA.units.find(u => u.unit === unitNum);
-  if (!unit) return;  state.config = { unit: unitNum, setSize };
+  if (!unit) return;
+  
+  // Reset scores for new session
+  state.score = { correct: 0, wrong: 0, streak: 0 };
+  updateScoreUI();
+  
+  state.config = { unit: unitNum, setSize };
   persist();
 
   let pool = [...unit.grammar, ...unit.vocab, ...unit.pron];
@@ -418,10 +575,23 @@ function showCurrent(){
   state.answered = false;  els.feedback.textContent = "";
   els.options.innerHTML = "";
 
+  // Reset question text style (in case it was set to completion checkmark)
+  els.qText.style.fontSize = "";
+  els.qText.style.color = "";
   els.qText.innerHTML = escapeHtml(q.prompt).replaceAll("**", "<strong>").replaceAll("</strong><strong>", "");
   els.qHint.textContent = q.hint || "";
 
-  q.options.forEach((opt, idx) => {
+  // Shuffle options and track the new position of the correct answer
+  const shuffledOptions = [...q.options];
+  const correctAnswer = shuffledOptions[q.answerIndex];
+  shuffle(shuffledOptions);
+  const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+  
+  // Store the shuffled options and new correct index for this question
+  q.shuffledOptions = shuffledOptions;
+  q.shuffledAnswerIndex = newCorrectIndex;
+
+  shuffledOptions.forEach((opt, idx) => {
     const btn = document.createElement("button");
     btn.className = "opt";
     btn.type = "button";
@@ -439,38 +609,86 @@ function chooseOption(idx){
   const q = state.sessionQuestions[state.index];
   state.answered = true;
 
+  // Use shuffled answer index if available, otherwise use original
+  const correctIndex = q.shuffledAnswerIndex !== undefined ? q.shuffledAnswerIndex : q.answerIndex;
+  const correct = idx === correctIndex;
   const btns = els.options.querySelectorAll("button.opt");
   btns.forEach((b, i) => {
-    if (i === q.answerIndex) b.classList.add("correct");
-    if (i === idx && i !== q.answerIndex) b.classList.add("wrong");
+    if (correct) {
+      // Only highlight correct answer if they got it right
+      if (i === correctIndex) b.classList.add("correct");
+    } else {
+      // Only highlight wrong answer if they got it wrong (don't show correct answer)
+      if (i === idx) b.classList.add("wrong");
+    }
     b.disabled = true;
   });
-
-  const correct = idx === q.answerIndex;
   if (correct) {
     state.score.correct += 1;
     state.score.streak += 1;
-    flashFeedback("✓ Correct", "good");
+    // Green button flash provides visual feedback - no text needed
+    els.feedback.textContent = "";
+    // Flash correct counter, streak, category, and unit in green
+    const correctPill = els.correctCount.parentElement; // parent is the pill span
+    const streakPill = els.streakCount.parentElement; // parent is the pill span
+    flashElement(correctPill, "rgba(0, 255, 160, .35)", 600);
+    flashElement(streakPill, "rgba(0, 255, 160, .35)", 600);
+    flashElement(els.metaRight, "rgba(0, 255, 160, .35)", 600);
+    flashElement(els.metaLeft, "rgba(0, 255, 160, .35)", 600);
   } else {
     state.score.wrong += 1;
     state.score.streak = 0;
-    flashFeedback(`✗ Wrong — ${q.options[q.answerIndex]}`, "bad");
+    // No text feedback - just flash red indicators
+    els.feedback.textContent = "";
+    // Flash wrong counter, category, and unit in red
+    const wrongPill = els.wrongCount.parentElement; // parent is the pill span
+    flashElement(wrongPill, "rgba(255, 80, 80, .35)", 600);
+    flashElement(els.metaRight, "rgba(255, 80, 80, .35)", 600);
+    flashElement(els.metaLeft, "rgba(255, 80, 80, .35)", 600);
   }
   updateScoreUI();
-  persist();  const note = q.explanation ? ` • ${q.explanation}` : "";
-  els.feedback.textContent += note;
+  persist();
 
   setTimeout(() => nextQuestion(true), 750);
+}
+
+function showCompletion(){
+  // Reset question text style
+  els.qText.style.fontSize = "";
+  els.qText.style.color = "";
+  els.qText.textContent = "Set Complete!";
+  els.qHint.textContent = "";
+  els.feedback.textContent = "";
+  els.options.innerHTML = "";
+  
+  // Create restart button styled like answer options
+  const restartBtn = document.createElement("button");
+  restartBtn.className = "opt";
+  restartBtn.type = "button";
+  restartBtn.textContent = "Restart Game";
+  restartBtn.addEventListener("click", () => {
+    startSession();
+  });
+  els.options.appendChild(restartBtn);
+  
+  // Show unit info on left, completion stats on right
+  const unitNum = state.config.unit;
+  const unit = DATA.units.find(u => u.unit === unitNum);
+  const totalQuestions = state.sessionQuestions.length;
+  const leftText = unit ? `Unit ${unitNum}: ${unit.title}` : `Unit ${unitNum}`;
+  const rightText = `Complete - ${totalQuestions}/${totalQuestions}`;
+  setMeta(leftText, rightText);
+  
+  // Flash unit and completion indicators in green
+  flashElement(els.metaLeft, "rgba(0, 255, 160, .35)", 600);
+  flashElement(els.metaRight, "rgba(0, 255, 160, .35)", 600);
 }
 
 function nextQuestion(fromAuto=false){
   if (!state.sessionQuestions.length) return;
   state.index += 1;
   if (state.index >= state.sessionQuestions.length){
-    els.qText.textContent = "✅ Set complete. Change Unit or Question set size to restart.";
-    els.qHint.textContent = "";
-    els.options.innerHTML = "";    setMeta("Complete", "Change Unit/Mode or Restart");
-    if (!fromAuto) flashFeedback("Set complete.", "muted");
+    showCompletion();
     return;
   }
   showCurrent();
@@ -492,6 +710,21 @@ function flashFeedback(text, kind){
   else els.feedback.style.color = "rgba(255,255,255,.7)";
   els.feedback.textContent = text;
   setTimeout(() => { els.feedback.style.color = "rgba(255,255,255,.7)"; }, 900);
+}
+
+function flashElement(element, color, duration = 600){
+  const originalBg = element.style.background;
+  const originalBorder = element.style.borderColor;
+  element.style.background = color;
+  element.style.borderColor = color.replace('rgba', 'rgba').replace('0.35', '0.6').replace('0.14', '0.6');
+  element.style.transition = 'background 0.1s ease, border-color 0.1s ease';
+  setTimeout(() => {
+    element.style.background = originalBg || '';
+    element.style.borderColor = originalBorder || '';
+    setTimeout(() => {
+      element.style.transition = '';
+    }, 100);
+  }, duration);
 }
 
 function labelType(t){
