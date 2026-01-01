@@ -60,13 +60,23 @@ git add "$FILE"
 git commit -m "Bump version to $NEW_VERSION"
 echo "✅ Committed version update"
 
-# Push to origin (GitHub)
+# Push to origin (GitHub) for GitHub Pages
 if git remote | grep -q "origin"; then
-    echo "🚀 Pushing to GitHub..."
+    echo "🚀 Pushing to GitHub (GitHub Pages)..."
     if git push origin main 2>&1; then
         echo "✅ Pushed to GitHub successfully!"
     else
         echo "⚠️  Push to GitHub failed (check manually)"
+    fi
+fi
+
+# Push to GitLab (Docker-hosted)
+if git remote | grep -q "gitlab"; then
+    echo "🚀 Pushing to GitLab (Docker)..."
+    if git push gitlab main 2>&1; then
+        echo "✅ Pushed to GitLab successfully!"
+    else
+        echo "⚠️  Push to GitLab failed (Docker may not be running)"
     fi
 fi
 
