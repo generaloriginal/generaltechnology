@@ -223,19 +223,16 @@
       color: var(--muted);
     }
     #version {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      font-size: 11px;
-      color: var(--muted);
-      opacity: 0.6;
-      z-index: 1000;
+      text-align: right;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 12px;
+      padding: 0 10px 0 10px;
+      margin-top: 16px;
     }
   </style>
 </head>
 
 <body>
-  <div id="version">v1.0.0</div>
   <div class="app">
     <section class="panel">
       <div class="controls">
@@ -278,6 +275,7 @@
         </div>
         </div>
     </section>
+    <div id="version">v1.0.0</div>
   </div>
 
 <script>
