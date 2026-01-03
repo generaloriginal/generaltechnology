@@ -334,6 +334,7 @@ h2. Related Documentation
 * *[SUPABASE_SETUP.md|SUPABASE_SETUP.md]* - Detailed Supabase configuration
 * *[README.md|README.md]* - Project overview
 * *.cursorrules* - Cursor IDE rules and guidelines
+* *[CHANGELOG.md|CHANGELOG.md]* - Work log and change history
 
 ----
 

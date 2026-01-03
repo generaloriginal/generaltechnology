@@ -429,6 +429,7 @@ For simplicity, RLS can be disabled for leaderboard table:
 - `SUPABASE_SETUP.md` - Detailed Supabase configuration
 - `README.md` - Project overview
 - `.cursorrules` - Cursor IDE rules and guidelines
+- `CHANGELOG.md` - Work log and change history
 
 ---
 
