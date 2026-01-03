@@ -254,11 +254,43 @@ h2. Architecture Diagrams
 
 ----
 
+h2. Version Management
+
+*CRITICAL: Always update version numbers when making changes to HTML files with version numbers.*
+
+h3. Version Format
+
+* Use semantic versioning: {{vMAJOR.MINOR.PATCH}} (e.g., v1.0.1)
+* For frequent updates, increment the PATCH version (third number)
+* Example progression: v1.0.1 → v1.0.2 → v1.0.3
+
+h3. When to Update
+
+* *ALWAYS* update the version number when:
+** Adding new features
+** Fixing bugs
+** Making UI/UX changes
+** Updating game logic
+** Any code changes to files with version numbers
+
+h3. How to Update
+
+# *Find the version element in the HTML file (usually {{<div id="version">vX.X.X</div>}})*
+# *Increment the patch version (third number)*
+# *Commit the version update in the same commit as the changes, or as a separate commit immediately after*
+
+h3. Files with Version Numbers
+
+* {{unit-tests.html}} - Contains version display at bottom of page
+
+----
+
 h2. Related Documentation
 
 * *[AUTO_SETUP.md|AUTO_SETUP.md]* - Quick setup guide
 * *[SUPABASE_SETUP.md|SUPABASE_SETUP.md]* - Detailed Supabase configuration
 * *[README.md|README.md]* - Project overview
+* *.cursorrules* - Cursor IDE rules and guidelines
 
 ----
 

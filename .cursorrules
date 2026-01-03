@@ -25,14 +25,37 @@
 ### Files with Version Numbers
 - `unit-tests.html` - Contains version display at bottom of page
 
+## Documentation Updates
+
+**CRITICAL: Always update Confluence documentation when updating AI_DOCUMENTATION.md**
+
+### Documentation Files
+- `AI_DOCUMENTATION.md` - Main documentation (Markdown format)
+- `AI_DOCUMENTATION_CONFLUENCE.md` - Confluence-ready documentation (Confluence markup)
+
+### When to Update
+- **ALWAYS** update `AI_DOCUMENTATION_CONFLUENCE.md` when:
+  - Updating `AI_DOCUMENTATION.md`
+  - Adding new features or sections
+  - Changing project structure
+  - Updating setup instructions
+  - Any documentation changes
+
+### Confluence Format
+- Use Confluence markup syntax (h1, h2, {code}, etc.)
+- Convert Markdown to Confluence format
+- Maintain same structure and content as main documentation
+- Update "Last Updated" date
+
 ## Git Workflow
 
 ### Commit and Push Process
 1. Make code changes
 2. Update version number (if applicable)
-3. Stage changes: `git add <files>`
-4. Commit with descriptive message
-5. Push to both remotes:
+3. Update documentation (both files if needed)
+4. Stage changes: `git add <files>`
+5. Commit with descriptive message
+6. Push to both remotes:
    - `git push gitlab main` (local remote)
    - `git push origin main` (GitHub Pages remote)
 
