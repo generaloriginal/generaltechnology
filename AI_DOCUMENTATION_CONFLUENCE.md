@@ -258,6 +258,17 @@ h2. Documentation Management
 
 *CRITICAL: Git is the source of truth for all documentation. All documentation changes MUST be committed to git.*
 
+h3. Repository Structure
+
+* *Local Repository (gitlab remote):* Full project folder - includes ALL files (application code + documentation)
+** *Commits to:* local file system, local git server (gitlab)
+** *Contains:* HTML files, documentation, setup scripts, SQL files, etc.
+
+* *Cloud Repository (origin remote):* Application code only - for GitHub Pages deployment
+** *Commits to:* local file system, local git server (gitlab), AND cloud server (GitHub Pages)
+** *Contains:* Only application code (HTML, CSS, JS files needed for the website)
+** *Does NOT contain:* Documentation files (*.md), setup scripts, SQL files, etc.
+
 h3. Documentation Workflow
 
 # *Git is the source of truth* - All documentation lives in git repository
@@ -266,6 +277,7 @@ h3. Documentation Workflow
 ** *Update {{AI_DOCUMENTATION.md}} (Markdown)*
 ** *Update {{AI_DOCUMENTATION_CONFLUENCE.md}} (Confluence markup)*
 # *Confluence sync* - Confluence should be updated from git files (not the other way around)
+# *Documentation only goes to local repository* - Documentation is committed to git but only pushed to gitlab (local), NOT to origin (cloud)
 
 h3. Documentation Files (All tracked in git)
 
@@ -281,6 +293,7 @@ h3. Documentation Commit Rules
 * Documentation changes should be committed in the same commit as code changes, or immediately after
 * If updating documentation separately, commit it as a separate commit: "Update documentation for feature X"
 * All documentation files are tracked in git and must be committed
+* *Documentation commits go to gitlab (local) only, NOT to origin (cloud)*
 
 ----
 

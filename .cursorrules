@@ -62,21 +62,43 @@
 
 ## Git Workflow
 
+### Repository Structure
+- **Local Repository (gitlab remote)**: Full project folder - includes ALL files (application code + documentation)
+  - Commits to: local file system, local git server (gitlab)
+  - Contains: HTML files, documentation, setup scripts, SQL files, etc.
+  
+- **Cloud Repository (origin remote)**: Application code only - for GitHub Pages deployment
+  - Commits to: local file system, local git server (gitlab), AND cloud server (GitHub Pages)
+  - Contains: Only application code (HTML, CSS, JS files needed for the website)
+  - Does NOT contain: Documentation files (*.md), setup scripts, SQL files, etc.
+
 ### Commit and Push Process
+
+**For Application Code Changes:**
 1. Make code changes
 2. Update version number (if applicable)
-3. Update documentation (both files if needed) - **MUST be committed**
-4. Stage changes: `git add <files>`
-5. Commit with descriptive message (include documentation changes in commit)
-6. Push to both remotes:
-   - `git push gitlab main` (local remote)
-   - `git push origin main` (GitHub Pages remote)
+3. Stage changes: `git add <application-files>`
+4. Commit with descriptive message
+5. Push to both remotes:
+   - `git push gitlab main` (local remote - gets everything including documentation)
+   - `git push origin main` (GitHub Pages remote - application code only, documentation excluded)
+
+**For Documentation Changes:**
+1. Update documentation (both files if needed)
+2. Stage changes: `git add <documentation-files>`
+3. Commit with descriptive message
+4. Push to local remote only:
+   - `git push gitlab main` (local remote - gets everything)
+   - **DO NOT push documentation commits to origin (cloud server)**
+
+**Note:** Since both remotes use the same repository, documentation files are tracked in git but should not be deployed to the cloud. The cloud repository (origin) should only contain application code files needed for the website (HTML, CSS, JS). Documentation commits can be pushed to gitlab but should be excluded from cloud deployment.
 
 ### Documentation Commit Rules
 - **NEVER** leave documentation changes uncommitted
 - Documentation changes should be committed in the same commit as code changes, or immediately after
 - If updating documentation separately, commit it as a separate commit: "Update documentation for feature X"
 - All documentation files are tracked in git and must be committed
+- **Documentation only goes to local repository (gitlab), NOT to cloud (origin)**
 
 ### Commit Messages
 - Use clear, descriptive commit messages
