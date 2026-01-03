@@ -275,7 +275,7 @@
         </div>
         </div>
     </section>
-    <div id="version">v1.0.5</div>
+    <div id="version">v1.0.6</div>
   </div>
 
 <script>
@@ -712,10 +712,11 @@ function showCompletion(){
   setMeta(leftText, rightText);
   
   // Start the completion light show - replay all answers in chronological order
-  replayAnswerHistory();
+  // After it completes, highlight the restart button in green
+  replayAnswerHistory(restartBtn);
 }
 
-function replayAnswerHistory(){
+function replayAnswerHistory(restartBtn){
   const correctPill = els.correctCount.parentElement;
   const wrongPill = els.wrongCount.parentElement;
   const streakPill = els.streakCount.parentElement;
@@ -752,6 +753,16 @@ function replayAnswerHistory(){
       }
     }, beat * beatInterval);
   }
+  
+  // After all beats complete, highlight the restart button in green permanently
+  const totalDuration = (totalQuestions - 1) * beatInterval + flashDuration;
+  setTimeout(() => {
+    if (restartBtn) {
+      restartBtn.style.background = greenColor;
+      restartBtn.style.borderColor = "rgba(0, 255, 160, .6)";
+      restartBtn.style.transition = "background 0.3s ease, border-color 0.3s ease";
+    }
+  }, totalDuration + 100);
 }
 
 function nextQuestion(fromAuto=false){
