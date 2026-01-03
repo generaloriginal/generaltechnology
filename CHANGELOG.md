@@ -2,6 +2,60 @@
 
 All notable changes to this project will be documented in this file.
 
+---
+
+## Work Log
+
+*Most recent work appears first*
+
+### 2025-01-27
+
+#### Documentation & Rules (Latest)
+- Updated `.cursorrules` to require tracking all rules changes in CHANGELOG.md and Confluence
+- Added rules maintenance section to .cursorrules - auto-update requirement
+- Enhanced rules maintenance workflow to ensure all changes are documented
+- Created `CHANGELOG.md` file for tracking all work and changes
+- Added changelog section to Confluence documentation
+- Updated `AI_DOCUMENTATION.md` with version management and documentation workflow
+- Updated `AI_DOCUMENTATION_CONFLUENCE.md` with same information in Confluence format
+- Established git workflow: documentation to local repo only, application code to both remotes
+- All documentation changes committed to git
+
+#### Unit Test Game - Completion Light Show (v1.0.7)
+- Fixed restart button green highlight after completion light show - now properly applies green styling with correct class and important styles
+- Highlight restart button in green after completion light show finishes
+- Removed initial 10-flash sequence for unit/question count
+- Completion light show now flashes 10 beats in chronological order (one per question)
+- Fixed completion flashes: top elements (unit and question count) flash at every beat
+- Bottom elements flash based on each question's answer (correct/wrong/streak)
+- Changed completion flashes to simultaneous beats instead of sequential
+- Each beat flashes appropriate elements based on question answer
+- Implemented completion light show feature
+- Added chronological answer replay with visual feedback
+- All flashes occur simultaneously at 10 beats (one per question)
+- Restart button highlights in green after light show completes
+
+#### Unit Test Game - Randomness Improvements (v1.0.2)
+- Enhanced question shuffling with crypto.getRandomValues()
+- Added multiple shuffles with entropy for better randomization
+- Questions now properly randomize on each session refresh
+
+#### Launchpad Updates
+- Added unit test game button to launchpad (third game icon)
+- Added fourth empty placeholder card for future games
+- All changes committed and pushed to both remotes
+
+#### Version Management
+- Implemented semantic versioning (v1.0.x for patch updates)
+- Version automatically updated with each feature/fix
+- Version display at bottom of unit-tests.html page
+
+---
+
+## Version History
+
+*Chronological version history*
+
 ## [Unreleased]
 
 ### Added
@@ -69,47 +123,6 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## Work Log
-
-### 2025-01-27
-
-#### Launchpad Updates
-- Added unit test game button to launchpad (third game icon)
-- Added fourth empty placeholder card for future games
-- All changes committed and pushed to both remotes
-
-#### Unit Test Game - Completion Light Show
-- Implemented completion light show feature
-- Added chronological answer replay with visual feedback
-- Top elements (unit and question count) flash at every beat
-- Bottom elements flash based on each question's answer:
-  - Correct answers: flash correct counter + streak counter (if applicable) in green
-  - Wrong answers: flash wrong counter in red
-- All flashes occur simultaneously at 10 beats (one per question)
-- Restart button highlights in green after light show completes
-
-#### Unit Test Game - Randomness Improvements
-- Enhanced question shuffling with crypto.getRandomValues()
-- Added multiple shuffles with entropy for better randomization
-- Questions now properly randomize on each session refresh
-
-#### Documentation & Rules
-- Created `.cursorrules` file with version management and documentation rules
-- Updated `.cursorrules` to include changelog/work log tracking requirements
-- Created `CHANGELOG.md` file for tracking all work and changes
-- Updated `AI_DOCUMENTATION.md` with version management and documentation workflow
-- Updated `AI_DOCUMENTATION_CONFLUENCE.md` with same information in Confluence format
-- Added changelog section to Confluence documentation
-- Established git workflow: documentation to local repo only, application code to both remotes
-- All documentation changes committed to git
-
-#### Version Management
-- Implemented semantic versioning (v1.0.x for patch updates)
-- Version automatically updated with each feature/fix
-- Version display at bottom of unit-tests.html page
-
----
-
 ## Backlog
 
 ### Pending Items
@@ -122,4 +135,3 @@ All notable changes to this project will be documented in this file.
 - Difficulty levels
 - Timer mode
 - Practice mode vs. test mode
-
