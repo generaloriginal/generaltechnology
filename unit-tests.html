@@ -498,7 +498,8 @@ const state = {
   index: 0,
   answered: false,
   score: { correct: 0, wrong: 0, streak: 0 },
-  config: { unit: 1, setSize: 20 }
+  config: { unit: 1, setSize: 20 },
+  answerHistory: [] // Track each answer for replay
 };
 
 init();
@@ -552,8 +553,9 @@ function startSession(){
   const unit = DATA.units.find(u => u.unit === unitNum);
   if (!unit) return;
   
-  // Reset scores for new session
+  // Reset scores and history for new session
   state.score = { correct: 0, wrong: 0, streak: 0 };
+  state.answerHistory = [];
   updateScoreUI();
   
   state.config = { unit: unitNum, setSize };
@@ -631,9 +633,19 @@ function chooseOption(idx){
     }
     b.disabled = true;
   });
+  
+  // Record answer in history for replay (before updating score)
+  const wasCorrect = correct;
+  const streakBefore = state.score.streak;
+  
   if (correct) {
     state.score.correct += 1;
     state.score.streak += 1;
+    // Record with the new streak value
+    state.answerHistory.push({
+      correct: true,
+      streak: state.score.streak
+    });
     // Green button flash provides visual feedback - no text needed
     els.feedback.textContent = "";
     // Flash correct counter, streak, category, and unit in green
@@ -646,6 +658,11 @@ function chooseOption(idx){
   } else {
     state.score.wrong += 1;
     state.score.streak = 0;
+    // Record wrong answer (no streak)
+    state.answerHistory.push({
+      correct: false,
+      streak: 0
+    });
     // No text feedback - just flash red indicators
     els.feedback.textContent = "";
     // Flash wrong counter, category, and unit in red
@@ -687,9 +704,59 @@ function showCompletion(){
   const rightText = `Complete - ${totalQuestions}/${totalQuestions}`;
   setMeta(leftText, rightText);
   
-  // Flash unit and completion indicators in green
-  flashElement(els.metaLeft, "rgba(0, 255, 160, .35)", 600);
-  flashElement(els.metaRight, "rgba(0, 255, 160, .35)", 600);
+  // Start the completion light show
+  playCompletionLightShow();
+}
+
+function playCompletionLightShow(){
+  const correctPill = els.correctCount.parentElement;
+  const wrongPill = els.wrongCount.parentElement;
+  const streakPill = els.streakCount.parentElement;
+  const greenColor = "rgba(0, 255, 160, .35)";
+  const redColor = "rgba(255, 80, 80, .35)";
+  
+  // First: Flash unit and question count 10 times
+  let flashCount = 0;
+  const unitFlashInterval = setInterval(() => {
+    flashElement(els.metaLeft, greenColor, 400);
+    flashElement(els.metaRight, greenColor, 400);
+    flashCount++;
+    if (flashCount >= 10) {
+      clearInterval(unitFlashInterval);
+      // After unit flashes, start replaying answer history
+      setTimeout(() => replayAnswerHistory(), 500);
+    }
+  }, 450);
+}
+
+function replayAnswerHistory(){
+  const correctPill = els.correctCount.parentElement;
+  const wrongPill = els.wrongCount.parentElement;
+  const streakPill = els.streakCount.parentElement;
+  const greenColor = "rgba(0, 255, 160, .35)";
+  const redColor = "rgba(255, 80, 80, .35)";
+  
+  let delay = 0;
+  const flashDuration = 300;
+  const flashDelay = 350; // Time between each flash
+  
+  state.answerHistory.forEach((answer, index) => {
+    setTimeout(() => {
+      if (answer.correct) {
+        // Flash correct counter in green
+        flashElement(correctPill, greenColor, flashDuration);
+        // Flash streak if it exists (streak > 0 means this answer contributed to a streak)
+        if (answer.streak > 0) {
+          flashElement(streakPill, greenColor, flashDuration);
+        }
+      } else {
+        // Flash wrong counter in red
+        flashElement(wrongPill, redColor, flashDuration);
+      }
+    }, delay);
+    
+    delay += flashDelay;
+  });
 }
 
 function nextQuestion(fromAuto=false){
@@ -721,6 +788,7 @@ function flashFeedback(text, kind){
 }
 
 function flashElement(element, color, duration = 600){
+  if (!element) return;
   const originalBg = element.style.background;
   const originalBorder = element.style.borderColor;
   element.style.background = color;
