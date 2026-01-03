@@ -275,7 +275,7 @@
         </div>
         </div>
     </section>
-    <div id="version">v1.0.6</div>
+    <div id="version">v1.0.7</div>
   </div>
 
 <script>
@@ -755,14 +755,20 @@ function replayAnswerHistory(restartBtn){
   }
   
   // After all beats complete, highlight the restart button in green permanently
-  const totalDuration = (totalQuestions - 1) * beatInterval + flashDuration;
+  // Calculate when the last flash will finish: (last beat index * interval) + flash duration
+  const totalDuration = totalQuestions > 0 ? ((totalQuestions - 1) * beatInterval) + flashDuration : 0;
   setTimeout(() => {
-    if (restartBtn) {
-      restartBtn.style.background = greenColor;
-      restartBtn.style.borderColor = "rgba(0, 255, 160, .6)";
-      restartBtn.style.transition = "background 0.3s ease, border-color 0.3s ease";
+    // Find the restart button in case the reference was lost
+    const btn = restartBtn || els.options.querySelector("button.opt");
+    if (btn) {
+      // Add the 'correct' class to apply green styling
+      btn.classList.add("correct");
+      // Also set inline styles to ensure it's green (inline styles override CSS)
+      btn.style.setProperty("background", greenColor, "important");
+      btn.style.setProperty("border-color", "rgba(0, 255, 160, .6)", "important");
+      btn.style.transition = "background 0.3s ease, border-color 0.3s ease";
     }
-  }, totalDuration + 100);
+  }, totalDuration + 200);
 }
 
 function nextQuestion(fromAuto=false){
