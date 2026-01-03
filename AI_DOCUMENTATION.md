@@ -357,11 +357,39 @@ For simplicity, RLS can be disabled for leaderboard table:
 
 ---
 
+## Version Management
+
+**CRITICAL: Always update version numbers when making changes to HTML files with version numbers.**
+
+### Version Format
+- Use semantic versioning: `vMAJOR.MINOR.PATCH` (e.g., v1.0.1)
+- For frequent updates, increment the PATCH version (third number)
+- Example progression: v1.0.1 → v1.0.2 → v1.0.3
+
+### When to Update
+- **ALWAYS** update the version number when:
+  - Adding new features
+  - Fixing bugs
+  - Making UI/UX changes
+  - Updating game logic
+  - Any code changes to files with version numbers
+
+### How to Update
+1. Find the version element in the HTML file (usually `<div id="version">vX.X.X</div>`)
+2. Increment the patch version (third number)
+3. Commit the version update in the same commit as the changes, or as a separate commit immediately after
+
+### Files with Version Numbers
+- `unit-tests.html` - Contains version display at bottom of page
+
+---
+
 ## Related Documentation
 
 - `AUTO_SETUP.md` - Quick setup guide
 - `SUPABASE_SETUP.md` - Detailed Supabase configuration
 - `README.md` - Project overview
+- `.cursorrules` - Cursor IDE rules and guidelines
 
 ---
 

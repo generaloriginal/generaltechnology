@@ -1,0 +1,56 @@
+# General Technology - Cursor Rules
+
+## Version Management
+
+**CRITICAL: Always update version numbers when making changes to HTML files with version numbers.**
+
+### Version Format
+- Use semantic versioning: `vMAJOR.MINOR.PATCH` (e.g., v1.0.1)
+- For frequent updates, increment the PATCH version (third number)
+- Example progression: v1.0.1 → v1.0.2 → v1.0.3
+
+### When to Update
+- **ALWAYS** update the version number when:
+  - Adding new features
+  - Fixing bugs
+  - Making UI/UX changes
+  - Updating game logic
+  - Any code changes to files with version numbers
+
+### How to Update
+1. Find the version element in the HTML file (usually `<div id="version">vX.X.X</div>`)
+2. Increment the patch version (third number)
+3. Commit the version update in the same commit as the changes, or as a separate commit immediately after
+
+### Files with Version Numbers
+- `unit-tests.html` - Contains version display at bottom of page
+
+## Git Workflow
+
+### Commit and Push Process
+1. Make code changes
+2. Update version number (if applicable)
+3. Stage changes: `git add <files>`
+4. Commit with descriptive message
+5. Push to both remotes:
+   - `git push gitlab main` (local remote)
+   - `git push origin main` (GitHub Pages remote)
+
+### Commit Messages
+- Use clear, descriptive commit messages
+- Include version number in commit message when updating version
+- Example: "Add feature X - Update version to v1.0.2"
+
+## Code Standards
+
+### HTML/CSS/JavaScript
+- Use modern ES6+ JavaScript
+- Maintain consistent code style
+- Add comments for complex logic
+- Keep functions focused and modular
+
+### Testing
+- Test changes locally before committing
+- Verify functionality in browser
+- Check for console errors
+
