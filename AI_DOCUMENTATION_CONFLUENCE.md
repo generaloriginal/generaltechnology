@@ -328,6 +328,36 @@ h3. Files with Version Numbers
 
 ----
 
+h2. Changelog & Work Log
+
+*See {{CHANGELOG.md}} for detailed change history and work log.*
+
+h3. Recent Updates (2025-01-27)
+
+h4. Unit Test Game v1.0.7
+
+* *Fixed:* Restart button green highlight after completion light show
+* *Added:* Completion light show with chronological answer replay
+* *Improved:* Question randomness with crypto.getRandomValues()
+* *Changed:* Flashes now occur simultaneously at 10 beats (one per question)
+
+h4. Launchpad
+
+* *Added:* Unit test game button (third game icon)
+* *Added:* Fourth empty placeholder card
+
+h4. Documentation & Rules
+
+* *Created:* .cursorrules file with version management and documentation rules
+* *Updated:* All documentation with git workflow and version management
+* *Established:* Documentation goes to local repo only, application code to both remotes
+
+h3. Backlog
+
+*No pending items at this time.*
+
+----
+
 h2. Related Documentation
 
 * *[AUTO_SETUP.md|AUTO_SETUP.md]* - Quick setup guide
