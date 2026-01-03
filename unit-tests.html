@@ -275,7 +275,7 @@
         </div>
         </div>
     </section>
-    <div id="version">v1.0.2</div>
+    <div id="version">v1.0.3</div>
   </div>
 
 <script>
@@ -743,27 +743,29 @@ function replayAnswerHistory(){
   const greenColor = "rgba(0, 255, 160, .35)";
   const redColor = "rgba(255, 80, 80, .35)";
   
-  let delay = 0;
+  const totalQuestions = state.answerHistory.length;
   const flashDuration = 300;
-  const flashDelay = 350; // Time between each flash
+  const beatInterval = 350; // Time between each beat
   
-  state.answerHistory.forEach((answer, index) => {
+  // Flash all 10 beats simultaneously, with each beat flashing the appropriate elements
+  for (let beat = 0; beat < totalQuestions; beat++) {
     setTimeout(() => {
-      if (answer.correct) {
-        // Flash correct counter in green
-        flashElement(correctPill, greenColor, flashDuration);
-        // Flash streak if it exists (streak > 0 means this answer contributed to a streak)
-        if (answer.streak > 0) {
-          flashElement(streakPill, greenColor, flashDuration);
+      const answer = state.answerHistory[beat];
+      if (answer) {
+        if (answer.correct) {
+          // Flash correct counter in green
+          flashElement(correctPill, greenColor, flashDuration);
+          // Flash streak if it exists (streak > 0 means this answer contributed to a streak)
+          if (answer.streak > 0) {
+            flashElement(streakPill, greenColor, flashDuration);
+          }
+        } else {
+          // Flash wrong counter in red
+          flashElement(wrongPill, redColor, flashDuration);
         }
-      } else {
-        // Flash wrong counter in red
-        flashElement(wrongPill, redColor, flashDuration);
       }
-    }, delay);
-    
-    delay += flashDelay;
-  });
+    }, beat * beatInterval);
+  }
 }
 
 function nextQuestion(fromAuto=false){
