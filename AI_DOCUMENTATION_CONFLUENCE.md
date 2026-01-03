@@ -254,6 +254,36 @@ h2. Architecture Diagrams
 
 ----
 
+h2. Documentation Management
+
+*CRITICAL: Git is the source of truth for all documentation. All documentation changes MUST be committed to git.*
+
+h3. Documentation Workflow
+
+# *Git is the source of truth* - All documentation lives in git repository
+# *Always commit documentation changes* - Never leave documentation changes uncommitted
+# *Update both documentation files* when making changes:
+** *Update {{AI_DOCUMENTATION.md}} (Markdown)*
+** *Update {{AI_DOCUMENTATION_CONFLUENCE.md}} (Confluence markup)*
+# *Confluence sync* - Confluence should be updated from git files (not the other way around)
+
+h3. Documentation Files (All tracked in git)
+
+* {{AI_DOCUMENTATION.md}} - Main documentation (Markdown format)
+* {{AI_DOCUMENTATION_CONFLUENCE.md}} - Confluence-ready documentation (Confluence markup)
+* {{README.md}} - Project overview
+* {{AUTO_SETUP.md}} - Quick setup guide
+* {{SUPABASE_SETUP.md}} - Detailed Supabase configuration
+
+h3. Documentation Commit Rules
+
+* *NEVER* leave documentation changes uncommitted
+* Documentation changes should be committed in the same commit as code changes, or immediately after
+* If updating documentation separately, commit it as a separate commit: "Update documentation for feature X"
+* All documentation files are tracked in git and must be committed
+
+----
+
 h2. Version Management
 
 *CRITICAL: Always update version numbers when making changes to HTML files with version numbers.*

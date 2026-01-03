@@ -27,11 +27,22 @@
 
 ## Documentation Updates
 
-**CRITICAL: Always update Confluence documentation when updating AI_DOCUMENTATION.md**
+**CRITICAL: Git is the source of truth for all documentation. All documentation changes MUST be committed to git.**
 
-### Documentation Files
+### Documentation Files (All tracked in git)
 - `AI_DOCUMENTATION.md` - Main documentation (Markdown format)
 - `AI_DOCUMENTATION_CONFLUENCE.md` - Confluence-ready documentation (Confluence markup)
+- `README.md` - Project overview
+- `AUTO_SETUP.md` - Quick setup guide
+- `SUPABASE_SETUP.md` - Detailed Supabase configuration
+
+### Documentation Workflow
+1. **Git is the source of truth** - All documentation lives in git repository
+2. **Always commit documentation changes** - Never leave documentation changes uncommitted
+3. **Update both documentation files** when making changes:
+   - Update `AI_DOCUMENTATION.md` (Markdown)
+   - Update `AI_DOCUMENTATION_CONFLUENCE.md` (Confluence markup)
+4. **Confluence sync** - Confluence should be updated from git files (not the other way around)
 
 ### When to Update
 - **ALWAYS** update `AI_DOCUMENTATION_CONFLUENCE.md` when:
@@ -40,24 +51,32 @@
   - Changing project structure
   - Updating setup instructions
   - Any documentation changes
+- **ALWAYS** commit documentation changes to git immediately
 
 ### Confluence Format
 - Use Confluence markup syntax (h1, h2, {code}, etc.)
 - Convert Markdown to Confluence format
 - Maintain same structure and content as main documentation
 - Update "Last Updated" date
+- Confluence pages should be updated from git files, not edited directly in Confluence
 
 ## Git Workflow
 
 ### Commit and Push Process
 1. Make code changes
 2. Update version number (if applicable)
-3. Update documentation (both files if needed)
+3. Update documentation (both files if needed) - **MUST be committed**
 4. Stage changes: `git add <files>`
-5. Commit with descriptive message
+5. Commit with descriptive message (include documentation changes in commit)
 6. Push to both remotes:
    - `git push gitlab main` (local remote)
    - `git push origin main` (GitHub Pages remote)
+
+### Documentation Commit Rules
+- **NEVER** leave documentation changes uncommitted
+- Documentation changes should be committed in the same commit as code changes, or immediately after
+- If updating documentation separately, commit it as a separate commit: "Update documentation for feature X"
+- All documentation files are tracked in git and must be committed
 
 ### Commit Messages
 - Use clear, descriptive commit messages
