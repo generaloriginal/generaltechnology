@@ -18,8 +18,10 @@
 1. Add new sections or update existing sections as needed
 2. Maintain clear structure and organization
 3. Use consistent formatting and language
-4. Commit `.cursorrules` updates along with related work
-5. Update `CHANGELOG.md` when making significant rules changes
+4. **ALWAYS** update `CHANGELOG.md` when updating `.cursorrules` - track all rules changes
+5. **ALWAYS** update `AI_DOCUMENTATION_CONFLUENCE.md` to reflect rules changes in Confluence
+6. Commit `.cursorrules` updates along with changelog and documentation updates
+7. Rules changes should be visible in Confluence documentation
 
 ## Version Management
 

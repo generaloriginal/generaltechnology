@@ -5,8 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Rules maintenance section to .cursorrules - auto-update requirement
 - Changelog and work log tracking requirements to .cursorrules
 - CHANGELOG.md file for tracking all work and changes
+
+### Changed
+- Updated .cursorrules to require tracking all rules changes in CHANGELOG.md and Confluence
+- Enhanced rules maintenance workflow to ensure all changes are documented
 
 ## [1.0.7] - 2025-01-27
 

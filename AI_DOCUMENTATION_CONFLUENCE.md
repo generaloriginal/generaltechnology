@@ -349,8 +349,10 @@ h4. Launchpad
 h4. Documentation & Rules
 
 * *Created:* .cursorrules file with version management and documentation rules
+* *Updated:* .cursorrules with rules maintenance section and changelog tracking requirements
 * *Updated:* All documentation with git workflow and version management
 * *Established:* Documentation goes to local repo only, application code to both remotes
+* *Established:* All .cursorrules changes must be tracked in CHANGELOG.md and Confluence
 
 h3. Backlog
 
