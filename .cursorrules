@@ -35,6 +35,7 @@
 - `README.md` - Project overview
 - `AUTO_SETUP.md` - Quick setup guide
 - `SUPABASE_SETUP.md` - Detailed Supabase configuration
+- `CHANGELOG.md` - Work log and change history
 
 ### Documentation Workflow
 1. **Git is the source of truth** - All documentation lives in git repository
@@ -52,6 +53,32 @@
   - Updating setup instructions
   - Any documentation changes
 - **ALWAYS** commit documentation changes to git immediately
+
+## Changelog & Work Log
+
+**CRITICAL: Always update CHANGELOG.md to track all work, even if it doesn't resolve any changes.**
+
+### Changelog Workflow
+1. **Track all work** - Update `CHANGELOG.md` with all work completed, including:
+   - Features added
+   - Bugs fixed
+   - Improvements made
+   - Documentation updates
+   - Any changes or work done
+2. **Version entries** - Add entries under the appropriate version section
+3. **Work log** - Add detailed work log entries with dates
+4. **Backlog** - Update backlog section with pending items or future enhancements
+5. **Update Confluence** - Add changelog summary to `AI_DOCUMENTATION_CONFLUENCE.md` when significant updates occur
+
+### When to Update Changelog
+- **ALWAYS** update `CHANGELOG.md` when:
+  - Completing a feature or fix
+  - Making any code changes
+  - Updating documentation
+  - Making configuration changes
+  - Any work that should be tracked
+- Update changelog in the same commit or immediately after the work is committed
+- Include both the version history and detailed work log entries
 
 ### Confluence Format
 - Use Confluence markup syntax (h1, h2, {code}, etc.)
@@ -77,17 +104,19 @@
 **For Application Code Changes:**
 1. Make code changes
 2. Update version number (if applicable)
-3. Stage changes: `git add <application-files>`
-4. Commit with descriptive message
-5. Push to both remotes:
+3. Update CHANGELOG.md with the work completed
+4. Stage changes: `git add <application-files>`
+5. Commit with descriptive message
+6. Push to both remotes:
    - `git push gitlab main` (local remote - gets everything including documentation)
    - `git push origin main` (GitHub Pages remote - application code only, documentation excluded)
 
 **For Documentation Changes:**
 1. Update documentation (both files if needed)
-2. Stage changes: `git add <documentation-files>`
-3. Commit with descriptive message
-4. Push to local remote only:
+2. Update CHANGELOG.md with documentation work
+3. Stage changes: `git add <documentation-files>`
+4. Commit with descriptive message
+5. Push to local remote only:
    - `git push gitlab main` (local remote - gets everything)
    - **DO NOT push documentation commits to origin (cloud server)**
 
