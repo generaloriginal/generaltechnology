@@ -275,7 +275,7 @@
         </div>
         </div>
     </section>
-    <div id="version">v1.0.1</div>
+    <div id="version">v1.0.2</div>
   </div>
 
 <script>
@@ -563,7 +563,14 @@ function startSession(){
 
   let pool = [...unit.grammar, ...unit.vocab, ...unit.pron];
 
+  // Shuffle multiple times with additional entropy for better randomness
   shuffle(pool);
+  // Add entropy by shuffling again with performance timing
+  const entropy = performance.now() + Date.now();
+  for (let i = 0; i < Math.floor(entropy % 3) + 1; i++) {
+    shuffle(pool);
+  }
+  
   if (setSize !== 9999) pool = pool.slice(0, Math.min(setSize, pool.length));
 
   state.sessionQuestions = pool;
@@ -810,8 +817,23 @@ function labelType(t){
 }
 
 function shuffle(arr){
+  // Enhanced Fisher-Yates shuffle with additional entropy for better randomness
+  // Use crypto.getRandomValues if available for better randomness, otherwise use Math.random with entropy
+  const useCrypto = typeof crypto !== 'undefined' && crypto.getRandomValues;
+  const entropy = performance.now() + Date.now();
+  
   for (let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
+    let j;
+    if (useCrypto) {
+      // Use crypto for better randomness
+      const randomArray = new Uint32Array(1);
+      crypto.getRandomValues(randomArray);
+      j = randomArray[0] % (i + 1);
+    } else {
+      // Fallback: combine Math.random() with entropy
+      const randomValue = (Math.random() + (entropy % 1000) / 1000) % 1;
+      j = Math.floor(randomValue * (i + 1));
+    }
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
