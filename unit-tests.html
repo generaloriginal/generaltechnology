@@ -275,7 +275,7 @@
         </div>
         </div>
     </section>
-    <div id="version">v1.0.3</div>
+    <div id="version">v1.0.4</div>
   </div>
 
 <script>
@@ -747,9 +747,16 @@ function replayAnswerHistory(){
   const flashDuration = 300;
   const beatInterval = 350; // Time between each beat
   
-  // Flash all 10 beats simultaneously, with each beat flashing the appropriate elements
+  // Flash all beats simultaneously - at each beat:
+  // 1. Top elements (unit and question count) ALWAYS flash
+  // 2. Bottom elements flash based on what happened for that question
   for (let beat = 0; beat < totalQuestions; beat++) {
     setTimeout(() => {
+      // At EVERY beat, flash the top elements (unit and question count)
+      flashElement(els.metaLeft, greenColor, flashDuration);
+      flashElement(els.metaRight, greenColor, flashDuration);
+      
+      // At this beat, flash the bottom elements based on what happened for this question
       const answer = state.answerHistory[beat];
       if (answer) {
         if (answer.correct) {
