@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Match Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f9;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      /* Flexible grid */
+      grid-gap: 15px;
+      justify-content: center;
+      margin-top: 30px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .card {
+      width: 100px;
+      height: 150px;
+      perspective: 1000px;
+      cursor: pointer;
+      position: relative;
+      /* Ensure proper alignment */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      /* Improved visibility */
+    }
+
+    .card .front,
+    .card .back {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      backface-visibility: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      transition: transform 0.6s ease-in-out;
+      /* Smooth flip */
+    }
+
+    .card .front {
+      background-color: #3498db;
+      color: white;
+      font-size: 24px;
+    }
+
+    .card .back {
+      background-color: white;
+      transform: rotateY(180deg);
+      flex-direction: column;
+    }
+
+    .card img {
+      max-width: 80px;
+      max-height: 80px;
+      background-color: #f9f9f9;
+      /* Fallback background */
+    }
+
+    .card.flipped .front {
+      transform: rotateY(180deg);
+    }
+
+    .card.flipped .back {
+      transform: rotateY(0);
+    }
+
+    /* Styles for matched cards */
+    .card.matched .front {
+      transform: rotateY(180deg);
+      background-color: #4CAF50;
+      /* Green for matched cards */
+      cursor: default;
+    }
+
+    .card.matched .back {
+      transform: rotateY(0deg);
+      background-color: #f4f4f9;
+      cursor: default;
+    }
+
+    .card.matched {
+      opacity: 0.8;
+      /* Dims matched cards */
+      box-shadow: 0 0 10px rgba(0, 128, 0, 0.5);
+      /* Green glow */
+    }
+
+    .card:hover .front {
+      background-color: #2980b9;
+      /* Hover effect */
+    }
+
+    /* Disable hover effect on matched cards */
+    .card.matched:hover {
+      background-color: inherit;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      .game-board {
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 columns for smaller screens */
+      }
+
+      .card {
+        width: 80px;
+        height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Memory Match Game</h1>
+  <div class="game-board">
+    <!-- Cards will be inserted here dynamically -->
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let audioEnabled = false;
+
+      const enableAudioButton = document.createElement("button");
+      enableAudioButton.innerText = "Enable Audio";
+      enableAudioButton.style.position = "absolute";
+      enableAudioButton.style.top = "10px";
+      enableAudioButton.style.left = "50%";
+      enableAudioButton.style.transform = "translateX(-50%)";
+      enableAudioButton.style.padding = "10px 20px";
+      enableAudioButton.style.backgroundColor = "#4CAF50";
+      enableAudioButton.style.color = "white";
+      enableAudioButton.style.border = "none";
+      enableAudioButton.style.borderRadius = "5px";
+      enableAudioButton.style.cursor = "pointer";
+
+      document.body.appendChild(enableAudioButton);
+
+      enableAudioButton.addEventListener("click", () => {
+        audioEnabled = true;
+        document.body.removeChild(enableAudioButton);
+        console.log("Audio enabled!");
+      });
+
+      // Use local images
+      const imageBaseUrl = "memory-match-images/";
+      
+      const jpegFiles = [
+        "Peach.jpeg",
+        "Orange.jpeg",
+        "Lychee.jpeg",
+        "Lime.jpeg",
+        "Lemon.jpeg",
+        "Jackfruit.jpeg",
+        "Guava.jpeg",
+        "Gooseberry.jpeg",
+        "Fig.jpeg",
+        "Coconut.jpeg",
+        "Cupuaçu.jpeg",
+        "Acai berry.jpeg",
+        "Avocado.jpeg",
+        "Banana.jpeg",
+        "Blackberry.jpeg",
+        "Cacau.jpeg"
+      ];
+
+      function selectRandomFruits(files, count = 6) {
+        const shuffled = files.sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+      }
+
+      const selectedFruits = selectRandomFruits(jpegFiles);
+      const cardData = selectedFruits.map(file => ({
+        word: file.replace(".jpeg", "").replace(/[_-]/g, " ").trim(),
+        img: imageBaseUrl + file
+      }));
+
+      const shuffledCards = shuffle([...cardData, ...cardData]);
+      const gameBoard = document.querySelector(".game-board");
+
+      shuffledCards.forEach((card, index) => {
+        const cardElement = document.createElement("div");
+        cardElement.classList.add("card");
+        cardElement.setAttribute("data-word", card.word);
+        cardElement.innerHTML = `
+          <div class="front">?</div>
+          <div class="back">
+            <img src="${card.img}" alt="${card.word}" onerror="this.style.display='none'; this.nextElementSibling.style.fontSize='16px';">
+            <span>${card.word}</span>
+          </div>
+        `;
+        gameBoard.appendChild(cardElement);
+      });
+
+      const cards = document.querySelectorAll(".card");
+      let flippedCard = null;
+      let lockBoard = false;
+
+      cards.forEach(card => {
+        card.addEventListener("click", () => {
+          if (lockBoard || card.classList.contains("flipped") || card.classList.contains("matched") || !audioEnabled) return;
+
+          card.classList.add("flipped");
+          speakWord(card.dataset.word);
+
+          if (!flippedCard) {
+            flippedCard = card;
+            return;
+          }
+
+          if (flippedCard.dataset.word === card.dataset.word) {
+            // Match found, keep cards flipped
+            flippedCard.classList.add("matched");
+            card.classList.add("matched");
+
+            // Say "Match!" when a pair is found
+            speakWord("Match!");
+            flippedCard = null; // Reset for the next match
+          } else {
+            // No match, flip back after a short delay
+            lockBoard = true;
+            setTimeout(() => {
+              flippedCard.classList.remove("flipped");
+              card.classList.remove("flipped");
+              flippedCard = null;
+              lockBoard = false;
+            }, 1000);
+          }
+        });
+      });
+
+      function speakWord(word) {
+        if (!window.speechSynthesis) {
+          console.error("SpeechSynthesis not supported in this browser.");
+          return;
+        }
+
+        if (!audioEnabled) {
+          console.warn("Audio is not enabled yet.");
+          return;
+        }
+
+        console.log(`Attempting to speak: ${word}`);
+        const speech = new SpeechSynthesisUtterance(word);
+        speech.rate = 1; // Normal speed
+        speech.pitch = 1; // Normal pitch
+        window.speechSynthesis.speak(speech);
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+    });
+  </script>
+</body>
+</html>
