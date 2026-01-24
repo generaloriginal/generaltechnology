@@ -4,6 +4,23 @@
 **Status:** ✅ Active  
 **Purpose:** Web-based games, leaderboards, and interactive applications hosted on GitHub Pages
 
+## Diagrams (Mermaid)
+
+This README includes diagrams written in **Mermaid** using fenced blocks like ` ```mermaid `.
+
+- **GitHub**: Mermaid diagrams should render inline.
+- **GitLab**: Mermaid rendering depends on instance configuration. If you see `flowchart LR` / `sequenceDiagram` as plain text, Mermaid is likely disabled—use the *raw* view or enable Mermaid for the instance.
+
+## Table of contents
+
+- [Concept of Operations (CONOPS)](#concept-of-operations-conops)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Operations](#operations)
+- [Projects](#projects)
+- [Documentation](#documentation)
+- [Status](#status)
+
 ---
 
 ## Concept of Operations (CONOPS)
