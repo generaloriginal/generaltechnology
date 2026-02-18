@@ -223,8 +223,8 @@ graph TB
 
 ## Documentation
 
-- **[SUPABASE_SETUP.md](SUPABASE_SETUP.md)** - Supabase configuration guide
-- **[AUTO_SETUP.md](AUTO_SETUP.md)** - Automated setup instructions
+- **[SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)** - Supabase configuration guide
+- **[AUTO_SETUP.md](docs/AUTO_SETUP.md)** - Automated setup instructions
 - SQL scripts for database setup
 
 ---

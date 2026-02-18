@@ -61,3 +61,8 @@ echo ""
 echo "📊 Repository status:"
 git --no-pager status --short
 
+
+
+
+
+

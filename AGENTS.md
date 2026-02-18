@@ -1,0 +1,179 @@
+# General Technology — Agent Instructions (Migrated from `.cursorrules`)
+
+This file replaces the legacy `.cursorrules` in this repository.
+Below is the prior `.cursorrules` content preserved verbatim so behavior stays the same.
+
+---
+
+# General Technology - Cursor Rules
+
+**CRITICAL: Always review and update .cursorrules when establishing new workflows, preferences, or requirements. This file should reflect all current project standards and preferences.**
+
+## Rules Maintenance
+
+### When to Update .cursorrules
+- **ALWAYS** update `.cursorrules` when:
+  - Establishing new workflows or preferences
+  - Adding new requirements or standards
+  - Changing documentation or commit processes
+  - Adding new file types or tracking requirements
+  - Any time project standards or preferences change
+- **Review periodically** to ensure rules reflect current practices
+- **Update immediately** when user requests changes to workflows or preferences
+
+### How to Update
+1. Add new sections or update existing sections as needed
+2. Maintain clear structure and organization
+3. Use consistent formatting and language
+4. **ALWAYS** update `CHANGELOG.md` when updating `.cursorrules` - track all rules changes
+5. **ALWAYS** update `AI_DOCUMENTATION_CONFLUENCE.md` to reflect rules changes in Confluence
+6. Commit `.cursorrules` updates along with changelog and documentation updates
+7. Rules changes should be visible in Confluence documentation
+
+## Version Management
+
+**CRITICAL: Always update version numbers when making changes to HTML files with version numbers.**
+
+### Version Format
+- Use semantic versioning: `vMAJOR.MINOR.PATCH` (e.g., v1.0.1)
+- For frequent updates, increment the PATCH version (third number)
+- Example progression: v1.0.1 → v1.0.2 → v1.0.3
+
+### When to Update
+- **ALWAYS** update the version number when:
+  - Adding new features
+  - Fixing bugs
+  - Making UI/UX changes
+  - Updating game logic
+  - Any code changes to files with version numbers
+
+### How to Update
+1. Find the version element in the HTML file (usually `<div id="version">vX.X.X</div>`)
+2. Increment the patch version (third number)
+3. Commit the version update in the same commit as the changes, or as a separate commit immediately after
+
+### Files with Version Numbers
+- `unit-tests.html` - Contains version display at bottom of page
+
+## Documentation Updates
+
+**CRITICAL: Git is the source of truth for all documentation. All documentation changes MUST be committed to git.**
+
+### Documentation Files (All tracked in git)
+- `AI_DOCUMENTATION.md` - Main documentation (Markdown format)
+- `AI_DOCUMENTATION_CONFLUENCE.md` - Confluence-ready documentation (Confluence markup)
+- `README.md` - Project overview
+- `AUTO_SETUP.md` - Quick setup guide
+- `SUPABASE_SETUP.md` - Detailed Supabase configuration
+- `CHANGELOG.md` - Work log and change history
+
+### Documentation Workflow
+1. **Git is the source of truth** - All documentation lives in git repository
+2. **Always commit documentation changes** - Never leave documentation changes uncommitted
+3. **Update both documentation files** when making changes:
+   - Update `AI_DOCUMENTATION.md` (Markdown)
+   - Update `AI_DOCUMENTATION_CONFLUENCE.md` (Confluence markup)
+4. **Confluence sync** - Confluence should be updated from git files (not the other way around)
+
+### When to Update
+- **ALWAYS** update `AI_DOCUMENTATION_CONFLUENCE.md` when:
+  - Updating `AI_DOCUMENTATION.md`
+  - Adding new features or sections
+  - Changing project structure
+  - Updating setup instructions
+  - Any documentation changes
+- **ALWAYS** commit documentation changes to git immediately
+
+## Changelog & Work Log
+
+**CRITICAL: Always update CHANGELOG.md to track all work, even if it doesn't resolve any changes.**
+
+### Changelog Workflow
+1. **Track all work** - Update `CHANGELOG.md` with all work completed, including:
+   - Features added
+   - Bugs fixed
+   - Improvements made
+   - Documentation updates
+   - Any changes or work done
+2. **Version entries** - Add entries under the appropriate version section
+3. **Work log** - Add detailed work log entries with dates
+4. **Backlog** - Update backlog section with pending items or future enhancements
+5. **Update Confluence** - Add changelog summary to `AI_DOCUMENTATION_CONFLUENCE.md` when significant updates occur
+
+### When to Update Changelog
+- **ALWAYS** update `CHANGELOG.md` when:
+  - Completing a feature or fix
+  - Making any code changes
+  - Updating documentation
+  - Making configuration changes
+  - Any work that should be tracked
+- Update changelog in the same commit or immediately after the work is committed
+- Include both the version history and detailed work log entries
+
+### Confluence Format
+- Use Confluence markup syntax (h1, h2, {code}, etc.)
+- Convert Markdown to Confluence format
+- Maintain same structure and content as main documentation
+- Update "Last Updated" date
+- Confluence pages should be updated from git files, not edited directly in Confluence
+
+## Git Workflow
+
+### Repository Structure
+- **Local Repository (gitlab remote)**: Full project folder - includes ALL files (application code + documentation)
+  - Commits to: local file system, local git server (gitlab)
+  - Contains: HTML files, documentation, setup scripts, SQL files, etc.
+  
+- **Cloud Repository (origin remote)**: Application code only - for GitHub Pages deployment
+  - Commits to: local file system, local git server (gitlab), AND cloud server (GitHub Pages)
+  - Contains: Only application code (HTML, CSS, JS files needed for the website)
+  - Does NOT contain: Documentation files (*.md), setup scripts, SQL files, etc.
+
+### Commit and Push Process
+
+**For Application Code Changes:**
+1. Make code changes
+2. Update version number (if applicable)
+3. Update CHANGELOG.md with the work completed
+4. Stage changes: `git add <application-files>`
+5. Commit with descriptive message
+6. Push to both remotes:
+   - `git push gitlab main` (local remote - gets everything including documentation)
+   - `git push origin main` (GitHub Pages remote - application code only, documentation excluded)
+
+**For Documentation Changes:**
+1. Update documentation (both files if needed)
+2. Update CHANGELOG.md with documentation work
+3. Stage changes: `git add <documentation-files>`
+4. Commit with descriptive message
+5. Push to local remote only:
+   - `git push gitlab main` (local remote - gets everything)
+   - **DO NOT push documentation commits to origin (cloud server)**
+
+**Note:** Since both remotes use the same repository, documentation files are tracked in git but should not be deployed to the cloud. The cloud repository (origin) should only contain application code files needed for the website (HTML, CSS, JS). Documentation commits can be pushed to gitlab but should be excluded from cloud deployment.
+
+### Documentation Commit Rules
+- **NEVER** leave documentation changes uncommitted
+- Documentation changes should be committed in the same commit as code changes, or immediately after
+- If updating documentation separately, commit it as a separate commit: "Update documentation for feature X"
+- All documentation files are tracked in git and must be committed
+- **Documentation only goes to local repository (gitlab), NOT to cloud (origin)**
+
+### Commit Messages
+- Use clear, descriptive commit messages
+- Include version number in commit message when updating version
+- Example: "Add feature X - Update version to v1.0.2"
+
+## Code Standards
+
+### HTML/CSS/JavaScript
+- Use modern ES6+ JavaScript
+- Maintain consistent code style
+- Add comments for complex logic
+- Keep functions focused and modular
+
+### Testing
+- Test changes locally before committing
+- Verify functionality in browser
+- Check for console errors
+

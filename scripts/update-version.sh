@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to update version in unit-tests.html and commit/push
-# Usage: ./update-version.sh [patch|minor|major]
+# Usage: ./scripts/update-version.sh [patch|minor|major]
 
 set -e
 

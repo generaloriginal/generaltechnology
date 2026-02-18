@@ -1,5 +1,8 @@
 # Changelog - General Technology
 
+## 2026-02-17 ✅
+- Moved root-level scripts into `scripts/` and updated references.
+
 All notable changes to this project will be documented in this file.
 
 ---

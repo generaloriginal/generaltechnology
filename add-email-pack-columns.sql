@@ -7,3 +7,4 @@ ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE homophone_leaderboard 
 ADD COLUMN IF NOT EXISTS pack TEXT;
 
+
