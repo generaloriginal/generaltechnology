@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Duplicated slide 10 and added animation overlays for Jump/Run/Buy/Build
 - Converted animation overlays to MP4 for cross-browser playback
 - Removed the meme loading message overlay for a cleaner experience
+- Fix swipe on iOS by correcting the overlay guard check
 
 ### 2025-01-27
 

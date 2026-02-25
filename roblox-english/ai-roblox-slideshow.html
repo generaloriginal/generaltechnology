@@ -442,7 +442,7 @@
     }, { passive: true });
 
     stage.addEventListener("touchend", (e) => {
-      if (currentMemeLayer) return;
+      if (currentOverlayLayer) return;
       const t = e.changedTouches && e.changedTouches[0];
       if (!t) return;
       const dx = t.clientX - touchStartX;

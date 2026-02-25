@@ -10,3 +10,4 @@
 - [x] Added animation version of slide 10 with overlay videos.
 - [x] Converted animation overlays to MP4 for compatibility.
 - [x] Removed meme loading message overlay.
+- [x] Fixed iOS swipe guard check after overlay refactor.
