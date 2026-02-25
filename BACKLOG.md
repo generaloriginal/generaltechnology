@@ -8,3 +8,4 @@
 - [x] Added Roblox English slideshow app and launchpad card.
 - [x] Limited hotspots to slide 10 buttons and added swipe navigation.
 - [x] Added animation version of slide 10 with overlay videos.
+- [x] Converted animation overlays to MP4 for compatibility.

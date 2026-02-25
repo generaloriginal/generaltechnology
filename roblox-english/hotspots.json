@@ -45,7 +45,7 @@
     {
       "id": "jump_anim",
       "action": "anim",
-      "video": "slide-animations/Jump.mov",
+      "video": "slide-animations/Jump.mp4",
       "x": 0.3277,
       "y": 0.4156,
       "w": 0.1582,
@@ -55,7 +55,7 @@
     {
       "id": "run_anim",
       "action": "anim",
-      "video": "slide-animations/Run.mov",
+      "video": "slide-animations/Run.mp4",
       "x": 0.3277,
       "y": 0.4836,
       "w": 0.1582,
@@ -65,7 +65,7 @@
     {
       "id": "buy_anim",
       "action": "anim",
-      "video": "slide-animations/Buy.mov",
+      "video": "slide-animations/Buy.mp4",
       "x": 0.5141,
       "y": 0.4156,
       "w": 0.1582,
@@ -75,7 +75,7 @@
     {
       "id": "build_anim",
       "action": "anim",
-      "video": "slide-animations/Build.mov",
+      "video": "slide-animations/Build.mp4",
       "x": 0.5141,
       "y": 0.4836,
       "w": 0.1582,

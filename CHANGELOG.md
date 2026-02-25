@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Added launchpad card for the Roblox English slideshow
 - Limited hotspots to slide 10 buttons and added mobile swipe navigation
 - Duplicated slide 10 and added animation overlays for Jump/Run/Buy/Build
+- Converted animation overlays to MP4 for cross-browser playback
 
 ### 2025-01-27
 
