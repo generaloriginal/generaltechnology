@@ -81,6 +81,21 @@
       opacity: 1;
       transform: scale(1);
     }
+    .anim-video {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 200ms ease, transform 200ms ease;
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      background: #000;
+    }
+    .anim-video.show {
+      opacity: 1;
+      transform: scale(1);
+    }
 
   </style>
 </head>
@@ -111,6 +126,7 @@
       "slide-videos/Copy of Copy of A1 - ROBLOX 15.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 17.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 21.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 23.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 25.MP4",
@@ -140,6 +156,12 @@
         { id: "run", action: "meme", query: "run meme",   x: 0.3277, y: 0.4836, w: 0.1582, h: 0.0721, text: "RUN" },
         { id: "buy", action: "meme", query: "buy meme",   x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
         { id: "build", action: "meme", query: "build meme", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
+      ],
+      "10": [
+        { id: "jump_anim", action: "anim", video: "slide-animations/Jump.mov",  x: 0.3277, y: 0.4156, w: 0.1582, h: 0.0721, text: "JUMP" },
+        { id: "run_anim", action: "anim", video: "slide-animations/Run.mov",   x: 0.3277, y: 0.4836, w: 0.1582, h: 0.0721, text: "RUN" },
+        { id: "buy_anim", action: "anim", video: "slide-animations/Buy.mov",   x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
+        { id: "build_anim", action: "anim", video: "slide-animations/Build.mov", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
       ]
     };
 
@@ -157,6 +179,9 @@
       const hotspotsBySlide = await loadHotspots();
       if (!hotspotsBySlide["9"] || hotspotsBySlide["9"].length === 0) {
         hotspotsBySlide["9"] = FALLBACK_HOTSPOTS["9"];
+      }
+      if (!hotspotsBySlide["10"] || hotspotsBySlide["10"].length === 0) {
+        hotspotsBySlide["10"] = FALLBACK_HOTSPOTS["10"];
       }
       slides = slideFiles.map((src, i) => ({
         src,
@@ -241,6 +266,7 @@
         el.className = "hotspot";
         el.dataset.action = spot.action;
         if (spot.query) el.dataset.query = spot.query;
+        if (spot.video) el.dataset.video = spot.video;
         el.style.left = `${offX + spot.x * drawW}px`;
         el.style.top = `${offY + spot.y * drawH}px`;
         el.style.width = `${spot.w * drawW}px`;
@@ -249,8 +275,9 @@
       });
     }
 
-    let memeLoading = false;
-    let currentMemeLayer = null;
+    let overlayActive = false;
+    let currentOverlayLayer = null;
+    let currentOverlayMedia = null;
     const lastMemeByQuery = {};
     async function fetchMemeUrl(query) {
       const params = new URLSearchParams({
@@ -285,21 +312,28 @@
       return url;
     }
 
-    function clearMeme() {
-      if (!currentMemeLayer) return;
-      currentMemeLayer.remove();
-      currentMemeLayer = null;
-      memeLoading = false;
+    function clearOverlay() {
+      if (!currentOverlayLayer) return;
+      if (currentOverlayMedia && currentOverlayMedia.pause) {
+        currentOverlayMedia.pause();
+      }
+      if (currentOverlayMedia) {
+        currentOverlayMedia.remove();
+        currentOverlayMedia = null;
+      }
+      currentOverlayLayer.remove();
+      currentOverlayLayer = null;
+      overlayActive = false;
     }
 
     async function showMeme(query) {
-      if (!fxLayer || memeLoading) return;
-      memeLoading = true;
+      if (!fxLayer || overlayActive) return;
+      overlayActive = true;
       fxLayer.innerHTML = "";
 
       const layer = document.createElement("div");
       layer.className = "meme-layer";
-      currentMemeLayer = layer;
+      currentOverlayLayer = layer;
       const backdrop = document.createElement("div");
       backdrop.className = "meme-backdrop";
       const loading = document.createElement("div");
@@ -317,6 +351,7 @@
         img.alt = "Jump meme";
         img.decoding = "async";
         img.src = url;
+        currentOverlayMedia = img;
         img.onload = () => { img.classList.add("show"); loading.remove(); };
         img.onerror = () => { loading.textContent = "Meme failed to load"; };
         layer.appendChild(img);
@@ -325,10 +360,37 @@
       }
 
       setTimeout(() => {
-        if (currentMemeLayer === layer) {
-          clearMeme();
+        if (currentOverlayLayer === layer) {
+          clearOverlay();
         }
       }, MEME_LIFETIME_MS);
+    }
+
+    function showAnimation(videoSrc) {
+      if (!fxLayer || overlayActive) return;
+      overlayActive = true;
+      fxLayer.innerHTML = "";
+
+      const layer = document.createElement("div");
+      layer.className = "meme-layer";
+      currentOverlayLayer = layer;
+
+      const backdrop = document.createElement("div");
+      backdrop.className = "meme-backdrop";
+      layer.appendChild(backdrop);
+
+      const video = document.createElement("video");
+      video.className = "anim-video";
+      video.src = encodeURI(videoSrc);
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.playsInline = true;
+      video.onloadeddata = () => video.classList.add("show");
+      currentOverlayMedia = video;
+      layer.appendChild(video);
+
+      fxLayer.appendChild(layer);
     }
 
     function show(i) {
@@ -349,8 +411,8 @@
     function prev() { show(index - 1); }
 
     overlay.addEventListener("click", (e) => {
-      if (currentMemeLayer) {
-        clearMeme();
+      if (currentOverlayLayer) {
+        clearOverlay();
         return;
       }
       const target = e.target.closest && e.target.closest(".hotspot");
@@ -358,13 +420,14 @@
       e.stopPropagation();
       const action = target.dataset.action;
       if (action === "meme") showMeme(target.dataset.query || DEFAULT_MEME_QUERY);
+      if (action === "anim") showAnimation(target.dataset.video);
     });
 
     stage.addEventListener("click", (e) => {
-      if (!currentMemeLayer) return;
+      if (!currentOverlayLayer) return;
       e.preventDefault();
       e.stopPropagation();
-      clearMeme();
+      clearOverlay();
     }, true);
 
     window.addEventListener("resize", () => renderHotspots(), { passive: true });

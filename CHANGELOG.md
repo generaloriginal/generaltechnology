@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Added `roblox-english/slide-videos/` and `roblox-english/hotspots.json`
 - Added launchpad card for the Roblox English slideshow
 - Limited hotspots to slide 10 buttons and added mobile swipe navigation
+- Duplicated slide 10 and added animation overlays for Jump/Run/Buy/Build
 
 ### 2025-01-27
 
