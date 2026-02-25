@@ -59,14 +59,6 @@
       background: rgba(0,0,0,0.65);
       backdrop-filter: blur(3px);
     }
-    .meme-loading {
-      position: relative;
-      color: #fff;
-      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: rgba(0,0,0,0.55);
-      padding: 8px 12px;
-      border-radius: 10px;
-    }
     .meme-img {
       position: relative;
       max-width: 90vw;
@@ -336,11 +328,7 @@
       currentOverlayLayer = layer;
       const backdrop = document.createElement("div");
       backdrop.className = "meme-backdrop";
-      const loading = document.createElement("div");
-      loading.className = "meme-loading";
-      loading.textContent = "Loading meme...";
       layer.appendChild(backdrop);
-      layer.appendChild(loading);
       fxLayer.appendChild(layer);
 
       try {
@@ -352,11 +340,11 @@
         img.decoding = "async";
         img.src = url;
         currentOverlayMedia = img;
-        img.onload = () => { img.classList.add("show"); loading.remove(); };
-        img.onerror = () => { loading.textContent = "Meme failed to load"; };
+        img.onload = () => { img.classList.add("show"); };
+        img.onerror = () => { clearOverlay(); };
         layer.appendChild(img);
       } catch (err) {
-        loading.textContent = "Meme failed to load";
+        clearOverlay();
       }
 
       setTimeout(() => {

@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - Limited hotspots to slide 10 buttons and added mobile swipe navigation
 - Duplicated slide 10 and added animation overlays for Jump/Run/Buy/Build
 - Converted animation overlays to MP4 for cross-browser playback
+- Removed the meme loading message overlay for a cleaner experience
 
 ### 2025-01-27
 
