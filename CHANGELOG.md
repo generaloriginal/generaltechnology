@@ -1,5 +1,9 @@
 # Changelog - General Technology
 
+## 2026-02-24 ✅
+- Added Roblox English slideshow app with video assets and hotspots.
+- Added launchpad card linking to the new slideshow.
+
 ## 2026-02-17 ✅
 - Moved root-level scripts into `scripts/` and updated references.
 
@@ -10,6 +14,13 @@ All notable changes to this project will be documented in this file.
 ## Work Log
 
 *Most recent work appears first*
+
+### 2026-02-24
+
+#### Launchpad & App
+- Added `roblox-english/ai-roblox-slideshow.html` with local videos and hotspots
+- Added `roblox-english/slide-videos/` and `roblox-english/hotspots.json`
+- Added launchpad card for the Roblox English slideshow
 
 ### 2025-01-27
 

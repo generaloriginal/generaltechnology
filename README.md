@@ -1,6 +1,6 @@
 # General Technology - Web Projects & Games
 
-**Last Updated:** 2025-12-28  
+**Last Updated:** 2026-02-24  
 **Status:** ✅ Active  
 **Purpose:** Web-based games, leaderboards, and interactive applications hosted on GitHub Pages
 
@@ -211,6 +211,7 @@ graph TB
 - **Snake Game:** Classic snake game with leaderboard
 - **Homophone Game:** Word matching game with accuracy tracking
 - **Blank Game:** Template for new games
+- **Roblox English Slideshow:** Interactive video slideshow with meme hotspots
 
 ### Leaderboard Features
 
@@ -233,4 +234,4 @@ graph TB
 
 ✅ **Active** - Games functional and hosted
 
-**Last Verified:** 2025-12-28
+**Last Verified:** 2026-02-24

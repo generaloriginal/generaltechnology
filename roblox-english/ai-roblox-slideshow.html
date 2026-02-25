@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Roblox - HTML Slideshow</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #000; overflow: hidden; }
+    .stage { position: relative; width: 100vw; height: 100vh; }
+
+    /* Full-slide video */
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* preserve entire video frame */
+      background: #000;
+      opacity: 0;
+      transition: opacity 250ms ease;
+    }
+    .slide.active { opacity: 1; }
+
+    /* Overlay layer (interactive) */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: auto;
+    }
+    .hotspot-layer,
+    .fx-layer {
+      position: absolute;
+      inset: 0;
+    }
+    .hotspot-layer { pointer-events: auto; }
+    .fx-layer { pointer-events: none; }
+
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+      background: rgba(255,255,255,0);
+    }
+    .overlay.debug .hotspot {
+      outline: 2px dashed rgba(255,255,255,0.75);
+      background: rgba(255,255,255,0.12);
+    }
+
+    .meme-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .meme-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(3px);
+    }
+    .meme-loading {
+      position: relative;
+      color: #fff;
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: rgba(0,0,0,0.55);
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+    .meme-img {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 200ms ease, transform 200ms ease;
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+    }
+    .meme-img.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="stage" id="stage">
+    <div class="overlay" id="overlay"></div>
+
+  </div>
+
+  <script>
+    const DEBUG_HOTSPOTS = false;
+    const TENOR_API_KEY = "LIVDSRZULELA";
+    const DEFAULT_MEME_QUERY = "jump meme";
+    const MEME_LIMIT = 12;
+    const MEME_MAX_REROLL = 4;
+    const MEME_LIFETIME_MS = 3500;
+    const HOTSPOTS_URL = "hotspots.json";
+
+    const slideFiles = [
+      "slide-videos/Copy of Copy of A1 - ROBLOX 2.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 3.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 5.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 7.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 9.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 11.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 13.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 15.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 17.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 21.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 23.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 25.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 27.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 29.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 31.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 33.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 35.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 37.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 39.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 41.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 43.MP4"
+    ];
+
+    const stage = document.getElementById("stage");
+    const overlay = document.getElementById("overlay");
+
+    let index = 0;
+    let hotspotLayer = null;
+    let fxLayer = null;
+    let slides = [];
+    let slideEls = [];
+
+    const FALLBACK_HOTSPOTS = {
+      "9": [
+        { id: "jump", action: "meme", query: "jump meme",  x: 0.3277, y: 0.4156, w: 0.1582, h: 0.0721, text: "JUMP" },
+        { id: "run", action: "meme", query: "run meme",   x: 0.3277, y: 0.4836, w: 0.1582, h: 0.0721, text: "RUN" },
+        { id: "buy", action: "meme", query: "buy meme",   x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
+        { id: "build", action: "meme", query: "build meme", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" },
+        { id: "act_title", action: "meme", query: "act meme", x: 0.3679, y: 0.1211, w: 0.1293, h: 0.0792, text: "ACT" },
+        { id: "out_title", action: "meme", query: "out meme", x: 0.488, y: 0.1222, w: 0.1449, h: 0.0778, text: "OUT" },
+        { id: "choose", action: "meme", query: "choose meme", x: 0.3695, y: 0.3275, w: 0.111, h: 0.0458, text: "CHOOSE" },
+        { id: "one", action: "meme", query: "one meme", x: 0.4698, y: 0.3275, w: 0.0542, h: 0.0458, text: "ONE" },
+        { id: "and", action: "meme", query: "and meme", x: 0.5193, y: 0.3275, w: 0.0542, h: 0.0458, text: "AND" },
+        { id: "act_body", action: "meme", query: "act meme", x: 0.5693, y: 0.3275, w: 0.0542, h: 0.0458, text: "ACT" },
+        { id: "out_body", action: "meme", query: "out meme", x: 0.4717, y: 0.3766, w: 0.0555, h: 0.0458, text: "OUT" }
+      ]
+    };
+
+    async function loadHotspots() {
+      try {
+        const res = await fetch(HOTSPOTS_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("hotspots load failed");
+        return await res.json();
+      } catch (err) {
+        return FALLBACK_HOTSPOTS;
+      }
+    }
+
+    async function init() {
+      const hotspotsBySlide = await loadHotspots();
+      if (!hotspotsBySlide["9"] || hotspotsBySlide["9"].length === 0) {
+        hotspotsBySlide["9"] = FALLBACK_HOTSPOTS["9"];
+      }
+      slides = slideFiles.map((src, i) => ({
+        src,
+        hotspots: hotspotsBySlide[String(i)] || []
+      }));
+
+      slideEls = slides.map((slide, i) => {
+        const v = document.createElement("video");
+        v.className = "slide" + (i === 0 ? " active" : "");
+        v.src = encodeURI(slide.src);
+        v.preload = "auto";
+        v.loop = true;
+        v.muted = true;
+        v.playsInline = true;
+        v.dataset.index = String(i);
+        v.addEventListener("loadedmetadata", () => {
+          if (i === index) renderHotspots();
+        });
+        stage.insertBefore(v, overlay);
+        return v;
+      });
+
+      show(0);
+    }
+
+    // Given stage size and slide aspect ratio, compute the rendered "contain" rectangle
+    function getContainRect(stageW, stageH, imgW, imgH) {
+      const imgAR = imgW / imgH;
+      const stageAR = stageW / stageH;
+
+      let drawW, drawH, offX, offY;
+      if (stageAR > imgAR) {
+        // stage wider -> image fits height
+        drawH = stageH;
+        drawW = drawH * imgAR;
+        offX = (stageW - drawW) / 2;
+        offY = 0;
+      } else {
+        // stage taller -> image fits width
+        drawW = stageW;
+        drawH = drawW / imgAR;
+        offX = 0;
+        offY = (stageH - drawH) / 2;
+      }
+      return { drawW, drawH, offX, offY };
+    }
+
+    function resetOverlay() {
+      overlay.innerHTML = "";
+      overlay.dataset.slide = String(index + 1);
+      overlay.classList.toggle("debug", DEBUG_HOTSPOTS);
+
+      hotspotLayer = document.createElement("div");
+      hotspotLayer.className = "hotspot-layer";
+      fxLayer = document.createElement("div");
+      fxLayer.className = "fx-layer";
+      overlay.appendChild(hotspotLayer);
+      overlay.appendChild(fxLayer);
+    }
+
+    function renderHotspots() {
+      if (!hotspotLayer) return;
+      hotspotLayer.innerHTML = "";
+
+      if (!slides.length) return;
+      const current = slides[index];
+      if (!current.hotspots || current.hotspots.length === 0) return;
+
+      const v = slideEls[index];
+      const stageRect = stage.getBoundingClientRect();
+      const vw = v.videoWidth || 1920;
+      const vh = v.videoHeight || 1080;
+      const { drawW, drawH, offX, offY } = getContainRect(
+        stageRect.width,
+        stageRect.height,
+        vw,
+        vh
+      );
+
+      current.hotspots.forEach((spot) => {
+        const el = document.createElement("div");
+        el.className = "hotspot";
+        el.dataset.action = spot.action;
+        if (spot.query) el.dataset.query = spot.query;
+        el.style.left = `${offX + spot.x * drawW}px`;
+        el.style.top = `${offY + spot.y * drawH}px`;
+        el.style.width = `${spot.w * drawW}px`;
+        el.style.height = `${spot.h * drawH}px`;
+        hotspotLayer.appendChild(el);
+      });
+    }
+
+    let memeLoading = false;
+    let currentMemeLayer = null;
+    const lastMemeByQuery = {};
+    async function fetchMemeUrl(query) {
+      const params = new URLSearchParams({
+        q: query,
+        key: TENOR_API_KEY,
+        limit: String(MEME_LIMIT)
+      });
+      const res = await fetch(`https://g.tenor.com/v1/search?${params}`);
+      if (!res.ok) throw new Error(`meme search failed (${res.status})`);
+      const data = await res.json();
+      const results = (data && data.results) || [];
+      if (results.length === 0) return "";
+
+      const pickUrl = (result) => {
+        const media = result && result.media && result.media[0];
+        const gif =
+          (media && (media.gif || media.mediumgif || media.tinygif || media.nanogif || media.webp)) ||
+          null;
+        return (gif && gif.url) || "";
+      };
+
+      let url = "";
+      const lastUrl = lastMemeByQuery[query] || "";
+      const attempts = Math.min(results.length, MEME_MAX_REROLL + 1);
+      for (let i = 0; i < attempts; i += 1) {
+        const candidate = results[Math.floor(Math.random() * results.length)];
+        url = pickUrl(candidate);
+        if (url && url !== lastUrl) break;
+      }
+      if (!url) url = pickUrl(results[0]) || "";
+      if (url) lastMemeByQuery[query] = url;
+      return url;
+    }
+
+    function clearMeme() {
+      if (!currentMemeLayer) return;
+      currentMemeLayer.remove();
+      currentMemeLayer = null;
+      memeLoading = false;
+    }
+
+    async function showMeme(query) {
+      if (!fxLayer || memeLoading) return;
+      memeLoading = true;
+      fxLayer.innerHTML = "";
+
+      const layer = document.createElement("div");
+      layer.className = "meme-layer";
+      currentMemeLayer = layer;
+      const backdrop = document.createElement("div");
+      backdrop.className = "meme-backdrop";
+      const loading = document.createElement("div");
+      loading.className = "meme-loading";
+      loading.textContent = "Loading meme...";
+      layer.appendChild(backdrop);
+      layer.appendChild(loading);
+      fxLayer.appendChild(layer);
+
+      try {
+        const url = await fetchMemeUrl(query);
+        if (!url) throw new Error("no meme url");
+        const img = document.createElement("img");
+        img.className = "meme-img";
+        img.alt = "Jump meme";
+        img.decoding = "async";
+        img.src = url;
+        img.onload = () => { img.classList.add("show"); loading.remove(); };
+        img.onerror = () => { loading.textContent = "Meme failed to load"; };
+        layer.appendChild(img);
+      } catch (err) {
+        loading.textContent = "Meme failed to load";
+      }
+
+      setTimeout(() => {
+        if (currentMemeLayer === layer) {
+          clearMeme();
+        }
+      }, MEME_LIFETIME_MS);
+    }
+
+    function show(i) {
+      if (!slideEls.length) return;
+      const next = Math.max(0, Math.min(slides.length - 1, i));
+      slideEls[index].classList.remove("active");
+      slideEls[index].pause();
+
+      index = next;
+      slideEls[index].classList.add("active");
+      slideEls[index].play().catch(() => {});
+
+      resetOverlay();
+      renderHotspots();
+    }
+
+    function next() { show(index + 1); }
+    function prev() { show(index - 1); }
+
+    overlay.addEventListener("click", (e) => {
+      if (currentMemeLayer) {
+        clearMeme();
+        return;
+      }
+      const target = e.target.closest && e.target.closest(".hotspot");
+      if (!target) return;
+      e.stopPropagation();
+      const action = target.dataset.action;
+      if (action === "meme") showMeme(target.dataset.query || DEFAULT_MEME_QUERY);
+    });
+
+    stage.addEventListener("click", (e) => {
+      if (!currentMemeLayer) return;
+      e.preventDefault();
+      e.stopPropagation();
+      clearMeme();
+    }, true);
+
+    window.addEventListener("resize", () => renderHotspots(), { passive: true });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); next(); }
+      if (e.key === "ArrowLeft"  || e.key === "PageUp") { e.preventDefault(); prev(); }
+      if (e.key === "Home") { e.preventDefault(); show(0); }
+      if (e.key === "End") { e.preventDefault(); show(slides.length - 1); }
+    });
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
