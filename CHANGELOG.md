@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - Added `roblox-english/ai-roblox-slideshow.html` with local videos and hotspots
 - Added `roblox-english/slide-videos/` and `roblox-english/hotspots.json`
 - Added launchpad card for the Roblox English slideshow
+- Limited hotspots to slide 10 buttons and added mobile swipe navigation
 
 ### 2025-01-27
 

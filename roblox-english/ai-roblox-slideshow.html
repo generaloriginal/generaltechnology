@@ -139,14 +139,7 @@
         { id: "jump", action: "meme", query: "jump meme",  x: 0.3277, y: 0.4156, w: 0.1582, h: 0.0721, text: "JUMP" },
         { id: "run", action: "meme", query: "run meme",   x: 0.3277, y: 0.4836, w: 0.1582, h: 0.0721, text: "RUN" },
         { id: "buy", action: "meme", query: "buy meme",   x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
-        { id: "build", action: "meme", query: "build meme", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" },
-        { id: "act_title", action: "meme", query: "act meme", x: 0.3679, y: 0.1211, w: 0.1293, h: 0.0792, text: "ACT" },
-        { id: "out_title", action: "meme", query: "out meme", x: 0.488, y: 0.1222, w: 0.1449, h: 0.0778, text: "OUT" },
-        { id: "choose", action: "meme", query: "choose meme", x: 0.3695, y: 0.3275, w: 0.111, h: 0.0458, text: "CHOOSE" },
-        { id: "one", action: "meme", query: "one meme", x: 0.4698, y: 0.3275, w: 0.0542, h: 0.0458, text: "ONE" },
-        { id: "and", action: "meme", query: "and meme", x: 0.5193, y: 0.3275, w: 0.0542, h: 0.0458, text: "AND" },
-        { id: "act_body", action: "meme", query: "act meme", x: 0.5693, y: 0.3275, w: 0.0542, h: 0.0458, text: "ACT" },
-        { id: "out_body", action: "meme", query: "out meme", x: 0.4717, y: 0.3766, w: 0.0555, h: 0.0458, text: "OUT" }
+        { id: "build", action: "meme", query: "build meme", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
       ]
     };
 
@@ -382,6 +375,33 @@
       if (e.key === "Home") { e.preventDefault(); show(0); }
       if (e.key === "End") { e.preventDefault(); show(slides.length - 1); }
     });
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartAt = 0;
+    const SWIPE_MIN_PX = 40;
+    const SWIPE_MAX_MS = 1000;
+
+    stage.addEventListener("touchstart", (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      touchStartAt = Date.now();
+    }, { passive: true });
+
+    stage.addEventListener("touchend", (e) => {
+      if (currentMemeLayer) return;
+      const t = e.changedTouches && e.changedTouches[0];
+      if (!t) return;
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      const dt = Date.now() - touchStartAt;
+      if (dt > SWIPE_MAX_MS) return;
+      if (Math.abs(dx) < SWIPE_MIN_PX) return;
+      if (Math.abs(dx) < Math.abs(dy)) return;
+      dx < 0 ? next() : prev();
+    }, { passive: true });
 
     // Start
     init();
