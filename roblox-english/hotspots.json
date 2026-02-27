@@ -85,8 +85,9 @@
   ],
   "11": [
     {
-      "id": "jump_quiz",
+      "id": "quiz_button",
       "action": "quiz",
+      "label": "Questions",
       "rewardQuery": "jump meme",
       "questions": [
         {
@@ -130,167 +131,11 @@
           "answer": "jump"
         }
       ],
-      "x": 0.3277,
-      "y": 0.4156,
-      "w": 0.1582,
-      "h": 0.0721,
-      "text": "JUMP"
-    },
-    {
-      "id": "run_quiz",
-      "action": "quiz",
-      "rewardQuery": "run meme",
-      "questions": [
-        {
-          "prompt": "The ___ is shining in the sky.",
-          "choices": [
-            "sun",
-            "fire",
-            "mushroom",
-            "house"
-          ],
-          "answer": "sun"
-        },
-        {
-          "prompt": "There are five red ___ in the top right corner.",
-          "choices": [
-            "flowers",
-            "hearts",
-            "clouds",
-            "trees"
-          ],
-          "answer": "hearts"
-        },
-        {
-          "prompt": "The character is standing next to a small ___ with flowers.",
-          "choices": [
-            "car",
-            "house",
-            "tree",
-            "cloud"
-          ],
-          "answer": "house"
-        },
-        {
-          "prompt": "The word ___ is written on one of the buttons.",
-          "choices": [
-            "sleep",
-            "read",
-            "jump",
-            "eat"
-          ],
-          "answer": "jump"
-        }
-      ],
-      "x": 0.3277,
-      "y": 0.4836,
-      "w": 0.1582,
-      "h": 0.0721,
-      "text": "RUN"
-    },
-    {
-      "id": "buy_quiz",
-      "action": "quiz",
-      "rewardQuery": "buy meme",
-      "questions": [
-        {
-          "prompt": "The ___ is shining in the sky.",
-          "choices": [
-            "sun",
-            "fire",
-            "mushroom",
-            "house"
-          ],
-          "answer": "sun"
-        },
-        {
-          "prompt": "There are five red ___ in the top right corner.",
-          "choices": [
-            "flowers",
-            "hearts",
-            "clouds",
-            "trees"
-          ],
-          "answer": "hearts"
-        },
-        {
-          "prompt": "The character is standing next to a small ___ with flowers.",
-          "choices": [
-            "car",
-            "house",
-            "tree",
-            "cloud"
-          ],
-          "answer": "house"
-        },
-        {
-          "prompt": "The word ___ is written on one of the buttons.",
-          "choices": [
-            "sleep",
-            "read",
-            "jump",
-            "eat"
-          ],
-          "answer": "jump"
-        }
-      ],
-      "x": 0.5141,
-      "y": 0.4156,
-      "w": 0.1582,
-      "h": 0.0721,
-      "text": "BUY"
-    },
-    {
-      "id": "build_quiz",
-      "action": "quiz",
-      "rewardQuery": "build meme",
-      "questions": [
-        {
-          "prompt": "The ___ is shining in the sky.",
-          "choices": [
-            "sun",
-            "fire",
-            "mushroom",
-            "house"
-          ],
-          "answer": "sun"
-        },
-        {
-          "prompt": "There are five red ___ in the top right corner.",
-          "choices": [
-            "flowers",
-            "hearts",
-            "clouds",
-            "trees"
-          ],
-          "answer": "hearts"
-        },
-        {
-          "prompt": "The character is standing next to a small ___ with flowers.",
-          "choices": [
-            "car",
-            "house",
-            "tree",
-            "cloud"
-          ],
-          "answer": "house"
-        },
-        {
-          "prompt": "The word ___ is written on one of the buttons.",
-          "choices": [
-            "sleep",
-            "read",
-            "jump",
-            "eat"
-          ],
-          "answer": "jump"
-        }
-      ],
-      "x": 0.5141,
-      "y": 0.4836,
-      "w": 0.1582,
-      "h": 0.0721,
-      "text": "BUILD"
+      "x": 0.39,
+      "y": 0.8,
+      "w": 0.22,
+      "h": 0.1,
+      "text": "QUESTIONS"
     }
   ]
 }

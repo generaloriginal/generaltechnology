@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - Removed the meme loading message overlay for a cleaner experience
 - Fix swipe on iOS by correcting the overlay guard check
 - Added a third slide-10 copy with quiz questions and meme reward
+- Replaced quiz word hotspots with a single launch button and made quiz draggable
 
 ### 2025-01-27
 

@@ -40,6 +40,18 @@
       cursor: pointer;
       background: rgba(255,255,255,0);
     }
+    .hotspot.quiz-launch {
+      background: rgba(255,255,255,0.92);
+      color: #111;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 16px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-weight: 600;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+      user-select: none;
+    }
     .overlay.debug .hotspot {
       outline: 2px dashed rgba(255,255,255,0.75);
       background: rgba(255,255,255,0.12);
@@ -105,6 +117,11 @@
       padding: 18px 18px 16px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.45);
       font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      cursor: grab;
+      touch-action: none;
+    }
+    .quiz-card.dragging {
+      cursor: grabbing;
     }
     .quiz-title {
       font-weight: 700;
@@ -232,10 +249,7 @@
         { id: "build_anim", action: "anim", video: "slide-animations/Build.mp4", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
       ],
       "11": [
-        { id: "jump_quiz", action: "quiz", rewardQuery: "jump meme", questions: QUIZ_QUESTIONS, x: 0.3277, y: 0.4156, w: 0.1582, h: 0.0721, text: "JUMP" },
-        { id: "run_quiz", action: "quiz", rewardQuery: "run meme", questions: QUIZ_QUESTIONS, x: 0.3277, y: 0.4836, w: 0.1582, h: 0.0721, text: "RUN" },
-        { id: "buy_quiz", action: "quiz", rewardQuery: "buy meme", questions: QUIZ_QUESTIONS, x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
-        { id: "build_quiz", action: "quiz", rewardQuery: "build meme", questions: QUIZ_QUESTIONS, x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
+        { id: "quiz_button", action: "quiz", label: "Questions", rewardQuery: "jump meme", questions: QUIZ_QUESTIONS, x: 0.39, y: 0.8, w: 0.22, h: 0.1, text: "QUESTIONS" }
       ]
     };
 
@@ -345,6 +359,10 @@
         if (spot.query) el.dataset.query = spot.query;
         if (spot.video) el.dataset.video = spot.video;
         el._spot = spot;
+        if (spot.label) {
+          el.textContent = spot.label;
+          el.classList.add("quiz-launch");
+        }
         el.style.left = `${offX + spot.x * drawW}px`;
         el.style.top = `${offY + spot.y * drawH}px`;
         el.style.width = `${spot.w * drawW}px`;
@@ -506,6 +524,52 @@
 
       let qIndex = 0;
       const rewardQuery = spot.rewardQuery || spot.query || DEFAULT_MEME_QUERY;
+
+      const centerCard = () => {
+        const rect = card.getBoundingClientRect();
+        card.style.left = `${(window.innerWidth - rect.width) / 2}px`;
+        card.style.top = `${(window.innerHeight - rect.height) / 2}px`;
+      };
+
+      requestAnimationFrame(centerCard);
+
+      let dragActive = false;
+      let dragOffsetX = 0;
+      let dragOffsetY = 0;
+
+      const startDrag = (e) => {
+        if (e.target && e.target.classList && e.target.classList.contains("quiz-choice")) return;
+        dragActive = true;
+        card.classList.add("dragging");
+        const rect = card.getBoundingClientRect();
+        card.style.left = `${rect.left}px`;
+        card.style.top = `${rect.top}px`;
+        dragOffsetX = e.clientX - rect.left;
+        dragOffsetY = e.clientY - rect.top;
+        if (card.setPointerCapture) card.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      };
+
+      const moveDrag = (e) => {
+        if (!dragActive) return;
+        card.style.left = `${e.clientX - dragOffsetX}px`;
+        card.style.top = `${e.clientY - dragOffsetY}px`;
+      };
+
+      const endDrag = (e) => {
+        if (!dragActive) return;
+        dragActive = false;
+        card.classList.remove("dragging");
+        if (card.releasePointerCapture && e.pointerId != null) {
+          card.releasePointerCapture(e.pointerId);
+        }
+      };
+
+      card.style.position = "absolute";
+      card.addEventListener("pointerdown", startDrag);
+      card.addEventListener("pointermove", moveDrag);
+      card.addEventListener("pointerup", endDrag);
+      card.addEventListener("pointercancel", endDrag);
 
       const renderQuestion = () => {
         const q = questions[qIndex];
