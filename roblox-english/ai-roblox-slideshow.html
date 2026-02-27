@@ -88,6 +88,59 @@
       opacity: 1;
       transform: scale(1);
     }
+    .quiz-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+    .quiz-card {
+      position: relative;
+      width: min(560px, 92vw);
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    .quiz-title {
+      font-weight: 700;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+    .quiz-prompt {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .quiz-choices {
+      display: grid;
+      gap: 10px;
+    }
+    .quiz-choice {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: 16px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      cursor: pointer;
+      background: #fff;
+      color: #111;
+    }
+    .quiz-choice.wrong {
+      background: #ff6b6b;
+      color: #fff;
+    }
+    .quiz-choice.correct {
+      background: #3ecf8e;
+      color: #0b1f16;
+    }
+    .quiz-status {
+      margin-top: 10px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
 
   </style>
 </head>
@@ -106,6 +159,28 @@
     const MEME_MAX_REROLL = 4;
     const MEME_LIFETIME_MS = 3500;
     const HOTSPOTS_URL = "hotspots.json";
+    const QUIZ_QUESTIONS = [
+      {
+        prompt: "The ___ is shining in the sky.",
+        choices: ["sun", "fire", "mushroom", "house"],
+        answer: "sun"
+      },
+      {
+        prompt: "There are five red ___ in the top right corner.",
+        choices: ["flowers", "hearts", "clouds", "trees"],
+        answer: "hearts"
+      },
+      {
+        prompt: "The character is standing next to a small ___ with flowers.",
+        choices: ["car", "house", "tree", "cloud"],
+        answer: "house"
+      },
+      {
+        prompt: "The word ___ is written on one of the buttons.",
+        choices: ["sleep", "read", "jump", "eat"],
+        answer: "jump"
+      }
+    ];
 
     const slideFiles = [
       "slide-videos/Copy of Copy of A1 - ROBLOX 2.MP4",
@@ -117,6 +192,7 @@
       "slide-videos/Copy of Copy of A1 - ROBLOX 13.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 15.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 17.MP4",
+      "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
       "slide-videos/Copy of Copy of A1 - ROBLOX 21.MP4",
@@ -154,6 +230,12 @@
         { id: "run_anim", action: "anim", video: "slide-animations/Run.mp4",   x: 0.3277, y: 0.4836, w: 0.1582, h: 0.0721, text: "RUN" },
         { id: "buy_anim", action: "anim", video: "slide-animations/Buy.mp4",   x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
         { id: "build_anim", action: "anim", video: "slide-animations/Build.mp4", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
+      ],
+      "11": [
+        { id: "jump_quiz", action: "quiz", rewardQuery: "jump meme", questions: QUIZ_QUESTIONS, x: 0.3277, y: 0.4156, w: 0.1582, h: 0.0721, text: "JUMP" },
+        { id: "run_quiz", action: "quiz", rewardQuery: "run meme", questions: QUIZ_QUESTIONS, x: 0.3277, y: 0.4836, w: 0.1582, h: 0.0721, text: "RUN" },
+        { id: "buy_quiz", action: "quiz", rewardQuery: "buy meme", questions: QUIZ_QUESTIONS, x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
+        { id: "build_quiz", action: "quiz", rewardQuery: "build meme", questions: QUIZ_QUESTIONS, x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
       ]
     };
 
@@ -174,6 +256,9 @@
       }
       if (!hotspotsBySlide["10"] || hotspotsBySlide["10"].length === 0) {
         hotspotsBySlide["10"] = FALLBACK_HOTSPOTS["10"];
+      }
+      if (!hotspotsBySlide["11"] || hotspotsBySlide["11"].length === 0) {
+        hotspotsBySlide["11"] = FALLBACK_HOTSPOTS["11"];
       }
       slides = slideFiles.map((src, i) => ({
         src,
@@ -259,6 +344,7 @@
         el.dataset.action = spot.action;
         if (spot.query) el.dataset.query = spot.query;
         if (spot.video) el.dataset.video = spot.video;
+        el._spot = spot;
         el.style.left = `${offX + spot.x * drawW}px`;
         el.style.top = `${offY + spot.y * drawH}px`;
         el.style.width = `${spot.w * drawW}px`;
@@ -270,6 +356,7 @@
     let overlayActive = false;
     let currentOverlayLayer = null;
     let currentOverlayMedia = null;
+    let currentOverlayType = null;
     const lastMemeByQuery = {};
     async function fetchMemeUrl(query) {
       const params = new URLSearchParams({
@@ -315,12 +402,14 @@
       }
       currentOverlayLayer.remove();
       currentOverlayLayer = null;
+      currentOverlayType = null;
       overlayActive = false;
     }
 
     async function showMeme(query) {
       if (!fxLayer || overlayActive) return;
       overlayActive = true;
+      currentOverlayType = "meme";
       fxLayer.innerHTML = "";
 
       const layer = document.createElement("div");
@@ -357,6 +446,7 @@
     function showAnimation(videoSrc) {
       if (!fxLayer || overlayActive) return;
       overlayActive = true;
+      currentOverlayType = "anim";
       fxLayer.innerHTML = "";
 
       const layer = document.createElement("div");
@@ -381,6 +471,79 @@
       fxLayer.appendChild(layer);
     }
 
+    function showQuiz(spot) {
+      const questions = (spot && spot.questions) || [];
+      if (!fxLayer || overlayActive || questions.length === 0) return;
+      overlayActive = true;
+      currentOverlayType = "quiz";
+      fxLayer.innerHTML = "";
+
+      const layer = document.createElement("div");
+      layer.className = "quiz-layer";
+      currentOverlayLayer = layer;
+
+      const card = document.createElement("div");
+      card.className = "quiz-card";
+      layer.appendChild(card);
+
+      const title = document.createElement("div");
+      title.className = "quiz-title";
+      card.appendChild(title);
+
+      const promptEl = document.createElement("div");
+      promptEl.className = "quiz-prompt";
+      card.appendChild(promptEl);
+
+      const choicesEl = document.createElement("div");
+      choicesEl.className = "quiz-choices";
+      card.appendChild(choicesEl);
+
+      const statusEl = document.createElement("div");
+      statusEl.className = "quiz-status";
+      card.appendChild(statusEl);
+
+      fxLayer.appendChild(layer);
+
+      let qIndex = 0;
+      const rewardQuery = spot.rewardQuery || spot.query || DEFAULT_MEME_QUERY;
+
+      const renderQuestion = () => {
+        const q = questions[qIndex];
+        title.textContent = `Question ${qIndex + 1} / ${questions.length}`;
+        promptEl.textContent = q.prompt;
+        statusEl.textContent = "";
+        choicesEl.innerHTML = "";
+
+        q.choices.forEach((choice) => {
+          const btn = document.createElement("button");
+          btn.className = "quiz-choice";
+          btn.textContent = choice;
+          btn.addEventListener("click", () => {
+            if (choice === q.answer) {
+              btn.classList.add("correct");
+              statusEl.textContent = "Correct!";
+              setTimeout(() => {
+                if (qIndex < questions.length - 1) {
+                  qIndex += 1;
+                  renderQuestion();
+                } else {
+                  clearOverlay();
+                  showMeme(rewardQuery);
+                }
+              }, 350);
+            } else {
+              btn.classList.add("wrong");
+              statusEl.textContent = "Try again.";
+              setTimeout(() => btn.classList.remove("wrong"), 400);
+            }
+          });
+          choicesEl.appendChild(btn);
+        });
+      };
+
+      renderQuestion();
+    }
+
     function show(i) {
       if (!slideEls.length) return;
       const next = Math.max(0, Math.min(slides.length - 1, i));
@@ -399,20 +562,22 @@
     function prev() { show(index - 1); }
 
     overlay.addEventListener("click", (e) => {
-      if (currentOverlayLayer) {
+      if (currentOverlayLayer && currentOverlayType !== "quiz") {
         clearOverlay();
         return;
       }
       const target = e.target.closest && e.target.closest(".hotspot");
       if (!target) return;
       e.stopPropagation();
+      const spot = target._spot || {};
       const action = target.dataset.action;
       if (action === "meme") showMeme(target.dataset.query || DEFAULT_MEME_QUERY);
       if (action === "anim") showAnimation(target.dataset.video);
+      if (action === "quiz") showQuiz(spot);
     });
 
     stage.addEventListener("click", (e) => {
-      if (!currentOverlayLayer) return;
+      if (!currentOverlayLayer || currentOverlayType === "quiz") return;
       e.preventDefault();
       e.stopPropagation();
       clearOverlay();

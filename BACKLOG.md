@@ -11,3 +11,4 @@
 - [x] Converted animation overlays to MP4 for compatibility.
 - [x] Removed meme loading message overlay.
 - [x] Fixed iOS swipe guard check after overlay refactor.
+- [x] Added quiz questions on third slide-10 copy with meme reward.
