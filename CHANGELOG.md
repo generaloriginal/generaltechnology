@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - Fix swipe on iOS by correcting the overlay guard check
 - Added a third slide-10 copy with quiz questions and meme reward
 - Replaced quiz word hotspots with a single launch button and made quiz draggable
+- Updated quiz reward meme search term for the slide-10 quiz
 
 ### 2025-01-27
 

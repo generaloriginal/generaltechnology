@@ -13,3 +13,4 @@
 - [x] Fixed iOS swipe guard check after overlay refactor.
 - [x] Added quiz questions on third slide-10 copy with meme reward.
 - [x] Swapped quiz word hotspots for a launch button and added drag support.
+- [x] Updated quiz reward meme search term.

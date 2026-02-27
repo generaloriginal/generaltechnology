@@ -88,7 +88,7 @@
       "id": "quiz_button",
       "action": "quiz",
       "label": "Questions",
-      "rewardQuery": "jump meme",
+      "rewardQuery": "pixel level complete",
       "questions": [
         {
           "prompt": "The ___ is shining in the sky.",
