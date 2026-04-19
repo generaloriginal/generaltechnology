@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Roblox - HTML Slideshow</title>
+  <title>AI Roblox — Lesson Loop</title>
   <style>
     html, body { height: 100%; margin: 0; background: #000; overflow: hidden; }
     .stage { position: relative; width: 100vw; height: 100vh; }
@@ -21,22 +21,240 @@
     }
     .slide.active { opacity: 1; }
 
-    /* Overlay layer (interactive) */
+    /* Overlay root — stacks lesson UI, hotspots, FX */
     .overlay {
       position: absolute;
       inset: 0;
-      pointer-events: auto;
+      pointer-events: none;
     }
+
+    /* Lesson UI: lightweight panels (pointer-events on children).
+       z-index above hotspot-layer so answers/chat stay clickable; below fx-layer for memes. */
+    .lesson-ui-root {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .lesson-avatar-panel {
+      position: absolute;
+      z-index: 6;
+      top: max(32px, env(safe-area-inset-top, 0px));
+      left: max(32px, env(safe-area-inset-left, 0px));
+      box-sizing: border-box;
+      width: min(104px, 22vw);
+      height: min(104px, 22vw);
+      border-radius: 14px;
+      background: rgba(12, 14, 18, 0.42);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0;
+      overflow: hidden;
+      display: block;
+      pointer-events: auto;
+      cursor: grab;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .lesson-avatar-panel.dragging {
+      cursor: grabbing;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+    }
+    .avatar-face {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      border-radius: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    .avatar-video-layer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      pointer-events: none;
+      opacity: 0;
+      /* Longer ease-out blend + GPU layer — outgoing keeps playing until fully faded (see JS). */
+      will-change: opacity;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transition: opacity 1.05s cubic-bezier(0.28, 0.16, 0.2, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .avatar-video-layer {
+        transition-duration: 0.12s;
+        transition-timing-function: ease-out;
+      }
+    }
+
+    /* Floating chat card: inset from viewport + round corners (only lesson overlays: avatar + this). */
+    .lesson-chat-panel {
+      position: absolute;
+      z-index: 6;
+      box-sizing: border-box;
+      top: max(32px, env(safe-area-inset-top, 0px));
+      right: max(32px, env(safe-area-inset-right, 0px));
+      bottom: max(32px, env(safe-area-inset-bottom, 0px));
+      width: min(328px, calc(100vw - 64px));
+      max-width: min(328px, calc(100vw - 64px));
+      background: rgba(8, 10, 14, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 22px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+      overflow: hidden;
+      cursor: grab;
+    }
+    .lesson-chat-panel.dragging {
+      cursor: grabbing;
+      box-shadow: 0 22px 56px rgba(0, 0, 0, 0.5);
+    }
+    .lesson-chat-panel.lesson-chat-panel--hidden {
+      display: none !important;
+    }
+    .lesson-chat-scroll .chat-msg,
+    .lesson-chat-scroll button {
+      cursor: pointer;
+    }
+    /* Column: fixed top gutter (does not scroll) + scroll viewport below. */
+    .lesson-chat-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .lesson-chat-scroll-top-gutter {
+      flex: 0 0 auto;
+      height: 10px;
+    }
+    .lesson-chat-scroll-view {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      touch-action: pan-y;
+      box-sizing: border-box;
+      padding: 0 14px;
+    }
+    /* Bottom padding on inner stays in scroll extent (Safari scroll quirks). */
+    .lesson-chat-scroll-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-sizing: border-box;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    }
+    .lesson-choice-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+      width: 100%;
+    }
+    .chat-msg {
+      max-width: 100%;
+      padding: 9px 11px;
+      border-radius: 12px;
+      font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    }
+    .chat-msg.system {
+      background: rgba(60, 70, 90, 0.55);
+      align-self: flex-start;
+    }
+    .chat-msg.avatar {
+      background: rgba(90, 100, 130, 0.5);
+      align-self: flex-start;
+      border-left: 3px solid rgba(140, 170, 220, 0.6);
+    }
+    .chat-msg.question {
+      background: rgba(40, 55, 75, 0.6);
+      align-self: stretch;
+      font-weight: 600;
+    }
+    .chat-msg.feedback {
+      align-self: flex-start;
+    }
+    .chat-msg.feedback.ok {
+      background: rgba(30, 90, 65, 0.55);
+      border: 1px solid rgba(62, 207, 142, 0.35);
+    }
+    .chat-msg.feedback.bad {
+      background: rgba(90, 40, 45, 0.5);
+      border: 1px solid rgba(255, 107, 107, 0.35);
+    }
+
+    /* Tappable “your message” bubbles for blank options */
+    button.chat-msg.chat-option {
+      border: none;
+      margin: 0;
+      font: 15px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      text-align: left;
+      cursor: pointer;
+      align-self: flex-end;
+      max-width: 92%;
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(75, 125, 220, 0.45);
+      color: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(160, 195, 255, 0.28);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, opacity 0.15s ease;
+    }
+    button.chat-msg.chat-option:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(90, 140, 235, 0.52);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+    button.chat-msg.chat-option:disabled {
+      cursor: default;
+      opacity: 0.55;
+      transform: none;
+    }
+    button.chat-msg.chat-option.flash-correct {
+      background: rgba(62, 207, 142, 0.55);
+      border-color: rgba(62, 207, 142, 0.5);
+      color: #0b1f16;
+    }
+    button.chat-msg.chat-option.flash-incorrect {
+      background: rgba(255, 107, 107, 0.55);
+      border-color: rgba(255, 107, 107, 0.45);
+      color: #fff;
+    }
+    button.chat-msg.chat-option.chat-option-restart {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.22);
+      color: rgba(255, 255, 255, 0.95);
+    }
+    button.chat-msg.chat-option.chat-option-restart:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
     .hotspot-layer,
     .fx-layer {
       position: absolute;
       inset: 0;
     }
-    .hotspot-layer { pointer-events: auto; }
-    .fx-layer { pointer-events: none; }
+    .hotspot-layer { pointer-events: none; z-index: 4; }
+    .fx-layer { pointer-events: none; z-index: 6; }
 
     .hotspot {
       position: absolute;
+      pointer-events: auto;
       cursor: pointer;
       background: rgba(255,255,255,0);
     }
@@ -100,64 +318,6 @@
       opacity: 1;
       transform: scale(1);
     }
-    .quiz-layer {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto;
-    }
-    .quiz-card {
-      position: relative;
-      width: min(560px, 92vw);
-      background: rgba(0,0,0,0.85);
-      color: #fff;
-      border-radius: 16px;
-      padding: 18px 18px 16px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
-      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      cursor: grab;
-      touch-action: none;
-    }
-    .quiz-card.dragging {
-      cursor: grabbing;
-    }
-    .quiz-title {
-      font-weight: 700;
-      margin-bottom: 10px;
-      opacity: 0.9;
-    }
-    .quiz-prompt {
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
-    .quiz-choices {
-      display: grid;
-      gap: 10px;
-    }
-    .quiz-choice {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font: 16px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      cursor: pointer;
-      background: #fff;
-      color: #111;
-    }
-    .quiz-choice.wrong {
-      background: #ff6b6b;
-      color: #fff;
-    }
-    .quiz-choice.correct {
-      background: #3ecf8e;
-      color: #0b1f16;
-    }
-    .quiz-status {
-      margin-top: 10px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
 
   </style>
 </head>
@@ -165,7 +325,6 @@
 <body>
   <div class="stage" id="stage">
     <div class="overlay" id="overlay"></div>
-
   </div>
 
   <script>
@@ -176,55 +335,1672 @@
     const MEME_MAX_REROLL = 4;
     const MEME_LIFETIME_MS = 3500;
     const HOTSPOTS_URL = "hotspots.json";
-    const QUIZ_QUESTIONS = [
-      {
-        prompt: "The ___ is shining in the sky.",
-        choices: ["sun", "fire", "mushroom", "house"],
-        answer: "sun"
-      },
-      {
-        prompt: "There are five red ___ in the top right corner.",
-        choices: ["flowers", "hearts", "clouds", "trees"],
-        answer: "hearts"
-      },
-      {
-        prompt: "The character is standing next to a small ___ with flowers.",
-        choices: ["car", "house", "tree", "cloud"],
-        answer: "house"
-      },
-      {
-        prompt: "The word ___ is written on one of the buttons.",
-        choices: ["sleep", "read", "jump", "eat"],
-        answer: "jump"
+    const LESSON_WRONG_FLASH_MS = 480;
+    /** If the reaction clip never fires `ended`, still advance / return to idle. */
+    const AVATAR_CORRECT_FALLBACK_MS = 9000;
+    const AVATAR_INCORRECT_FALLBACK_MS = 9000;
+    /** Must match .avatar-video-layer transition duration (ms) for pause/seek fallback after crossfade. */
+    const AVATAR_CROSSFADE_MS = 1050;
+
+    /* Lesson avatar clips (roblox-english/avatar-animations/). .MOV is ideal for Safari; add MP4 <source> if you need broader Chrome support. */
+    const AVATAR_VIDEO_BASE = "avatar-animations/";
+    const AVATAR_VIDEO = {
+      idle: { file: "idle.MOV", loop: true },
+      intro: { file: "idle.MOV", loop: true },
+      /* Per-question feedback (quiz in progress). */
+      correct: { file: "correct-perfect.MOV", loop: false },
+      incorrect: { file: "incorrect-wonk-wonk.MOV", loop: false },
+      /* End of lesson: score is first-try % (see LESSON_SCORE_PASS_PCT). */
+      completePass: { file: "correct-good-job.MOV", loop: false },
+      completeFail: { file: "incorrect-next-time.MOV", loop: false }
+    };
+    /** First-try correct answers must exceed this percent to play completePass vs completeFail. */
+    const LESSON_SCORE_PASS_PCT = 70;
+
+    let lessonSoundUnlocked = false;
+    let avatarVideoActiveLayer = 0;
+    let pendingCorrectAdvanceTimer = null;
+    let pendingCorrectEndedFn = null;
+    let pendingIncorrectReturnTimer = null;
+    let pendingIncorrectEndedFn = null;
+    let pendingLessonCompleteTimer = null;
+    let pendingLessonCompleteEndedFn = null;
+
+    function unlockLessonSound() {
+      lessonSoundUnlocked = true;
+    }
+
+    function getAvatarVideoLayers() {
+      if (!lessonAvatarEl) return [null, null];
+      const face = lessonAvatarEl.querySelector(".avatar-face");
+      if (!face) return [null, null];
+      const layers = face.querySelectorAll(".avatar-video-layer");
+      return [layers[0], layers[1]];
+    }
+
+    function clearPendingCorrectAdvance() {
+      if (pendingCorrectAdvanceTimer != null) {
+        clearTimeout(pendingCorrectAdvanceTimer);
+        pendingCorrectAdvanceTimer = null;
       }
-    ];
+      if (pendingCorrectEndedFn) {
+        const [a, b] = getAvatarVideoLayers();
+        if (a) a.removeEventListener("ended", pendingCorrectEndedFn);
+        if (b) b.removeEventListener("ended", pendingCorrectEndedFn);
+        pendingCorrectEndedFn = null;
+      }
+    }
+
+    function clearPendingIncorrectReturn() {
+      if (pendingIncorrectReturnTimer != null) {
+        clearTimeout(pendingIncorrectReturnTimer);
+        pendingIncorrectReturnTimer = null;
+      }
+      if (pendingIncorrectEndedFn) {
+        const [a, b] = getAvatarVideoLayers();
+        if (a) a.removeEventListener("ended", pendingIncorrectEndedFn);
+        if (b) b.removeEventListener("ended", pendingIncorrectEndedFn);
+        pendingIncorrectEndedFn = null;
+      }
+    }
+
+    function clearPendingLessonComplete() {
+      if (pendingLessonCompleteTimer != null) {
+        clearTimeout(pendingLessonCompleteTimer);
+        pendingLessonCompleteTimer = null;
+      }
+      if (pendingLessonCompleteEndedFn) {
+        const [a, b] = getAvatarVideoLayers();
+        if (a) a.removeEventListener("ended", pendingLessonCompleteEndedFn);
+        if (b) b.removeEventListener("ended", pendingLessonCompleteEndedFn);
+        pendingLessonCompleteEndedFn = null;
+      }
+    }
+
+    function wireCorrectAdvanceOnVideo(vid) {
+      if (!vid || vid.loop) return;
+      let finished = false;
+      const done = () => {
+        if (finished) return;
+        finished = true;
+        clearPendingCorrectAdvance();
+        advanceQuestion();
+      };
+      clearPendingCorrectAdvance();
+      pendingCorrectAdvanceTimer = setTimeout(done, AVATAR_CORRECT_FALLBACK_MS);
+      pendingCorrectEndedFn = () => done();
+      vid.addEventListener("ended", pendingCorrectEndedFn, { once: true });
+    }
+
+    function wireIncorrectReturnToIdleOnVideo(vid) {
+      if (!vid || vid.loop) return;
+      clearPendingIncorrectReturn();
+      pendingIncorrectEndedFn = () => {
+        if (pendingIncorrectReturnTimer != null) {
+          clearTimeout(pendingIncorrectReturnTimer);
+          pendingIncorrectReturnTimer = null;
+        }
+        pendingIncorrectEndedFn = null;
+        if (lessonUIState.avatarState !== "incorrect" || lessonUIState.answeredCorrectly) return;
+        setAvatarState("idle");
+      };
+      vid.addEventListener("ended", pendingIncorrectEndedFn, { once: true });
+      pendingIncorrectReturnTimer = setTimeout(() => {
+        pendingIncorrectReturnTimer = null;
+        if (pendingIncorrectEndedFn) {
+          vid.removeEventListener("ended", pendingIncorrectEndedFn);
+          pendingIncorrectEndedFn = null;
+        }
+        if (lessonUIState.avatarState === "incorrect" && !lessonUIState.answeredCorrectly) {
+          setAvatarState("idle");
+        }
+      }, AVATAR_INCORRECT_FALLBACK_MS);
+    }
+
+    function wireLessonCompleteOnVideo(vid) {
+      if (!vid || vid.loop) return;
+      clearPendingLessonComplete();
+      pendingLessonCompleteEndedFn = () => {
+        if (pendingLessonCompleteTimer != null) {
+          clearTimeout(pendingLessonCompleteTimer);
+          pendingLessonCompleteTimer = null;
+        }
+        pendingLessonCompleteEndedFn = null;
+        if (lessonUIState.avatarState !== "completePass" && lessonUIState.avatarState !== "completeFail") return;
+        setAvatarState("idle");
+      };
+      vid.addEventListener("ended", pendingLessonCompleteEndedFn, { once: true });
+      pendingLessonCompleteTimer = setTimeout(() => {
+        pendingLessonCompleteTimer = null;
+        if (pendingLessonCompleteEndedFn) {
+          vid.removeEventListener("ended", pendingLessonCompleteEndedFn);
+          pendingLessonCompleteEndedFn = null;
+        }
+        if (lessonUIState.avatarState === "completePass" || lessonUIState.avatarState === "completeFail") {
+          setAvatarState("idle");
+        }
+      }, AVATAR_CORRECT_FALLBACK_MS);
+    }
+
+    function resolveAvatarVideo(state) {
+      const spec = AVATAR_VIDEO[state] || AVATAR_VIDEO.idle;
+      const file = spec.file ? spec.file : spec.pickFile();
+      return { url: encodeURI(AVATAR_VIDEO_BASE + file), loop: spec.loop };
+    }
+
+    /*
+     * Lesson flow (every slide)
+     * -------------------------
+     * 1) Intro + level prompt → learner taps 1–6.
+     * 2) Questions come from the current slide file and selected level (Unit 1 = Level 1, etc.).
+     *    replace e.g. `3: LESSON_QUESTIONS_SHARED` with a custom array when level 3 should differ.
+     *
+     * Question shape: { prompt, answers: [{ id, text, correct }], correctMessage, wrongMessage }
+     */
+    const LESSON_INTRO =
+      "Hi — choose your level, then tap one of the answer bubbles to complete each sentence about the slide. Each level uses that level’s grammar and vocabulary. You can tap the teacher avatar anytime to hide or show this chat panel.";
+    const LEVEL_PICK_PROMPT = "Which level are you on? Tap 1–6.";
+
+    const LESSON_QUESTIONS_BY_SLIDE_AND_LEVEL = {
+      "Copy of Copy of A1 - ROBLOX 2.MP4": {
+            "1": [
+                  {
+                        "prompt": "On this slide, the word Roblox ___ green.",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — we say 'Roblox is green.'",
+                        "wrongMessage": "Try again. Use the Unit 1 grammar pattern with 'it'."
+                  },
+                  {
+                        "prompt": "The yellow circle in the sky is the ___.",
+                        "answers": [
+                              [
+                                    "sun",
+                                    true
+                              ],
+                              [
+                                    "tree",
+                                    false
+                              ],
+                              [
+                                    "cloud",
+                                    false
+                              ],
+                              [
+                                    "fire",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — it's the sun.",
+                        "wrongMessage": "Look at the top of the slide and try again."
+                  }
+            ],
+            "2": [
+                  {
+                        "prompt": "The hearts ___ in the top right corner.",
+                        "answers": [
+                              [
+                                    "are",
+                                    true
+                              ],
+                              [
+                                    "is",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — the hearts are in the top right corner.",
+                        "wrongMessage": "There is more than one heart, so choose the plural form."
+                  },
+                  {
+                        "prompt": "The tree is ___ the right side of the slide.",
+                        "answers": [
+                              [
+                                    "on",
+                                    true
+                              ],
+                              [
+                                    "under",
+                                    false
+                              ],
+                              [
+                                    "between",
+                                    false
+                              ],
+                              [
+                                    "behind",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the tree is on the right side.",
+                        "wrongMessage": "Choose the preposition that matches the position on the slide."
+                  }
+            ],
+            "3": [
+                  {
+                        "prompt": "___ name is Roblox Adventure.",
+                        "answers": [
+                              [
+                                    "Its",
+                                    true
+                              ],
+                              [
+                                    "It's",
+                                    false
+                              ],
+                              [
+                                    "His",
+                                    false
+                              ],
+                              [
+                                    "Your",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — 'Its name is Roblox Adventure.'",
+                        "wrongMessage": "Use the possessive adjective, not the contraction."
+                  },
+                  {
+                        "prompt": "The characters are next to the ___.",
+                        "answers": [
+                              [
+                                    "rock",
+                                    true
+                              ],
+                              [
+                                    "sofa",
+                                    false
+                              ],
+                              [
+                                    "table",
+                                    false
+                              ],
+                              [
+                                    "bed",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — they are next to the rock.",
+                        "wrongMessage": "Choose the object you can actually see on the left side."
+                  }
+            ],
+            "4": [
+                  {
+                        "prompt": "I ___ adventure games like Roblox.",
+                        "answers": [
+                              [
+                                    "like",
+                                    true
+                              ],
+                              [
+                                    "likes",
+                                    false
+                              ],
+                              [
+                                    "am like",
+                                    false
+                              ],
+                              [
+                                    "liking",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — with 'I' we say 'I like.'",
+                        "wrongMessage": "Use the simple present form for I."
+                  },
+                  {
+                        "prompt": "The player can use game ___.",
+                        "answers": [
+                              [
+                                    "technology",
+                                    true
+                              ],
+                              [
+                                    "banana",
+                                    false
+                              ],
+                              [
+                                    "pencil",
+                                    false
+                              ],
+                              [
+                                    "kitchen",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — Roblox is a kind of technology.",
+                        "wrongMessage": "Pick the Unit 4 vocabulary word that fits games."
+                  }
+            ],
+            "5": [
+                  {
+                        "prompt": "He ___ in the game world.",
+                        "answers": [
+                              [
+                                    "plays",
+                                    true
+                              ],
+                              [
+                                    "play",
+                                    false
+                              ],
+                              [
+                                    "playing",
+                                    false
+                              ],
+                              [
+                                    "am play",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'he' we say 'plays.'",
+                        "wrongMessage": "Use the simple present form for he."
+                  },
+                  {
+                        "prompt": "The sun is seen in the ___.",
+                        "answers": [
+                              [
+                                    "daytime",
+                                    true
+                              ],
+                              [
+                                    "night",
+                                    false
+                              ],
+                              [
+                                    "midnight",
+                                    false
+                              ],
+                              [
+                                    "weekend",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the sun shows it is daytime.",
+                        "wrongMessage": "Choose the time-of-day word that matches the slide."
+                  }
+            ],
+            "6": [
+                  {
+                        "prompt": "There ___ a tree on the right.",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — there is one tree.",
+                        "wrongMessage": "Use the singular form for one tree."
+                  },
+                  {
+                        "prompt": "You can see ___ in this game scene.",
+                        "answers": [
+                              [
+                                    "nature",
+                                    true
+                              ],
+                              [
+                                    "homework",
+                                    false
+                              ],
+                              [
+                                    "music",
+                                    false
+                              ],
+                              [
+                                    "furniture",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the slide shows nature.",
+                        "wrongMessage": "Choose the Unit 6 vocabulary that matches trees, clouds, and sun."
+                  }
+            ]
+      },
+      "Copy of Copy of A1 - ROBLOX 3.MP4": {
+            "1": [
+                  {
+                        "prompt": "___ you play Roblox?",
+                        "answers": [
+                              [
+                                    "Do",
+                                    true
+                              ],
+                              [
+                                    "Are",
+                                    false
+                              ],
+                              [
+                                    "Is",
+                                    false
+                              ],
+                              [
+                                    "Am",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the question is 'Do you play Roblox?'",
+                        "wrongMessage": "Choose the question word used on the slide."
+                  },
+                  {
+                        "prompt": "The title says 'Let's ___.",
+                        "answers": [
+                              [
+                                    "talk",
+                                    true
+                              ],
+                              [
+                                    "sleep",
+                                    false
+                              ],
+                              [
+                                    "write",
+                                    false
+                              ],
+                              [
+                                    "swim",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the slide says 'Let's talk!'",
+                        "wrongMessage": "Read the big title and try again."
+                  }
+            ],
+            "2": [
+                  {
+                        "prompt": "The players ___ in a line.",
+                        "answers": [
+                              [
+                                    "are",
+                                    true
+                              ],
+                              [
+                                    "is",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — the players are in a line.",
+                        "wrongMessage": "There are many players, so use the plural form."
+                  },
+                  {
+                        "prompt": "Do you play alone or with ___?",
+                        "answers": [
+                              [
+                                    "friends",
+                                    true
+                              ],
+                              [
+                                    "room",
+                                    false
+                              ],
+                              [
+                                    "snacks",
+                                    false
+                              ],
+                              [
+                                    "music",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the slide says 'with friends.'",
+                        "wrongMessage": "Pick the Unit 2 vocabulary word from the orange box."
+                  }
+            ],
+            "3": [
+                  {
+                        "prompt": "What game's do you play in Roblox? Choose the correct form.",
+                        "answers": [
+                              [
+                                    "games",
+                                    true
+                              ],
+                              [
+                                    "game's",
+                                    false
+                              ],
+                              [
+                                    "games's",
+                                    false
+                              ],
+                              [
+                                    "game",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — plural 'games' has no apostrophe here.",
+                        "wrongMessage": "Use the normal plural noun, not a possessive form."
+                  },
+                  {
+                        "prompt": "The treasure chest is on the ___ side.",
+                        "answers": [
+                              [
+                                    "left",
+                                    true
+                              ],
+                              [
+                                    "right",
+                                    false
+                              ],
+                              [
+                                    "top",
+                                    false
+                              ],
+                              [
+                                    "middle",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the chest is on the left side.",
+                        "wrongMessage": "Look at the bottom left corner and try again."
+                  }
+            ],
+            "4": [
+                  {
+                        "prompt": "I ___ Roblox with my friends.",
+                        "answers": [
+                              [
+                                    "play",
+                                    true
+                              ],
+                              [
+                                    "plays",
+                                    false
+                              ],
+                              [
+                                    "am play",
+                                    false
+                              ],
+                              [
+                                    "playing",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — with 'I' we say 'play.'",
+                        "wrongMessage": "Use the simple present form for I."
+                  },
+                  {
+                        "prompt": "Roblox is a kind of ___.",
+                        "answers": [
+                              [
+                                    "technology",
+                                    true
+                              ],
+                              [
+                                    "sandwich",
+                                    false
+                              ],
+                              [
+                                    "room",
+                                    false
+                              ],
+                              [
+                                    "date",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — Roblox is technology.",
+                        "wrongMessage": "Choose the Unit 4 vocabulary word that fits games and apps."
+                  }
+            ],
+            "5": [
+                  {
+                        "prompt": "She ___ with friends.",
+                        "answers": [
+                              [
+                                    "plays",
+                                    true
+                              ],
+                              [
+                                    "play",
+                                    false
+                              ],
+                              [
+                                    "playing",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'she' we say 'plays.'",
+                        "wrongMessage": "Use the simple present form for she."
+                  },
+                  {
+                        "prompt": "After school, they ___ Roblox together.",
+                        "answers": [
+                              [
+                                    "play",
+                                    true
+                              ],
+                              [
+                                    "plays",
+                                    false
+                              ],
+                              [
+                                    "is play",
+                                    false
+                              ],
+                              [
+                                    "playing",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — with 'they' we say 'play.'",
+                        "wrongMessage": "Use the simple present form for they."
+                  }
+            ],
+            "6": [
+                  {
+                        "prompt": "There ___ many players on this slide.",
+                        "answers": [
+                              [
+                                    "are",
+                                    true
+                              ],
+                              [
+                                    "is",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — there are many players.",
+                        "wrongMessage": "Use the plural form because there is more than one player."
+                  },
+                  {
+                        "prompt": "There is ___ treasure chest on the left.",
+                        "answers": [
+                              [
+                                    "a",
+                                    true
+                              ],
+                              [
+                                    "some",
+                                    false
+                              ],
+                              [
+                                    "no",
+                                    false
+                              ],
+                              [
+                                    "a lot of",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — there is a treasure chest on the left.",
+                        "wrongMessage": "Choose the word that fits one count noun."
+                  }
+            ]
+      },
+      "Copy of Copy of A1 - ROBLOX 5.MP4": {
+            "1": [
+                  {
+                        "prompt": "Are you ready to ___?",
+                        "answers": [
+                              [
+                                    "learn",
+                                    true
+                              ],
+                              [
+                                    "tree",
+                                    false
+                              ],
+                              [
+                                    "cloud",
+                                    false
+                              ],
+                              [
+                                    "friends",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the slide says 'Are you ready to learn?'",
+                        "wrongMessage": "Read the big question in the center."
+                  },
+                  {
+                        "prompt": "___ you ready to learn?",
+                        "answers": [
+                              [
+                                    "Are",
+                                    true
+                              ],
+                              [
+                                    "Am",
+                                    false
+                              ],
+                              [
+                                    "Is",
+                                    false
+                              ],
+                              [
+                                    "Do",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — we ask 'Are you ready?'",
+                        "wrongMessage": "Use the Unit 1 form with 'you'."
+                  }
+            ],
+            "2": [
+                  {
+                        "prompt": "The man ___ on the right side.",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the man is on the right side.",
+                        "wrongMessage": "There is one man, so use the singular form."
+                  },
+                  {
+                        "prompt": "The arrows are ___ the word 'learn'.",
+                        "answers": [
+                              [
+                                    "under",
+                                    true
+                              ],
+                              [
+                                    "behind",
+                                    false
+                              ],
+                              [
+                                    "between",
+                                    false
+                              ],
+                              [
+                                    "inside",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the arrows are under the word.",
+                        "wrongMessage": "Look at the center of the slide and choose the right preposition."
+                  }
+            ],
+            "3": [
+                  {
+                        "prompt": "What ___ the question on the slide?",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "do",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — we ask 'What is the question?'",
+                        "wrongMessage": "Use the be verb for singular 'question'."
+                  },
+                  {
+                        "prompt": "The flower is on the mountain's ___.",
+                        "answers": [
+                              [
+                                    "side",
+                                    true
+                              ],
+                              [
+                                    "juice",
+                                    false
+                              ],
+                              [
+                                    "kitchen",
+                                    false
+                              ],
+                              [
+                                    "chair",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the flower is on the mountain's side.",
+                        "wrongMessage": "Choose the word that matches the scene."
+                  }
+            ],
+            "4": [
+                  {
+                        "prompt": "We ___ new things in class.",
+                        "answers": [
+                              [
+                                    "learn",
+                                    true
+                              ],
+                              [
+                                    "learns",
+                                    false
+                              ],
+                              [
+                                    "are learn",
+                                    false
+                              ],
+                              [
+                                    "learning",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'we' we say 'learn.'",
+                        "wrongMessage": "Use the simple present form for we."
+                  },
+                  {
+                        "prompt": "The slide asks a ___ question.",
+                        "answers": [
+                              [
+                                    "simple",
+                                    true
+                              ],
+                              [
+                                    "an simple",
+                                    false
+                              ],
+                              [
+                                    "a simple",
+                                    false
+                              ],
+                              [
+                                    "simply",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — the blank needs just the adjective.",
+                        "wrongMessage": "Choose the adjective form that fits the sentence."
+                  }
+            ],
+            "5": [
+                  {
+                        "prompt": "He ___ ready to learn.",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "do",
+                                    false
+                              ],
+                              [
+                                    "play",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — we say 'He is ready to learn.'",
+                        "wrongMessage": "Use the correct be verb with he."
+                  },
+                  {
+                        "prompt": "In the morning, she ___ to class.",
+                        "answers": [
+                              [
+                                    "goes",
+                                    true
+                              ],
+                              [
+                                    "go",
+                                    false
+                              ],
+                              [
+                                    "going",
+                                    false
+                              ],
+                              [
+                                    "is go",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'she' we say 'goes.'",
+                        "wrongMessage": "Use the simple present form for she."
+                  }
+            ],
+            "6": [
+                  {
+                        "prompt": "There ___ mountains on the left.",
+                        "answers": [
+                              [
+                                    "are",
+                                    true
+                              ],
+                              [
+                                    "is",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — there are mountains on the left.",
+                        "wrongMessage": "Use the plural form because there is more than one mountain."
+                  },
+                  {
+                        "prompt": "There is ___ red mushroom on the right.",
+                        "answers": [
+                              [
+                                    "a",
+                                    true
+                              ],
+                              [
+                                    "some",
+                                    false
+                              ],
+                              [
+                                    "no",
+                                    false
+                              ],
+                              [
+                                    "a lot of",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — there is a red mushroom on the right.",
+                        "wrongMessage": "Choose the word used with one count noun."
+                  }
+            ]
+      },
+      "Copy of Copy of A1 - ROBLOX 7.MP4": {
+            "1": [
+                  {
+                        "prompt": "The action verb on this slide is ___.",
+                        "answers": [
+                              [
+                                    "jump",
+                                    true
+                              ],
+                              [
+                                    "run",
+                                    false
+                              ],
+                              [
+                                    "eat",
+                                    false
+                              ],
+                              [
+                                    "read",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — this slide teaches 'jump.'",
+                        "wrongMessage": "Read the green action word above the picture."
+                  },
+                  {
+                        "prompt": "I ___ in Roblox.",
+                        "answers": [
+                              [
+                                    "jump",
+                                    true
+                              ],
+                              [
+                                    "jumps",
+                                    false
+                              ],
+                              [
+                                    "am jump",
+                                    false
+                              ],
+                              [
+                                    "jumping",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'I' we say 'jump.'",
+                        "wrongMessage": "Use the simple form that matches I."
+                  }
+            ],
+            "2": [
+                  {
+                        "prompt": "The coin ___ on the left.",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — there is one coin, so it is on the left.",
+                        "wrongMessage": "Use the singular form for one coin."
+                  },
+                  {
+                        "prompt": "The treasure chest is ___ the screen.",
+                        "answers": [
+                              [
+                                    "at the bottom of",
+                                    true
+                              ],
+                              [
+                                    "on the cloud",
+                                    false
+                              ],
+                              [
+                                    "under the mountain",
+                                    false
+                              ],
+                              [
+                                    "between the hearts",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the chest is at the bottom of the screen.",
+                        "wrongMessage": "Look at the yellow chest near the ground."
+                  }
+            ],
+            "3": [
+                  {
+                        "prompt": "What is the verb? It ___ 'jump.'",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "do",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — 'It is jump' is the target pattern here.",
+                        "wrongMessage": "Use the be verb from Unit 3."
+                  },
+                  {
+                        "prompt": "The character is next to the ___.",
+                        "answers": [
+                              [
+                                    "rock",
+                                    true
+                              ],
+                              [
+                                    "sofa",
+                                    false
+                              ],
+                              [
+                                    "table",
+                                    false
+                              ],
+                              [
+                                    "bed",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the character is next to the rock.",
+                        "wrongMessage": "Choose the object shown on the left side."
+                  }
+            ],
+            "4": [
+                  {
+                        "prompt": "We ___ when we press the button.",
+                        "answers": [
+                              [
+                                    "jump",
+                                    true
+                              ],
+                              [
+                                    "jumps",
+                                    false
+                              ],
+                              [
+                                    "are jump",
+                                    false
+                              ],
+                              [
+                                    "jumping",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — with 'we' we say 'jump.'",
+                        "wrongMessage": "Use the simple present form for we."
+                  },
+                  {
+                        "prompt": "A coin is a game ___.",
+                        "answers": [
+                              [
+                                    "item",
+                                    true
+                              ],
+                              [
+                                    "music",
+                                    false
+                              ],
+                              [
+                                    "family",
+                                    false
+                              ],
+                              [
+                                    "drink",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — a coin is a game item.",
+                        "wrongMessage": "Choose the technology/game word that fits the slide."
+                  }
+            ],
+            "5": [
+                  {
+                        "prompt": "He ___ over the ground.",
+                        "answers": [
+                              [
+                                    "jumps",
+                                    true
+                              ],
+                              [
+                                    "jump",
+                                    false
+                              ],
+                              [
+                                    "is jump",
+                                    false
+                              ],
+                              [
+                                    "jumping",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'he' we say 'jumps.'",
+                        "wrongMessage": "Use the simple present form for he."
+                  },
+                  {
+                        "prompt": "At this moment in the game, the action is ___.",
+                        "answers": [
+                              [
+                                    "jumping",
+                                    true
+                              ],
+                              [
+                                    "breakfast",
+                                    false
+                              ],
+                              [
+                                    "Monday",
+                                    false
+                              ],
+                              [
+                                    "evening",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the action shown is jumping.",
+                        "wrongMessage": "Choose the activity word that matches the picture."
+                  }
+            ],
+            "6": [
+                  {
+                        "prompt": "There ___ a coin on the left.",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — there is one coin.",
+                        "wrongMessage": "Use the singular form for one coin."
+                  },
+                  {
+                        "prompt": "There is ___ treasure chest at the bottom.",
+                        "answers": [
+                              [
+                                    "a",
+                                    true
+                              ],
+                              [
+                                    "some",
+                                    false
+                              ],
+                              [
+                                    "no",
+                                    false
+                              ],
+                              [
+                                    "a lot of",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — there is a treasure chest at the bottom.",
+                        "wrongMessage": "Choose the word used with one count noun."
+                  }
+            ]
+      },
+      "Copy of Copy of A1 - ROBLOX 9.MP4": {
+            "1": [
+                  {
+                        "prompt": "The action verb on this slide is ___.",
+                        "answers": [
+                              [
+                                    "run",
+                                    true
+                              ],
+                              [
+                                    "jump",
+                                    false
+                              ],
+                              [
+                                    "sleep",
+                                    false
+                              ],
+                              [
+                                    "read",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — this slide teaches 'run.'",
+                        "wrongMessage": "Read the green action word above the picture."
+                  },
+                  {
+                        "prompt": "You ___ fast in Roblox.",
+                        "answers": [
+                              [
+                                    "run",
+                                    true
+                              ],
+                              [
+                                    "runs",
+                                    false
+                              ],
+                              [
+                                    "am run",
+                                    false
+                              ],
+                              [
+                                    "running",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'you' we say 'run.'",
+                        "wrongMessage": "Use the simple form that matches you."
+                  }
+            ],
+            "2": [
+                  {
+                        "prompt": "The players ___ in the picture.",
+                        "answers": [
+                              [
+                                    "are",
+                                    true
+                              ],
+                              [
+                                    "is",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — there is more than one player in the picture.",
+                        "wrongMessage": "Use the plural form because there are several figures."
+                  },
+                  {
+                        "prompt": "The coin is ___ the left side.",
+                        "answers": [
+                              [
+                                    "on",
+                                    true
+                              ],
+                              [
+                                    "under",
+                                    false
+                              ],
+                              [
+                                    "inside",
+                                    false
+                              ],
+                              [
+                                    "between",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — the coin is on the left side.",
+                        "wrongMessage": "Choose the preposition that matches its position."
+                  }
+            ],
+            "3": [
+                  {
+                        "prompt": "What ___ the action verb on this slide?",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "do",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — we ask 'What is the action verb?'",
+                        "wrongMessage": "Use the be verb for singular 'verb'."
+                  },
+                  {
+                        "prompt": "The runner is in the picture's ___.",
+                        "answers": [
+                              [
+                                    "middle",
+                                    true
+                              ],
+                              [
+                                    "kitchen",
+                                    false
+                              ],
+                              [
+                                    "bedroom",
+                                    false
+                              ],
+                              [
+                                    "table",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the runner is in the middle.",
+                        "wrongMessage": "Choose the place word that matches the image."
+                  }
+            ],
+            "4": [
+                  {
+                        "prompt": "I ___ racing games.",
+                        "answers": [
+                              [
+                                    "like",
+                                    true
+                              ],
+                              [
+                                    "likes",
+                                    false
+                              ],
+                              [
+                                    "am like",
+                                    false
+                              ],
+                              [
+                                    "liking",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — with 'I' we say 'like.'",
+                        "wrongMessage": "Use the simple present form for I."
+                  },
+                  {
+                        "prompt": "Running in Roblox uses game ___.",
+                        "answers": [
+                              [
+                                    "controls",
+                                    true
+                              ],
+                              [
+                                    "dates",
+                                    false
+                              ],
+                              [
+                                    "snacks",
+                                    false
+                              ],
+                              [
+                                    "nature",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — running uses game controls.",
+                        "wrongMessage": "Pick the Unit 4 game/technology word that fits best."
+                  }
+            ],
+            "5": [
+                  {
+                        "prompt": "She ___ very fast.",
+                        "answers": [
+                              [
+                                    "runs",
+                                    true
+                              ],
+                              [
+                                    "run",
+                                    false
+                              ],
+                              [
+                                    "running",
+                                    false
+                              ],
+                              [
+                                    "are run",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — with 'she' we say 'runs.'",
+                        "wrongMessage": "Use the simple present form for she."
+                  },
+                  {
+                        "prompt": "They ___ together in the game.",
+                        "answers": [
+                              [
+                                    "run",
+                                    true
+                              ],
+                              [
+                                    "runs",
+                                    false
+                              ],
+                              [
+                                    "is run",
+                                    false
+                              ],
+                              [
+                                    "running",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Right — with 'they' we say 'run.'",
+                        "wrongMessage": "Use the simple present form for they."
+                  }
+            ],
+            "6": [
+                  {
+                        "prompt": "There ___ a mushroom on the right.",
+                        "answers": [
+                              [
+                                    "is",
+                                    true
+                              ],
+                              [
+                                    "are",
+                                    false
+                              ],
+                              [
+                                    "am",
+                                    false
+                              ],
+                              [
+                                    "be",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Correct — there is one mushroom.",
+                        "wrongMessage": "Use the singular form for one mushroom."
+                  },
+                  {
+                        "prompt": "You can see ___ on this slide.",
+                        "answers": [
+                              [
+                                    "nature",
+                                    true
+                              ],
+                              [
+                                    "music",
+                                    false
+                              ],
+                              [
+                                    "furniture",
+                                    false
+                              ],
+                              [
+                                    "technology",
+                                    false
+                              ]
+                        ],
+                        "correctMessage": "Yes — the slide shows nature.",
+                        "wrongMessage": "Choose the Unit 6 vocabulary word for trees, rocks, and mushrooms."
+                  }
+            ]
+      }
+};
+
+    function getCurrentSlideQuestionMap() {
+      const currentSrc = slideFiles[index] || "";
+      const fileName = currentSrc.split("/").pop();
+      return LESSON_QUESTIONS_BY_SLIDE_AND_LEVEL[fileName] || null;
+    }
+
+    const DEFAULT_SLIDE_QUESTION_MAP = LESSON_QUESTIONS_BY_SLIDE_AND_LEVEL["Copy of Copy of A1 - ROBLOX 2.MP4"];
+
+    function normalizeAnswer(answer, index) {
+      if (Array.isArray(answer)) {
+        return {
+          id: String.fromCharCode(97 + index),
+          text: String(answer[0]),
+          correct: Boolean(answer[1])
+        };
+      }
+      return {
+        id: answer.id || String.fromCharCode(97 + index),
+        text: answer.text,
+        correct: Boolean(answer.correct)
+      };
+    }
+
+    function getNormalizedAnswers(question) {
+      return (question.answers || []).map((answer, index) => normalizeAnswer(answer, index));
+    }
+
+    function explainHint(text) {
+      return String(text || "")
+        .replace("Use the Unit 1 grammar pattern with 'it'.", "Try again. For Level 1, use 'is' with one thing: 'Roblox is green.'")
+        .replace("Pick the Unit 4 vocabulary word that fits games.", "Try again. For Level 4, choose the word linked to games, apps, and digital tools: 'technology'.")
+        .replace("Choose the Unit 6 vocabulary that matches trees, clouds, and sun.", "Try again. For Level 6, choose the word for trees, clouds, rocks, and outdoor scenes: 'nature'.")
+        .replace("Pick the Unit 2 vocabulary word from the orange box.", "Try again. For Level 2, choose the family word shown in the orange box.")
+        .replace("Pick the Unit 4 vocabulary word that fits games and apps.", "Try again. For Level 4, choose the word connected to games, apps, and digital tools.")
+        .replace("Use the Unit 1 form with 'you'.", "Try again. For Level 1, with 'you' the correct form is 'are'.")
+        .replace("Use the be verb from Unit 3.", "Try again. For Level 3, use the be verb 'is' in 'It is ...'.")
+        .replace("Pick the Unit 4 game/technology word that fits best.", "Try again. For Level 4, choose the word that matches games and technology.")
+        .replace("Choose the Unit 6 vocabulary word for trees, rocks, and mushrooms.", "Try again. For Level 6, choose the nature word that matches trees, rocks, and mushrooms.");
+    }
 
     const slideFiles = [
-      "slide-videos/Copy of Copy of A1 - ROBLOX 2.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 3.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 5.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 7.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 9.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 11.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 13.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 15.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 17.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 19.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 21.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 23.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 25.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 27.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 29.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 31.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 33.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 35.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 37.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 39.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 41.MP4",
-      "slide-videos/Copy of Copy of A1 - ROBLOX 43.MP4"
-    ];
+  "slide-videos/Copy of Copy of A1 - ROBLOX 2.MP4",
+  "slide-videos/Copy of Copy of A1 - ROBLOX 3.MP4",
+  "slide-videos/Copy of Copy of A1 - ROBLOX 5.MP4",
+  "slide-videos/Copy of Copy of A1 - ROBLOX 7.MP4",
+  "slide-videos/Copy of Copy of A1 - ROBLOX 9.MP4"
+];
 
     const stage = document.getElementById("stage");
     const overlay = document.getElementById("overlay");
@@ -234,6 +2010,140 @@
     let fxLayer = null;
     let slides = [];
     let slideEls = [];
+
+    function getQuizQuestions() {
+      const lvl = lessonUIState.selectedLevel;
+      if (lvl == null) return null;
+      const slideQuestionMap = getCurrentSlideQuestionMap() || DEFAULT_SLIDE_QUESTION_MAP;
+      const qs = slideQuestionMap && slideQuestionMap[lvl];
+      return qs && qs.length ? qs : (slideQuestionMap ? slideQuestionMap[1] : null);
+    }
+
+    /* Lesson loop UI state */
+    let lessonUIState = {
+      selectedLevel: null,
+      currentQuestionIndex: 0,
+      answeredCorrectly: false,
+      selectedAnswerId: null,
+      avatarState: "idle",
+      chatMessages: [],
+      lessonComplete: false,
+      currentChoiceBlock: null,
+      firstTryCorrectCount: 0,
+      currentQuestionHadIncorrect: false
+    };
+
+    let lessonUIRoot = null;
+    let lessonAvatarEl = null;
+    let lessonChatPanelEl = null;
+    let lessonChatScrollEl = null;
+    let lessonChatViewEl = null;
+    let lessonChatInnerEl = null;
+    let lessonUIStarted = false;
+    let lessonPanelZ = 6;
+    let lessonPanelsDraggable = false;
+    let lessonAvatarChatToggleAttached = false;
+
+    /** Short tap on avatar (not a drag) toggles chat panel visibility. */
+    function attachAvatarChatPanelToggle() {
+      if (lessonAvatarChatToggleAttached || !lessonAvatarEl) return;
+      lessonAvatarChatToggleAttached = true;
+      const TAP_SLOP_SQ = 10 * 10;
+      let tapStart = null;
+      lessonAvatarEl.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0) return;
+        tapStart = { x: e.clientX, y: e.clientY };
+      });
+      const onPointerEnd = (e) => {
+        if (e.button !== 0 || !tapStart) {
+          tapStart = null;
+          return;
+        }
+        const dx = e.clientX - tapStart.x;
+        const dy = e.clientY - tapStart.y;
+        tapStart = null;
+        if (dx * dx + dy * dy <= TAP_SLOP_SQ && lessonChatPanelEl) {
+          lessonChatPanelEl.classList.toggle("lesson-chat-panel--hidden");
+        }
+      };
+      lessonAvatarEl.addEventListener("pointerup", onPointerEnd);
+      lessonAvatarEl.addEventListener("pointercancel", () => {
+        tapStart = null;
+      });
+    }
+
+    function bumpLessonPanelZ(panel) {
+      lessonPanelZ += 1;
+      panel.style.zIndex = String(lessonPanelZ);
+    }
+
+    /** Pointer-drag panel. Optional `allowDragStart(e)` — return false to ignore (e.g. chat bubbles). */
+    function attachDraggablePanel(panel, handle, allowDragStart) {
+      let drag = null;
+      function normalizePosition() {
+        if (panel.dataset.posNormalized === "1") return;
+        const rect = panel.getBoundingClientRect();
+        /* offset* matches layout box; computed height can be "auto" for top+bottom abs layout and break on drag. */
+        const w = panel.offsetWidth;
+        const h = panel.offsetHeight;
+        panel.style.left = Math.round(rect.left) + "px";
+        panel.style.top = Math.round(rect.top) + "px";
+        panel.style.right = "auto";
+        panel.style.bottom = "auto";
+        panel.style.width = w + "px";
+        panel.style.height = h + "px";
+        panel.style.minWidth = w + "px";
+        panel.style.maxWidth = w + "px";
+        panel.style.minHeight = h + "px";
+        panel.style.maxHeight = h + "px";
+        panel.dataset.posNormalized = "1";
+      }
+      function onDown(e) {
+        if (e.button !== 0) return;
+        if (typeof allowDragStart === "function" && !allowDragStart(e)) return;
+        normalizePosition();
+        bumpLessonPanelZ(panel);
+        const pl = parseFloat(panel.style.left) || 0;
+        const pt = parseFloat(panel.style.top) || 0;
+        drag = {
+          startX: e.clientX,
+          startY: e.clientY,
+          origLeft: pl,
+          origTop: pt,
+          panelW: panel.offsetWidth,
+          panelH: panel.offsetHeight
+        };
+        panel.classList.add("dragging");
+        handle.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      }
+      function onMove(e) {
+        if (!drag) return;
+        const dx = e.clientX - drag.startX;
+        const dy = e.clientY - drag.startY;
+        let nl = drag.origLeft + dx;
+        let nt = drag.origTop + dy;
+        const pw = drag.panelW;
+        const ph = drag.panelH;
+        const m = 32;
+        nl = Math.max(m, Math.min(nl, window.innerWidth - pw - m));
+        nt = Math.max(m, Math.min(nt, window.innerHeight - ph - m));
+        panel.style.left = nl + "px";
+        panel.style.top = nt + "px";
+      }
+      function onUp(e) {
+        if (!drag) return;
+        drag = null;
+        panel.classList.remove("dragging");
+        try {
+          handle.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+      handle.addEventListener("pointerdown", onDown);
+      handle.addEventListener("pointermove", onMove);
+      handle.addEventListener("pointerup", onUp);
+      handle.addEventListener("pointercancel", onUp);
+    }
 
     const FALLBACK_HOTSPOTS = {
       "9": [
@@ -248,8 +2158,9 @@
         { id: "buy_anim", action: "anim", video: "slide-animations/Buy.mp4",   x: 0.5141, y: 0.4156, w: 0.1582, h: 0.0721, text: "BUY" },
         { id: "build_anim", action: "anim", video: "slide-animations/Build.mp4", x: 0.5141, y: 0.4836, w: 0.1582, h: 0.0721, text: "BUILD" }
       ],
+      /* Future: optional hotspot to jump lesson to a slide-specific JSON lesson. */
       "11": [
-        { id: "quiz_button", action: "quiz", label: "Questions", rewardQuery: "pixel level complete", questions: QUIZ_QUESTIONS, x: 0.39, y: 0.8, w: 0.22, h: 0.1, text: "QUESTIONS" }
+        { id: "lesson_restart", action: "lessonRestart", label: "Restart lesson", x: 0.39, y: 0.8, w: 0.22, h: 0.1, text: "RESTART" }
       ]
     };
 
@@ -261,6 +2172,424 @@
       } catch (err) {
         return FALLBACK_HOTSPOTS;
       }
+    }
+
+    function ensureLessonDOM() {
+      if (lessonUIRoot) return;
+      lessonUIRoot = document.createElement("div");
+      lessonUIRoot.className = "lesson-ui-root";
+
+      lessonAvatarEl = document.createElement("div");
+      lessonAvatarEl.className = "lesson-avatar-panel state-idle";
+      lessonAvatarEl.setAttribute("role", "img");
+      lessonAvatarEl.innerHTML =
+        '<div class="avatar-face" aria-hidden="true">' +
+        '<video class="avatar-video-layer" playsinline preload="auto"></video>' +
+        '<video class="avatar-video-layer" playsinline preload="auto"></video>' +
+        "</div>";
+
+      lessonChatPanelEl = document.createElement("div");
+      lessonChatPanelEl.className = "lesson-chat-panel";
+
+      lessonChatScrollEl = document.createElement("div");
+      lessonChatScrollEl.className = "lesson-chat-scroll";
+      const topGutter = document.createElement("div");
+      topGutter.className = "lesson-chat-scroll-top-gutter";
+      topGutter.setAttribute("aria-hidden", "true");
+      lessonChatViewEl = document.createElement("div");
+      lessonChatViewEl.className = "lesson-chat-scroll-view";
+      lessonChatInnerEl = document.createElement("div");
+      lessonChatInnerEl.className = "lesson-chat-scroll-inner";
+      lessonChatViewEl.appendChild(lessonChatInnerEl);
+      lessonChatScrollEl.appendChild(topGutter);
+      lessonChatScrollEl.appendChild(lessonChatViewEl);
+
+      lessonChatPanelEl.appendChild(lessonChatScrollEl);
+
+      lessonUIRoot.appendChild(lessonAvatarEl);
+      lessonUIRoot.appendChild(lessonChatPanelEl);
+      overlay.appendChild(lessonUIRoot);
+
+      if (!lessonPanelsDraggable) {
+        lessonPanelsDraggable = true;
+        attachDraggablePanel(lessonAvatarEl, lessonAvatarEl);
+        attachDraggablePanel(lessonChatPanelEl, lessonChatPanelEl, (e) => {
+          return !e.target.closest("button, .chat-msg");
+        });
+      }
+      attachAvatarChatPanelToggle();
+    }
+
+    function scrollChatToBottom() {
+      if (!lessonChatViewEl) return;
+      lessonChatViewEl.scrollTop = lessonChatViewEl.scrollHeight;
+    }
+
+    function appendChatBubble(entry) {
+      if (!lessonChatInnerEl) return;
+      const div = document.createElement("div");
+      div.className = "chat-msg " + entry.type + (entry.variant ? " " + entry.variant : "");
+      div.textContent = entry.text;
+      lessonChatInnerEl.appendChild(div);
+      scrollChatToBottom();
+    }
+
+    function pushChatMessage(entry) {
+      lessonUIState.chatMessages.push(entry);
+      appendChatBubble(entry);
+    }
+
+    function appendLevelPicker() {
+      if (!lessonChatInnerEl) return;
+      lessonUIState.currentChoiceBlock = null;
+      const block = document.createElement("div");
+      block.className = "lesson-choice-block lesson-level-picker";
+      for (let n = 1; n <= 6; n++) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chat-msg chat-option";
+        btn.textContent = String(n);
+        btn.setAttribute("aria-label", "Level " + n);
+        btn.addEventListener("click", () => selectLevel(n));
+        block.appendChild(btn);
+      }
+      lessonChatInnerEl.appendChild(block);
+      lessonUIState.currentChoiceBlock = block;
+      scrollChatToBottom();
+    }
+
+    function selectLevel(level) {
+      if (lessonUIState.lessonComplete) return;
+      if (lessonUIState.selectedLevel != null) return;
+      if (level < 1 || level > 6) return;
+      unlockLessonSound();
+      lessonUIState.selectedLevel = level;
+      const block = lessonUIState.currentChoiceBlock;
+      if (block) {
+        block.querySelectorAll("button.chat-option").forEach((b) => {
+          b.disabled = true;
+        });
+      }
+      pushChatMessage({ type: "system", text: "Level " + level + " — here we go!" });
+      setAvatarState("intro");
+      const qs = getQuizQuestions();
+      const q0 = qs && qs[0];
+      if (q0) pushChatMessage({ type: "question", text: q0.prompt });
+      renderAvatar();
+      lessonUIState.currentQuestionIndex = 0;
+      appendChoicesForCurrentQuestion();
+    }
+
+    function appendChoicesForCurrentQuestion() {
+      if (!lessonChatInnerEl) return;
+      lessonUIState.currentChoiceBlock = null;
+
+      if (lessonUIState.lessonComplete) {
+        return;
+      }
+
+      if (lessonUIState.selectedLevel == null) {
+        appendLevelPicker();
+        return;
+      }
+
+      const questions = getQuizQuestions();
+      if (!questions) return;
+      const q = questions[lessonUIState.currentQuestionIndex];
+      if (!q) return;
+
+      const block = document.createElement("div");
+      block.className = "lesson-choice-block";
+      const answers = getNormalizedAnswers(q);
+      answers.forEach((ans) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chat-msg chat-option";
+        btn.textContent = ans.text;
+        btn.dataset.answerId = ans.id;
+        btn.addEventListener("click", () => handleAnswerClick(ans.id));
+        block.appendChild(btn);
+      });
+      lessonChatInnerEl.appendChild(block);
+      lessonUIState.currentChoiceBlock = block;
+      scrollChatToBottom();
+    }
+
+    function appendRestartBubble() {
+      if (!lessonChatInnerEl) return;
+      const block = document.createElement("div");
+      block.className = "lesson-choice-block";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chat-msg chat-option chat-option-restart";
+      btn.textContent = "Start again";
+      btn.addEventListener("click", () => restartLesson());
+      block.appendChild(btn);
+      lessonChatInnerEl.appendChild(block);
+      scrollChatToBottom();
+    }
+
+    function setAvatarState(state) {
+      lessonUIState.avatarState = state;
+      renderAvatar();
+    }
+
+    function syncAvatarVideo() {
+      if (!lessonAvatarEl) return;
+      const [layer0, layer1] = getAvatarVideoLayers();
+      if (!layer0 || !layer1) return;
+
+      clearPendingCorrectAdvance();
+      clearPendingIncorrectReturn();
+      clearPendingLessonComplete();
+
+      const state = lessonUIState.avatarState;
+      const { url, loop } = resolveAvatarVideo(state);
+      const calm = state === "idle" || state === "intro";
+      const muted = calm ? true : !lessonSoundUnlocked;
+
+      const firstBoot =
+        !layer0.getAttribute("data-avatar-url") && !layer1.getAttribute("data-avatar-url");
+
+      if (firstBoot) {
+        layer0.setAttribute("data-avatar-url", url);
+        layer0.src = url;
+        layer0.loop = loop;
+        layer0.muted = muted;
+        layer0.volume = 1;
+        layer0.style.opacity = "1";
+        layer1.style.opacity = "0";
+        avatarVideoActiveLayer = 0;
+        layer0.load();
+        layer0.play().catch(() => {});
+        if (state === "correct") wireCorrectAdvanceOnVideo(layer0);
+        if (state === "incorrect") wireIncorrectReturnToIdleOnVideo(layer0);
+        if (state === "completePass" || state === "completeFail") wireLessonCompleteOnVideo(layer0);
+        return;
+      }
+
+      const cur = avatarVideoActiveLayer === 0 ? layer0 : layer1;
+      const nxt = avatarVideoActiveLayer === 0 ? layer1 : layer0;
+
+      nxt.loop = loop;
+      nxt.muted = muted;
+      nxt.volume = 1;
+
+      const needLoad = nxt.getAttribute("data-avatar-url") !== url;
+
+      const finishCrossfade = () => {
+        nxt.style.opacity = "1";
+        cur.style.opacity = "0";
+        avatarVideoActiveLayer = avatarVideoActiveLayer === 0 ? 1 : 0;
+        if (state === "correct") wireCorrectAdvanceOnVideo(nxt);
+        if (state === "incorrect") wireIncorrectReturnToIdleOnVideo(nxt);
+        if (state === "completePass" || state === "completeFail") wireLessonCompleteOnVideo(nxt);
+
+        let settled = false;
+        const settleOutgoing = () => {
+          if (settled) return;
+          settled = true;
+          cur.removeEventListener("transitionend", onTransitionEnd);
+          cur.pause();
+          try {
+            cur.currentTime = 0;
+          } catch (_) {}
+        };
+        const onTransitionEnd = (e) => {
+          if (e.target !== cur || e.propertyName !== "opacity") return;
+          settleOutgoing();
+        };
+        cur.addEventListener("transitionend", onTransitionEnd);
+        setTimeout(settleOutgoing, AVATAR_CROSSFADE_MS + 60);
+      };
+
+      let fadeArmed = false;
+      const armFade = () => {
+        if (fadeArmed) return;
+        fadeArmed = true;
+        /* Two rAFs: let the incoming clip decode/paint one frame before opacity animates (less pop). */
+        requestAnimationFrame(() => {
+          requestAnimationFrame(finishCrossfade);
+        });
+      };
+
+      if (needLoad) {
+        nxt.setAttribute("data-avatar-url", url);
+        nxt.src = url;
+        nxt.load();
+        const onReady = () => {
+          nxt.removeEventListener("canplay", onReady);
+          nxt.removeEventListener("playing", onReady);
+          nxt.play().catch(() => {});
+          armFade();
+        };
+        nxt.addEventListener("canplay", onReady, { once: true });
+        nxt.addEventListener("playing", onReady, { once: true });
+        nxt.play().catch(() => {});
+      } else {
+        try {
+          nxt.currentTime = 0;
+        } catch (_) {}
+        nxt.play().catch(() => {});
+        armFade();
+      }
+    }
+
+    function renderAvatar() {
+      if (!lessonAvatarEl) return;
+      const s = lessonUIState.avatarState;
+      const dragging = lessonAvatarEl.classList.contains("dragging");
+      lessonAvatarEl.className = "lesson-avatar-panel state-" + s + (dragging ? " dragging" : "");
+      const a11y = {
+        idle: "Teacher",
+        intro: "Ready",
+        correct: "Happy",
+        incorrect: "Unsure",
+        completePass: "Great job",
+        completeFail: "Keep practicing"
+      };
+      lessonAvatarEl.setAttribute("aria-label", a11y[s] || a11y.idle);
+      syncAvatarVideo();
+    }
+
+    function handleAnswerClick(answerId) {
+      if (lessonUIState.lessonComplete) return;
+      if (lessonUIState.selectedLevel == null) return;
+      unlockLessonSound();
+
+      const questions = getQuizQuestions();
+      if (!questions) return;
+      const q = questions[lessonUIState.currentQuestionIndex];
+      if (!q) return;
+
+      const picked = getNormalizedAnswers(q).find((a) => a.id === answerId);
+      if (!picked) return;
+
+      if (lessonUIState.answeredCorrectly) return;
+
+      lessonUIState.selectedAnswerId = answerId;
+
+      const block = lessonUIState.currentChoiceBlock;
+      if (!block) return;
+      const buttons = block.querySelectorAll(".chat-option");
+      const hitBtn = block.querySelector('.chat-option[data-answer-id="' + answerId + '"]');
+
+      if (picked.correct) {
+        if (hitBtn) hitBtn.classList.add("flash-correct");
+        buttons.forEach((b) => { b.disabled = true; });
+        lessonUIState.answeredCorrectly = true;
+        setAvatarState("correct");
+        pushChatMessage({ type: "feedback", text: explainHint(q.correctMessage), variant: "ok" });
+      } else {
+        if (hitBtn) {
+          hitBtn.classList.add("flash-incorrect");
+          setTimeout(() => hitBtn.classList.remove("flash-incorrect"), LESSON_WRONG_FLASH_MS);
+        }
+        lessonUIState.currentQuestionHadIncorrect = true;
+        setAvatarState("incorrect");
+        pushChatMessage({ type: "feedback", text: explainHint(q.wrongMessage), variant: "bad" });
+      }
+    }
+
+    function advanceQuestion() {
+      clearPendingCorrectAdvance();
+      clearPendingIncorrectReturn();
+      clearPendingLessonComplete();
+
+      const questions = getQuizQuestions();
+      if (!questions) return;
+      const total = questions.length;
+
+      if (!lessonUIState.currentQuestionHadIncorrect) {
+        lessonUIState.firstTryCorrectCount += 1;
+      }
+      lessonUIState.currentQuestionIndex += 1;
+      lessonUIState.answeredCorrectly = false;
+      lessonUIState.selectedAnswerId = null;
+      lessonUIState.currentQuestionHadIncorrect = false;
+
+      if (lessonUIState.currentQuestionIndex >= total) {
+        lessonUIState.lessonComplete = true;
+        lessonUIState.currentChoiceBlock = null;
+        const pct = total > 0 ? (lessonUIState.firstTryCorrectCount / total) * 100 : 0;
+        const pass = pct > LESSON_SCORE_PASS_PCT;
+        pushChatMessage({
+          type: "system",
+          text: pass
+            ? `Lesson complete — ${Math.round(pct)}% first-try. Great work!`
+            : `Lesson complete — ${Math.round(pct)}% first-try. Next time!`
+        });
+        appendRestartBubble();
+        setAvatarState(pass ? "completePass" : "completeFail");
+        return;
+      }
+
+      const q = questions[lessonUIState.currentQuestionIndex];
+      setAvatarState("intro");
+      pushChatMessage({ type: "question", text: q.prompt });
+      appendChoicesForCurrentQuestion();
+    }
+
+    function restartLesson() {
+      clearPendingCorrectAdvance();
+      clearPendingIncorrectReturn();
+      clearPendingLessonComplete();
+      lessonUIState = {
+        selectedLevel: null,
+        currentQuestionIndex: 0,
+        answeredCorrectly: false,
+        selectedAnswerId: null,
+        avatarState: "intro",
+        chatMessages: [],
+        lessonComplete: false,
+        currentChoiceBlock: null,
+        firstTryCorrectCount: 0,
+        currentQuestionHadIncorrect: false
+      };
+      lessonChatInnerEl.innerHTML = "";
+      pushChatMessage({ type: "system", text: LESSON_INTRO });
+      setAvatarState("intro");
+      pushChatMessage({ type: "question", text: LEVEL_PICK_PROMPT });
+      renderAvatar();
+      appendChoicesForCurrentQuestion();
+    }
+
+    function initLessonUI() {
+      ensureLessonDOM();
+      if (lessonUIStarted) return;
+      lessonUIStarted = true;
+
+      pushChatMessage({ type: "system", text: LESSON_INTRO });
+      setAvatarState("intro");
+      pushChatMessage({ type: "question", text: LEVEL_PICK_PROMPT });
+      renderAvatar();
+      appendChoicesForCurrentQuestion();
+    }
+
+    /** When the user changes slides, reload chat from the lesson for that slide (if UI already started). */
+    function resetLessonChatForCurrentSlide() {
+      if (!lessonUIStarted || !lessonChatInnerEl) return;
+      clearPendingCorrectAdvance();
+      clearPendingIncorrectReturn();
+      clearPendingLessonComplete();
+      lessonUIState = {
+        selectedLevel: null,
+        currentQuestionIndex: 0,
+        answeredCorrectly: false,
+        selectedAnswerId: null,
+        avatarState: "intro",
+        chatMessages: [],
+        lessonComplete: false,
+        currentChoiceBlock: null,
+        firstTryCorrectCount: 0,
+        currentQuestionHadIncorrect: false
+      };
+      lessonChatInnerEl.innerHTML = "";
+      pushChatMessage({ type: "system", text: LESSON_INTRO });
+      setAvatarState("intro");
+      pushChatMessage({ type: "question", text: LEVEL_PICK_PROMPT });
+      renderAvatar();
+      appendChoicesForCurrentQuestion();
     }
 
     async function init() {
@@ -296,22 +2625,20 @@
       });
 
       show(0);
+      initLessonUI();
     }
 
-    // Given stage size and slide aspect ratio, compute the rendered "contain" rectangle
     function getContainRect(stageW, stageH, imgW, imgH) {
       const imgAR = imgW / imgH;
       const stageAR = stageW / stageH;
 
       let drawW, drawH, offX, offY;
       if (stageAR > imgAR) {
-        // stage wider -> image fits height
         drawH = stageH;
         drawW = drawH * imgAR;
         offX = (stageW - drawW) / 2;
         offY = 0;
       } else {
-        // stage taller -> image fits width
         drawW = stageW;
         drawH = drawW / imgAR;
         offX = 0;
@@ -321,9 +2648,19 @@
     }
 
     function resetOverlay() {
-      overlay.innerHTML = "";
       overlay.dataset.slide = String(index + 1);
       overlay.classList.toggle("debug", DEBUG_HOTSPOTS);
+
+      if (hotspotLayer) {
+        hotspotLayer.remove();
+        hotspotLayer = null;
+      }
+      if (fxLayer) {
+        fxLayer.remove();
+        fxLayer = null;
+      }
+
+      ensureLessonDOM();
 
       hotspotLayer = document.createElement("div");
       hotspotLayer.className = "hotspot-layer";
@@ -376,6 +2713,7 @@
     let currentOverlayMedia = null;
     let currentOverlayType = null;
     const lastMemeByQuery = {};
+
     async function fetchMemeUrl(query) {
       const params = new URLSearchParams({
         q: query,
@@ -489,125 +2827,6 @@
       fxLayer.appendChild(layer);
     }
 
-    function showQuiz(spot) {
-      const questions = (spot && spot.questions) || [];
-      if (!fxLayer || overlayActive || questions.length === 0) return;
-      overlayActive = true;
-      currentOverlayType = "quiz";
-      fxLayer.innerHTML = "";
-
-      const layer = document.createElement("div");
-      layer.className = "quiz-layer";
-      currentOverlayLayer = layer;
-
-      const card = document.createElement("div");
-      card.className = "quiz-card";
-      layer.appendChild(card);
-
-      const title = document.createElement("div");
-      title.className = "quiz-title";
-      card.appendChild(title);
-
-      const promptEl = document.createElement("div");
-      promptEl.className = "quiz-prompt";
-      card.appendChild(promptEl);
-
-      const choicesEl = document.createElement("div");
-      choicesEl.className = "quiz-choices";
-      card.appendChild(choicesEl);
-
-      const statusEl = document.createElement("div");
-      statusEl.className = "quiz-status";
-      card.appendChild(statusEl);
-
-      fxLayer.appendChild(layer);
-
-      let qIndex = 0;
-      const rewardQuery = spot.rewardQuery || spot.query || DEFAULT_MEME_QUERY;
-
-      const centerCard = () => {
-        const rect = card.getBoundingClientRect();
-        card.style.left = `${(window.innerWidth - rect.width) / 2}px`;
-        card.style.top = `${(window.innerHeight - rect.height) / 2}px`;
-      };
-
-      requestAnimationFrame(centerCard);
-
-      let dragActive = false;
-      let dragOffsetX = 0;
-      let dragOffsetY = 0;
-
-      const startDrag = (e) => {
-        if (e.target && e.target.classList && e.target.classList.contains("quiz-choice")) return;
-        dragActive = true;
-        card.classList.add("dragging");
-        const rect = card.getBoundingClientRect();
-        card.style.left = `${rect.left}px`;
-        card.style.top = `${rect.top}px`;
-        dragOffsetX = e.clientX - rect.left;
-        dragOffsetY = e.clientY - rect.top;
-        if (card.setPointerCapture) card.setPointerCapture(e.pointerId);
-        e.preventDefault();
-      };
-
-      const moveDrag = (e) => {
-        if (!dragActive) return;
-        card.style.left = `${e.clientX - dragOffsetX}px`;
-        card.style.top = `${e.clientY - dragOffsetY}px`;
-      };
-
-      const endDrag = (e) => {
-        if (!dragActive) return;
-        dragActive = false;
-        card.classList.remove("dragging");
-        if (card.releasePointerCapture && e.pointerId != null) {
-          card.releasePointerCapture(e.pointerId);
-        }
-      };
-
-      card.style.position = "absolute";
-      card.addEventListener("pointerdown", startDrag);
-      card.addEventListener("pointermove", moveDrag);
-      card.addEventListener("pointerup", endDrag);
-      card.addEventListener("pointercancel", endDrag);
-
-      const renderQuestion = () => {
-        const q = questions[qIndex];
-        title.textContent = `Question ${qIndex + 1} / ${questions.length}`;
-        promptEl.textContent = q.prompt;
-        statusEl.textContent = "";
-        choicesEl.innerHTML = "";
-
-        q.choices.forEach((choice) => {
-          const btn = document.createElement("button");
-          btn.className = "quiz-choice";
-          btn.textContent = choice;
-          btn.addEventListener("click", () => {
-            if (choice === q.answer) {
-              btn.classList.add("correct");
-              statusEl.textContent = "Correct!";
-              setTimeout(() => {
-                if (qIndex < questions.length - 1) {
-                  qIndex += 1;
-                  renderQuestion();
-                } else {
-                  clearOverlay();
-                  showMeme(rewardQuery);
-                }
-              }, 350);
-            } else {
-              btn.classList.add("wrong");
-              statusEl.textContent = "Try again.";
-              setTimeout(() => btn.classList.remove("wrong"), 400);
-            }
-          });
-          choicesEl.appendChild(btn);
-        });
-      };
-
-      renderQuestion();
-    }
-
     function show(i) {
       if (!slideEls.length) return;
       const next = Math.max(0, Math.min(slides.length - 1, i));
@@ -620,14 +2839,17 @@
 
       resetOverlay();
       renderHotspots();
+      resetLessonChatForCurrentSlide();
     }
 
     function next() { show(index + 1); }
     function prev() { show(index - 1); }
 
     overlay.addEventListener("click", (e) => {
-      if (currentOverlayLayer && currentOverlayType !== "quiz") {
-        clearOverlay();
+      if (currentOverlayLayer) {
+        if (!e.target.closest(".lesson-ui-root")) {
+          clearOverlay();
+        }
         return;
       }
       const target = e.target.closest && e.target.closest(".hotspot");
@@ -637,11 +2859,11 @@
       const action = target.dataset.action;
       if (action === "meme") showMeme(target.dataset.query || DEFAULT_MEME_QUERY);
       if (action === "anim") showAnimation(target.dataset.video);
-      if (action === "quiz") showQuiz(spot);
+      if (action === "lessonRestart") restartLesson();
     });
 
     stage.addEventListener("click", (e) => {
-      if (!currentOverlayLayer || currentOverlayType === "quiz") return;
+      if (!currentOverlayLayer) return;
       e.preventDefault();
       e.stopPropagation();
       clearOverlay();
@@ -683,7 +2905,6 @@
       dx < 0 ? next() : prev();
     }, { passive: true });
 
-    // Start
     init();
   </script>
 </body>
