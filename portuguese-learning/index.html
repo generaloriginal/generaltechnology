@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brazilian Portuguese Chunk Trainer</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1116;
+      --panel: #111a22;
+      --panel-2: #17232d;
+      --panel-3: #1e2d38;
+      --text: #edf7f5;
+      --muted: #9fb1b5;
+      --line: #29404d;
+      --accent: #41d6a4;
+      --accent-2: #f2c14e;
+      --danger: #ff706a;
+      --rio: #64b5ff;
+      --bahia: #ffcc66;
+      --relationship: #ff8fb3;
+      --shadow: 0 22px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% -10%, rgba(65, 214, 164, 0.22), transparent 30rem),
+        radial-gradient(circle at 90% 10%, rgba(100, 181, 255, 0.16), transparent 30rem),
+        linear-gradient(180deg, #0b1116 0%, #0d151b 45%, #080d12 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    .app {
+      width: min(1440px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--rio));
+      color: #06120f;
+      font-weight: 950;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 12px 28px rgba(65, 214, 164, 0.22);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.35rem, 2vw, 2.15rem);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(17, 26, 34, 0.8);
+      color: var(--accent);
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(330px, 0.9fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 8px;
+    }
+
+    .hero-main,
+    .practice-card,
+    .help-card,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 26, 34, 0.84);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: clamp(22px, 4vw, 38px);
+      min-height: 330px;
+      display: grid;
+      align-content: center;
+    }
+
+    .eyebrow {
+      margin-bottom: 14px;
+      color: var(--accent-2);
+      font-size: 0.8rem;
+      font-weight: 950;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hero-main h2 {
+      max-width: 13ch;
+      font-size: clamp(3.2rem, 9vw, 7rem);
+      line-height: 0.88;
+      letter-spacing: 0;
+    }
+
+    .hero-main p:not(.eyebrow) {
+      max-width: 68ch;
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.35vw, 1.12rem);
+      line-height: 1.65;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 15px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: var(--accent);
+      color: #07120f;
+      font-weight: 950;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    .button.danger {
+      background: rgba(255, 112, 106, 0.12);
+      color: #ffd5d2;
+      border-color: rgba(255, 112, 106, 0.4);
+    }
+
+    .button.small {
+      min-height: 36px;
+      padding: 0 11px;
+      font-size: 0.9rem;
+    }
+
+    .practice-card {
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .practice-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .practice-top h3,
+    .section-title h3 {
+      font-size: clamp(1.45rem, 2.5vw, 2.15rem);
+      line-height: 1.05;
+    }
+
+    .badge {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: var(--panel-3);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
+    .badge.universal {
+      color: var(--accent);
+    }
+
+    .badge.bahia {
+      color: var(--bahia);
+    }
+
+    .badge.rio {
+      color: var(--rio);
+    }
+
+    .badge.relationship {
+      color: var(--relationship);
+    }
+
+    .practice-prompt {
+      min-height: 160px;
+      display: grid;
+      gap: 12px;
+      align-content: center;
+      padding: 18px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(65, 214, 164, 0.16), rgba(100, 181, 255, 0.1));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hidden-text {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
+    .reveal-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .reveal-line {
+      display: none;
+      gap: 8px;
+      line-height: 1.45;
+    }
+
+    .reveal-line.show {
+      display: grid;
+    }
+
+    .reveal-line span:first-child {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .reveal-line strong {
+      font-size: 1.2rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin-top: 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(11, 17, 22, 0.92);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+    }
+
+    .toolbar-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(65, 214, 164, 0.16);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      background: rgba(65, 214, 164, 0.14);
+      color: var(--accent);
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      margin: 28px 0 12px;
+    }
+
+    .section-title p {
+      max-width: 68ch;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 72vh;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 26, 34, 0.74);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #101922;
+      color: var(--muted);
+      font-size: 0.74rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(41, 64, 77, 0.72);
+      vertical-align: middle;
+    }
+
+    tbody tr {
+      transition: background 120ms ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(65, 214, 164, 0.075);
+    }
+
+    .spoken {
+      color: var(--accent);
+      font-size: 1.06rem;
+      font-weight: 900;
+    }
+
+    .sounds {
+      color: var(--accent-2);
+      font-weight: 850;
+    }
+
+    .meaning {
+      color: #d8e5e3;
+    }
+
+    .notes {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 950;
+    }
+
+    .icon-button:hover {
+      border-color: var(--accent);
+    }
+
+    .icon-button.play {
+      width: 48px;
+      height: 48px;
+      background: var(--accent);
+      color: #07120f;
+    }
+
+    .icon-button.star.active {
+      color: var(--accent-2);
+      border-color: rgba(242, 193, 78, 0.62);
+      background: rgba(242, 193, 78, 0.12);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .help-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .help-card {
+      padding: 16px;
+      box-shadow: none;
+    }
+
+    .help-card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .help-card p {
+      color: var(--muted);
+      line-height: 1.48;
+      font-size: 0.94rem;
+    }
+
+    dialog {
+      width: min(720px, calc(100% - 24px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.68);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0d151b;
+      color: var(--text);
+      padding: 9px 11px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .empty {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-title {
+        display: grid;
+      }
+
+      .help-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        width: min(100% - 18px, 1440px);
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .stat {
+        display: none;
+      }
+
+      .hero-main h2 {
+        font-size: clamp(2.8rem, 17vw, 4.4rem);
+      }
+
+      .practice-top,
+      .dialog-actions {
+        display: grid;
+      }
+
+      .help-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls .button,
+      .actions .button {
+        flex: 1 1 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">BR</div>
+        <div>
+          <h1>Brazilian Portuguese Chunk Trainer</h1>
+          <p class="subtitle">Listening practice for Salvador/Bahia, Rio, and real compressed speech.</p>
+        </div>
+      </div>
+      <div class="stat" id="countStat">120 chunks</div>
+    </header>
+
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-main">
+        <p class="eyebrow">Audio first. Text second.</p>
+        <h2 id="heroTitle">Que cê ouviu?</h2>
+        <p>This is a chunk recognizer, not a vocabulary list. Train your ear on the casual spoken form first, then reveal the normal Portuguese, rough sound hint, and meaning.</p>
+        <div class="actions">
+          <button class="button" type="button" id="heroPractice">Start listening</button>
+          <button class="button secondary" type="button" id="stopSpeechTop">Stop</button>
+        </div>
+      </div>
+
+      <section class="practice-card" aria-labelledby="practiceTitle">
+        <div class="practice-top">
+          <div>
+            <h3 id="practiceTitle">Practice Mode</h3>
+            <p class="subtitle">Random chunk from the current filter.</p>
+          </div>
+          <span class="badge" id="practiceBadge">Universal BR</span>
+        </div>
+        <div class="practice-prompt">
+          <p class="hidden-text" id="practiceHidden">Press play. Try to recognize the sound before reading.</p>
+          <div class="reveal-grid">
+            <div class="reveal-line" id="revealSpoken"><span>Casual Spoken Form</span><strong></strong></div>
+            <div class="reveal-line" id="revealNormal"><span>Normal Portuguese</span><strong></strong></div>
+            <div class="reveal-line" id="revealSounds"><span>Sounds Like</span><strong></strong></div>
+            <div class="reveal-line" id="revealMeaning"><span>Meaning</span><strong></strong></div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="button" type="button" id="practicePlay">Play again</button>
+          <button class="button secondary" type="button" id="practiceRepeat">Repeat 3x</button>
+          <button class="button secondary" type="button" id="practiceReveal">Reveal</button>
+          <button class="button secondary" type="button" id="practiceNext">Next</button>
+          <button class="button secondary" type="button" id="practiceKnown">Known</button>
+          <button class="button secondary" type="button" id="practiceStar">Star</button>
+        </div>
+      </section>
+    </section>
+
+    <section class="toolbar" aria-label="Chunk controls">
+      <div class="toolbar-grid">
+        <input class="search" id="searchInput" type="search" autocomplete="off" placeholder="Search normal, spoken, sounds like, meaning, notes...">
+        <div class="controls">
+          <button class="button small" type="button" id="addChunk">Add Chunk</button>
+          <button class="button small secondary" type="button" id="exportJson">Export JSON</button>
+          <button class="button small secondary" type="button" id="importJson">Import JSON</button>
+          <button class="button small danger" type="button" id="resetDefaults">Reset</button>
+          <button class="button small secondary" type="button" id="stopSpeech">Stop</button>
+          <input class="file-input" id="importFile" type="file" accept="application/json,.json">
+        </div>
+      </div>
+      <div class="chips" id="filterChips" aria-label="Filters">
+        <button class="chip active" type="button" data-filter="all">All</button>
+        <button class="chip" type="button" data-filter="Universal BR">Universal BR</button>
+        <button class="chip" type="button" data-filter="Salvador/Bahia">Salvador/Bahia</button>
+        <button class="chip" type="button" data-filter="Rio/Carioca">Rio</button>
+        <button class="chip" type="button" data-filter="Relationship">Relationship</button>
+        <button class="chip" type="button" data-filter="favorites">Favorites</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="chunksTitle">
+      <div class="section-title">
+        <div>
+          <h3 id="chunksTitle">Casual Speech / Chunks</h3>
+          <p>The spoken form is what the generated audio says. Browser TTS is only a fallback for custom chunks without audio.</p>
+        </div>
+        <span class="stat" id="visibleStat">0 shown</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Play</th>
+              <th>Region</th>
+              <th>Category</th>
+              <th>Normal Portuguese</th>
+              <th>Casual Spoken Form</th>
+              <th>Sounds Like</th>
+              <th>Meaning</th>
+              <th>Notes</th>
+              <th>Known</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="chunkRows"></tbody>
+        </table>
+        <div class="empty" id="emptyState" hidden>No chunks match the current filter.</div>
+      </div>
+    </section>
+
+    <section class="help-grid" aria-label="How to use this trainer">
+      <article class="help-card">
+        <strong>Normal Portuguese</strong>
+        <p>Written or textbook form. It helps you connect the sound back to grammar and spelling.</p>
+      </article>
+      <article class="help-card">
+        <strong>Casual Spoken Form</strong>
+        <p>What you are training your ear to catch in real conversation. This is what the app speaks.</p>
+      </article>
+      <article class="help-card">
+        <strong>Sounds Like</strong>
+        <p>Rough American-English-friendly hint for listening recognition. It is not IPA and not perfect pronunciation.</p>
+      </article>
+      <article class="help-card">
+        <strong>Meaning</strong>
+        <p>Fast English meaning so you can move from sound to comprehension without stopping too long.</p>
+      </article>
+    </section>
+  </main>
+
+  <dialog id="editDialog">
+    <form method="dialog" id="chunkForm">
+      <h3 id="dialogTitle">Add Chunk</h3>
+      <input type="hidden" id="chunkId">
+      <div class="form-grid">
+        <div class="field">
+          <label for="regionInput">Region</label>
+          <select id="regionInput" required>
+            <option>Universal BR</option>
+            <option>Salvador/Bahia</option>
+            <option>Rio/Carioca</option>
+            <option>Relationship</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="categoryInput">Category</label>
+          <input id="categoryInput" required>
+        </div>
+        <div class="field">
+          <label for="normalInput">Normal Portuguese</label>
+          <input id="normalInput" required>
+        </div>
+        <div class="field">
+          <label for="spokenInput">Casual Spoken Form</label>
+          <input id="spokenInput" required>
+        </div>
+        <div class="field">
+          <label for="soundsInput">Sounds Like</label>
+          <input id="soundsInput" required>
+        </div>
+        <div class="field">
+          <label for="meaningInput">Meaning</label>
+          <input id="meaningInput" required>
+        </div>
+        <div class="field full">
+          <label for="notesInput">Notes</label>
+          <textarea id="notesInput"></textarea>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button class="button danger" type="button" id="deleteChunk">Delete</button>
+        <div class="controls">
+          <button class="button secondary" value="cancel">Cancel</button>
+          <button class="button" id="saveChunk" value="default">Save</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = "brChunkTrainer.chunks.v1";
+    const FILTER_KEY = "brChunkTrainer.filter.v1";
+    const SEARCH_KEY = "brChunkTrainer.search.v1";
+
+    const starterChunks = [
+      { id: "u001", region: "Universal BR", category: "Core compression", normal: "para você", spoken: "pra cê", soundsLike: "pruh-SEH", meaning: "for you", notes: "Common reduction of para voce.", favorite: false, knownCount: 0 },
+      { id: "u002", region: "Universal BR", category: "Core compression", normal: "estou indo", spoken: "tô indo", soundsLike: "toh EEN-doo", meaning: "I’m going", notes: "Estou often becomes to in casual speech.", favorite: false, knownCount: 0 },
+      { id: "u003", region: "Universal BR", category: "Core compression", normal: "eu não sei", spoken: "num sei", soundsLike: "noom SAY", meaning: "I don’t know", notes: "Nao often sounds like num before verbs.", favorite: false, knownCount: 0 },
+      { id: "u004", region: "Universal BR", category: "Core compression", normal: "deixa eu ver", spoken: "dexô vê", soundsLike: "deh-SHO VEH", meaning: "let me see", notes: "Very common thinking chunk.", favorite: false, knownCount: 0 },
+      { id: "u005", region: "Universal BR", category: "Core compression", normal: "espera aí", spoken: "peraí", soundsLike: "peh-rah-EE", meaning: "wait a sec", notes: "Often one quick word.", favorite: false, knownCount: 0 },
+      { id: "u006", region: "Universal BR", category: "Questions", normal: "o que você tá fazendo?", spoken: "que cê tá fazendo?", soundsLike: "kee seh tah fah-ZEN-doo", meaning: "what are you doing?", notes: "O que voce can compress hard.", favorite: false, knownCount: 0 },
+      { id: "u007", region: "Universal BR", category: "Reassurance", normal: "não tem problema", spoken: "num tem problema", soundsLike: "noom tem proh-BLEH-mah", meaning: "no problem", notes: "Listen for num tem.", favorite: false, knownCount: 0 },
+      { id: "u008", region: "Universal BR", category: "Agreement", normal: "está bom", spoken: "tá bom", soundsLike: "tah BOHM", meaning: "okay / alright", notes: "One of the highest-frequency chunks.", favorite: false, knownCount: 0 },
+      { id: "u009", region: "Universal BR", category: "Listening glue", normal: "pois é", spoken: "pois é", soundsLike: "poyz EH", meaning: "yeah / exactly / that’s how it is", notes: "Agreement and conversation glue.", favorite: false, knownCount: 0 },
+      { id: "u010", region: "Universal BR", category: "Uncertainty", normal: "sei lá", spoken: "sei lá", soundsLike: "say LAH", meaning: "I dunno / who knows", notes: "Very common hesitation answer.", favorite: false, knownCount: 0 },
+      { id: "u011", region: "Universal BR", category: "Understanding", normal: "faz sentido", spoken: "faz sentido", soundsLike: "fahz sen-CHEE-doo", meaning: "makes sense", notes: "Useful recognition chunk.", favorite: false, knownCount: 0 },
+      { id: "u012", region: "Universal BR", category: "Degree", normal: "mais ou menos", spoken: "mais ou menos", soundsLike: "my-zoh MEH-noos", meaning: "more or less", notes: "Often blended in the middle.", favorite: false, knownCount: 0 },
+      { id: "u013", region: "Universal BR", category: "Clarifying", normal: "quer dizer", spoken: "quer dizer", soundsLike: "kehr jee-ZEHR", meaning: "I mean / that is", notes: "Clarification marker.", favorite: false, knownCount: 0 },
+      { id: "u014", region: "Universal BR", category: "Clarifying", normal: "na verdade", spoken: "na verdade", soundsLike: "nah vehr-DAH-jee", meaning: "actually", notes: "Often starts a correction.", favorite: false, knownCount: 0 },
+      { id: "u015", region: "Universal BR", category: "Time", normal: "por enquanto", spoken: "por enquanto", soundsLike: "por en-KWAHN-toh", meaning: "for now", notes: "Planning and status phrase.", favorite: false, knownCount: 0 },
+      { id: "u016", region: "Universal BR", category: "Minimums", normal: "pelo menos", spoken: "pelo menos", soundsLike: "PEH-loh MEH-noos", meaning: "at least", notes: "Concession marker.", favorite: false, knownCount: 0 },
+      { id: "u017", region: "Universal BR", category: "Checking understanding", normal: "você entendeu?", spoken: "entendeu?", soundsLike: "en-ten-DEW", meaning: "understood?", notes: "Often stands alone.", favorite: false, knownCount: 0 },
+      { id: "u018", region: "Universal BR", category: "Checking understanding", normal: "você está ligado?", spoken: "tá ligado?", soundsLike: "tah lee-GAH-doo", meaning: "you know? / get it?", notes: "Common in many regions, also very Rio-coded.", favorite: false, knownCount: 0 },
+      { id: "u019", region: "Universal BR", category: "Possibility", normal: "pode ser", spoken: "pode ser", soundsLike: "POH-jee sehr", meaning: "could be / sure", notes: "Soft yes.", favorite: false, knownCount: 0 },
+      { id: "u020", region: "Universal BR", category: "Opinion", normal: "acho que sim", spoken: "acho que sim", soundsLike: "AH-shoo kee seem", meaning: "I think so", notes: "Que often gets light and quick.", favorite: false, knownCount: 0 },
+      { id: "u021", region: "Universal BR", category: "Opinion", normal: "acho que não", spoken: "acho que não", soundsLike: "AH-shoo kee nowm", meaning: "I don’t think so", notes: "Common soft disagreement.", favorite: false, knownCount: 0 },
+      { id: "u022", region: "Universal BR", category: "Question", normal: "como é que é?", spoken: "como é que é?", soundsLike: "KOH-mweh kee EH", meaning: "what was that? / how is it?", notes: "Request to repeat or clarify.", favorite: false, knownCount: 0 },
+      { id: "u023", region: "Universal BR", category: "Question", normal: "cadê você?", spoken: "cadê cê?", soundsLike: "kah-DEH seh", meaning: "where are you?", notes: "Cadê is essential for listening.", favorite: false, knownCount: 0 },
+      { id: "u024", region: "Universal BR", category: "Question", normal: "onde você está?", spoken: "onde cê tá?", soundsLike: "OHN-jee seh tah", meaning: "where are you?", notes: "Cê tá is the target.", favorite: false, knownCount: 0 },
+      { id: "u025", region: "Universal BR", category: "Question", normal: "você quer?", spoken: "cê quer?", soundsLike: "seh KEHR", meaning: "do you want?", notes: "Very common in offers.", favorite: false, knownCount: 0 },
+      { id: "u026", region: "Universal BR", category: "Question", normal: "você sabe?", spoken: "cê sabe?", soundsLike: "seh SAH-bee", meaning: "do you know?", notes: "Listen for cê.", favorite: false, knownCount: 0 },
+      { id: "u027", region: "Universal BR", category: "Question", normal: "você viu?", spoken: "cê viu?", soundsLike: "seh VEEW", meaning: "did you see?", notes: "Short high-frequency check.", favorite: false, knownCount: 0 },
+      { id: "u028", region: "Universal BR", category: "Question", normal: "você gosta?", spoken: "cê gosta?", soundsLike: "seh GOHS-tah", meaning: "do you like it?", notes: "Common with food, places, plans.", favorite: false, knownCount: 0 },
+      { id: "u029", region: "Universal BR", category: "Question", normal: "o que você quer?", spoken: "que cê quer?", soundsLike: "kee seh KEHR", meaning: "what do you want?", notes: "Compressed question pattern.", favorite: false, knownCount: 0 },
+      { id: "u030", region: "Universal BR", category: "Question", normal: "o que foi?", spoken: "que foi?", soundsLike: "kee FOY", meaning: "what happened? / what’s wrong?", notes: "Often asked quickly.", favorite: false, knownCount: 0 },
+      { id: "u031", region: "Universal BR", category: "Time", normal: "daqui a pouco", spoken: "daqui a pouco", soundsLike: "dah-KEE ah POH-koo", meaning: "in a little bit", notes: "Plans and waiting.", favorite: false, knownCount: 0 },
+      { id: "u032", region: "Universal BR", category: "Time", normal: "já já", spoken: "já já", soundsLike: "zhah ZHAH", meaning: "really soon", notes: "Common promise of soon.", favorite: false, knownCount: 0 },
+      { id: "u033", region: "Universal BR", category: "Time", normal: "agora não", spoken: "agora não", soundsLike: "ah-GOH-rah nowm", meaning: "not now", notes: "Direct but common.", favorite: false, knownCount: 0 },
+      { id: "u034", region: "Universal BR", category: "Time", normal: "hoje à noite", spoken: "hoje à noite", soundsLike: "OH-zhee ah NOY-chee", meaning: "tonight", notes: "Daily planning.", favorite: false, knownCount: 0 },
+      { id: "u035", region: "Universal BR", category: "Movement", normal: "vamos embora", spoken: "vambora", soundsLike: "vahm-BOH-rah", meaning: "let’s go / let’s leave", notes: "Vamos embora compresses strongly.", favorite: false, knownCount: 0 },
+      { id: "u036", region: "Universal BR", category: "Movement", normal: "vamos lá", spoken: "vamo lá", soundsLike: "VAH-moo lah", meaning: "let’s go / come on", notes: "Vamo is casual vamos.", favorite: false, knownCount: 0 },
+      { id: "u037", region: "Universal BR", category: "Movement", normal: "eu vou ali", spoken: "vou ali", soundsLike: "voh ah-LEE", meaning: "I’m going over there", notes: "Eu often drops.", favorite: false, knownCount: 0 },
+      { id: "u038", region: "Universal BR", category: "Movement", normal: "volto já", spoken: "volto já", soundsLike: "VOHL-toh zhah", meaning: "I’ll be right back", notes: "Useful daily chunk.", favorite: false, knownCount: 0 },
+      { id: "u039", region: "Universal BR", category: "Buying", normal: "quanto custa?", spoken: "quanto custa?", soundsLike: "KWAHN-toh KOOS-tah", meaning: "how much is it?", notes: "Market and street phrase.", favorite: false, knownCount: 0 },
+      { id: "u040", region: "Universal BR", category: "Buying", normal: "tem como?", spoken: "tem como?", soundsLike: "tem KOH-moo", meaning: "is there a way? / can you?", notes: "Very Brazilian workaround phrase.", favorite: false, knownCount: 0 },
+      { id: "u041", region: "Universal BR", category: "Buying", normal: "não precisa", spoken: "num precisa", soundsLike: "noom preh-SEE-zah", meaning: "no need", notes: "Listen for num precisa.", favorite: false, knownCount: 0 },
+      { id: "u042", region: "Universal BR", category: "Buying", normal: "só um pouquinho", spoken: "só um pouquinho", soundsLike: "soh oong poh-KEEN-yoo", meaning: "just a little bit", notes: "Softens requests.", favorite: false, knownCount: 0 },
+      { id: "u043", region: "Universal BR", category: "Reaction", normal: "nossa senhora", spoken: "nossa", soundsLike: "NAW-sah", meaning: "wow / oh my", notes: "Universal reaction.", favorite: false, knownCount: 0 },
+      { id: "u044", region: "Universal BR", category: "Reaction", normal: "meu Deus", spoken: "meu Deus", soundsLike: "meh-o DEH-oos", meaning: "oh my God", notes: "Reaction of surprise.", favorite: false, knownCount: 0 },
+      { id: "u045", region: "Universal BR", category: "Reaction", normal: "sério?", spoken: "sério?", soundsLike: "SEH-ree-oh", meaning: "seriously?", notes: "Often rising intonation.", favorite: false, knownCount: 0 },
+      { id: "u046", region: "Universal BR", category: "Reaction", normal: "que isso?", spoken: "que isso?", soundsLike: "kee EE-soo", meaning: "what is that? / no way", notes: "Surprise and objection.", favorite: false, knownCount: 0 },
+      { id: "u047", region: "Universal BR", category: "Reaction", normal: "beleza", spoken: "beleza", soundsLike: "beh-LEH-zah", meaning: "cool / alright", notes: "Greeting or confirmation.", favorite: false, knownCount: 0 },
+      { id: "u048", region: "Universal BR", category: "Reaction", normal: "tranquilo", spoken: "tranquilo", soundsLike: "trahn-KWEE-loo", meaning: "all good / chill", notes: "Status and reassurance.", favorite: false, knownCount: 0 },
+      { id: "u049", region: "Universal BR", category: "Listening glue", normal: "tipo assim", spoken: "tipo assim", soundsLike: "CHEE-po ah-SEEM", meaning: "like / kind of", notes: "Filler before explaining.", favorite: false, knownCount: 0 },
+      { id: "u050", region: "Universal BR", category: "Listening glue", normal: "então", spoken: "então", soundsLike: "en-TOWN", meaning: "so / then", notes: "Discourse glue.", favorite: false, knownCount: 0 },
+      { id: "u051", region: "Universal BR", category: "Listening glue", normal: "né?", spoken: "né?", soundsLike: "neh", meaning: "right? / isn’t it?", notes: "Constant tag question.", favorite: false, knownCount: 0 },
+      { id: "u052", region: "Universal BR", category: "Listening glue", normal: "sabe?", spoken: "sabe?", soundsLike: "SAH-bee", meaning: "you know?", notes: "Soft checking filler.", favorite: false, knownCount: 0 },
+      { id: "u053", region: "Universal BR", category: "Listening glue", normal: "olha só", spoken: "olha só", soundsLike: "OH-lyah soh", meaning: "look / check this out", notes: "Attention marker.", favorite: false, knownCount: 0 },
+      { id: "u054", region: "Universal BR", category: "Listening glue", normal: "aí", spoken: "aí", soundsLike: "ah-EE", meaning: "then / there / so", notes: "Very common story connector.", favorite: false, knownCount: 0 },
+      { id: "u055", region: "Universal BR", category: "Listening glue", normal: "daí", spoken: "daí", soundsLike: "dah-EE", meaning: "then / from there", notes: "Story connector.", favorite: false, knownCount: 0 },
+      { id: "u056", region: "Universal BR", category: "Negation", normal: "de jeito nenhum", spoken: "de jeito nenhum", soundsLike: "jee ZHAY-toh neh-NYOOM", meaning: "no way", notes: "Strong refusal.", favorite: false, knownCount: 0 },
+      { id: "u057", region: "Universal BR", category: "Negation", normal: "não dá", spoken: "num dá", soundsLike: "noom dah", meaning: "it won’t work / can’t", notes: "Compact and common.", favorite: false, knownCount: 0 },
+      { id: "u058", region: "Universal BR", category: "Negation", normal: "não quero", spoken: "num quero", soundsLike: "noom KEH-roo", meaning: "I don’t want to", notes: "Listen for num quero.", favorite: false, knownCount: 0 },
+      { id: "u059", region: "Universal BR", category: "Positive", normal: "com certeza", spoken: "com certeza", soundsLike: "kong sehr-TEH-zah", meaning: "for sure", notes: "Strong yes.", favorite: false, knownCount: 0 },
+      { id: "u060", region: "Universal BR", category: "Positive", normal: "tá certo", spoken: "tá certo", soundsLike: "tah SEHR-toh", meaning: "alright / correct", notes: "Agreement and confirmation.", favorite: false, knownCount: 0 },
+
+      { id: "b001", region: "Salvador/Bahia", category: "Reaction", normal: "nossa / sério?", spoken: "oxente", soundsLike: "oh-SHEN-chee", meaning: "wow / what? / really?", notes: "Very Northeast-coded and useful in Bahia.", favorite: false, knownCount: 0 },
+      { id: "b002", region: "Salvador/Bahia", category: "Approval", normal: "isso é legal", spoken: "massa", soundsLike: "MAH-sah", meaning: "cool / great", notes: "Common approval in Bahia.", favorite: false, knownCount: 0 },
+      { id: "b003", region: "Salvador/Bahia", category: "Movement", normal: "vamos", spoken: "bora", soundsLike: "BOH-rah", meaning: "let’s go", notes: "Useful everywhere, very natural in Bahia.", favorite: false, knownCount: 0 },
+      { id: "b004", region: "Salvador/Bahia", category: "Checking", normal: "você viu?", spoken: "visse?", soundsLike: "VEE-see", meaning: "you see? / right?", notes: "Northeast-flavored tag.", favorite: false, knownCount: 0 },
+      { id: "b005", region: "Salvador/Bahia", category: "Addressing", normal: "meu amigo", spoken: "meu rei", soundsLike: "meh-o HAY", meaning: "my friend / buddy", notes: "Warm address to a man.", favorite: false, knownCount: 0 },
+      { id: "b006", region: "Salvador/Bahia", category: "Addressing", normal: "minha amiga", spoken: "minha filha", soundsLike: "MEEN-yah FEEL-yah", meaning: "my dear / girl", notes: "Can be affectionate or emphatic.", favorite: false, knownCount: 0 },
+      { id: "b007", region: "Salvador/Bahia", category: "Status", normal: "está tranquilo", spoken: "tá de boa", soundsLike: "tah jee BOH-ah", meaning: "it’s fine / chill", notes: "Useful social status phrase.", favorite: false, knownCount: 0 },
+      { id: "b008", region: "Salvador/Bahia", category: "Reaction", normal: "não, cara", spoken: "não, velho", soundsLike: "nowm VEH-lyoo", meaning: "no, man", notes: "Casual disagreement or disbelief.", favorite: false, knownCount: 0 },
+      { id: "b009", region: "Salvador/Bahia", category: "Greeting", normal: "e aí, tudo bem?", spoken: "e aí, beleza?", soundsLike: "ee ah-EE beh-LEH-zah", meaning: "hey, all good?", notes: "High-frequency greeting.", favorite: false, knownCount: 0 },
+      { id: "b010", region: "Salvador/Bahia", category: "Reaction", normal: "rapaz", spoken: "rapaz...", soundsLike: "hah-PAHZ", meaning: "man... / wow...", notes: "Common lead-in to a reaction.", favorite: false, knownCount: 0 },
+      { id: "b011", region: "Salvador/Bahia", category: "Reaction", normal: "nem pense nisso", spoken: "lá ele", soundsLike: "lah EH-lee", meaning: "no way / keep that away", notes: "Bahia expression; context-sensitive but useful to recognize.", favorite: false, knownCount: 0 },
+      { id: "b012", region: "Salvador/Bahia", category: "Family", normal: "minha mãe", spoken: "mainha", soundsLike: "MAH-een-yah", meaning: "mom / mommy", notes: "Very common affectionate form.", favorite: false, knownCount: 0 },
+      { id: "b013", region: "Salvador/Bahia", category: "Family", normal: "meu pai", spoken: "painho", soundsLike: "PIE-nyoo", meaning: "dad / daddy", notes: "Affectionate family form.", favorite: false, knownCount: 0 },
+      { id: "b014", region: "Salvador/Bahia", category: "Reaction", normal: "vixe Maria", spoken: "vixe", soundsLike: "VEE-shee", meaning: "oh wow / yikes", notes: "Very useful reaction.", favorite: false, knownCount: 0 },
+      { id: "b015", region: "Salvador/Bahia", category: "Intensity", normal: "muito bom", spoken: "bom demais", soundsLike: "bohm jee-MYSE", meaning: "really good", notes: "Demais is common for emphasis.", favorite: false, knownCount: 0 },
+      { id: "b016", region: "Salvador/Bahia", category: "Enjoyment", normal: "que delícia", spoken: "delícia", soundsLike: "jee-LEE-see-ah", meaning: "delicious / lovely", notes: "Food, weather, vibes.", favorite: false, knownCount: 0 },
+      { id: "b017", region: "Salvador/Bahia", category: "Place", normal: "vamos para a praia", spoken: "bora pra praia", soundsLike: "BOH-rah prah PRY-ah", meaning: "let’s go to the beach", notes: "Salvador-useful planning chunk.", favorite: false, knownCount: 0 },
+      { id: "b018", region: "Salvador/Bahia", category: "Movement", normal: "eu vou descer", spoken: "vou descer", soundsLike: "voh deh-SEHR", meaning: "I’m going down / heading out", notes: "Useful in buildings/streets.", favorite: false, knownCount: 0 },
+      { id: "b019", region: "Salvador/Bahia", category: "Food", normal: "eu quero acarajé", spoken: "quero acarajé", soundsLike: "KEH-roh ah-kah-rah-ZHEH", meaning: "I want acarajé", notes: "Practical Salvador food chunk.", favorite: false, knownCount: 0 },
+      { id: "b020", region: "Salvador/Bahia", category: "Food", normal: "tem pimenta?", spoken: "tem pimenta?", soundsLike: "tem pee-MEN-tah", meaning: "is there hot sauce?", notes: "Important food question.", favorite: false, knownCount: 0 },
+      { id: "b021", region: "Salvador/Bahia", category: "Politeness", normal: "obrigado, meu amigo", spoken: "valeu, meu rei", soundsLike: "vah-LEW meh-o HAY", meaning: "thanks, buddy", notes: "Warm casual thanks.", favorite: false, knownCount: 0 },
+      { id: "b022", region: "Salvador/Bahia", category: "Checking", normal: "está tudo certo?", spoken: "tudo certo aí?", soundsLike: "TOO-doo SEHR-toh ah-EE", meaning: "all good there?", notes: "Check-in phrase.", favorite: false, knownCount: 0 },
+      { id: "b023", region: "Salvador/Bahia", category: "Time", normal: "daqui a pouco eu vou", spoken: "já já eu vou", soundsLike: "zhah ZHAH ew voh", meaning: "I’ll go soon", notes: "Common soon-ish phrasing.", favorite: false, knownCount: 0 },
+      { id: "b024", region: "Salvador/Bahia", category: "Reaction", normal: "que coisa", spoken: "que onda", soundsLike: "kee OHN-dah", meaning: "what’s going on / what a thing", notes: "Casual reaction; regionally natural.", favorite: false, knownCount: 0 },
+      { id: "b025", region: "Salvador/Bahia", category: "Social", normal: "está animado", spoken: "tá animado", soundsLike: "tah ah-nee-MAH-doo", meaning: "it’s lively / you’re excited", notes: "Events, streets, nights out.", favorite: false, knownCount: 0 },
+
+      { id: "r001", region: "Rio/Carioca", category: "Reaction", normal: "nossa", spoken: "caraca", soundsLike: "kah-RAH-kah", meaning: "wow / damn", notes: "Very common Rio reaction.", favorite: false, knownCount: 0 },
+      { id: "r002", region: "Rio/Carioca", category: "Approval", normal: "isso é legal", spoken: "maneiro", soundsLike: "mah-NAY-roo", meaning: "cool / nice", notes: "Useful carioca approval.", favorite: false, knownCount: 0 },
+      { id: "r003", region: "Rio/Carioca", category: "Question", normal: "o que foi?", spoken: "qual foi?", soundsLike: "kwahw FOY", meaning: "what’s up? / what happened?", notes: "Can be friendly or confrontational by tone.", favorite: false, knownCount: 0 },
+      { id: "r004", region: "Rio/Carioca", category: "Movement", normal: "vamos nessa", spoken: "partiu", soundsLike: "par-CHEEW", meaning: "let’s go / I’m in", notes: "Plans and momentum.", favorite: false, knownCount: 0 },
+      { id: "r005", region: "Rio/Carioca", category: "Intensity", normal: "muito intenso", spoken: "sinistro", soundsLike: "see-NEES-troh", meaning: "wild / intense / impressive", notes: "Can be positive or negative.", favorite: false, knownCount: 0 },
+      { id: "r006", region: "Rio/Carioca", category: "Intensity", normal: "muito", spoken: "mó", soundsLike: "maw", meaning: "really / super", notes: "Mó legal, mó bom.", favorite: false, knownCount: 0 },
+      { id: "r007", region: "Rio/Carioca", category: "Filler", normal: "poxa", spoken: "pô", soundsLike: "poh", meaning: "man / come on / wow", notes: "Extremely frequent filler.", favorite: false, knownCount: 0 },
+      { id: "r008", region: "Rio/Carioca", category: "Greeting", normal: "tudo bem?", spoken: "beleza?", soundsLike: "beh-LEH-zah", meaning: "all good?", notes: "Greeting and check-in.", favorite: false, knownCount: 0 },
+      { id: "r009", region: "Rio/Carioca", category: "Thanks", normal: "obrigado", spoken: "valeu", soundsLike: "vah-LEW", meaning: "thanks", notes: "Casual thanks.", favorite: false, knownCount: 0 },
+      { id: "r010", region: "Rio/Carioca", category: "Agreement", normal: "combinado", spoken: "fechou", soundsLike: "feh-SHOH", meaning: "deal / agreed", notes: "Plans and agreements.", favorite: false, knownCount: 0 },
+      { id: "r011", region: "Rio/Carioca", category: "Checking understanding", normal: "você entendeu?", spoken: "tá ligado?", soundsLike: "tah lee-GAH-doo", meaning: "you know? / get it?", notes: "Very useful carioca listening chunk.", favorite: false, knownCount: 0 },
+      { id: "r012", region: "Rio/Carioca", category: "Status", normal: "tranquilo", spoken: "de boa", soundsLike: "jee BOH-ah", meaning: "chill / fine", notes: "Status, permission, reassurance.", favorite: false, knownCount: 0 },
+      { id: "r013", region: "Rio/Carioca", category: "Approval", normal: "muito legal", spoken: "irado", soundsLike: "ee-RAH-doo", meaning: "awesome", notes: "Carioca-friendly approval.", favorite: false, knownCount: 0 },
+      { id: "r014", region: "Rio/Carioca", category: "Addressing", normal: "cara", spoken: "cara", soundsLike: "KAH-rah", meaning: "man / dude", notes: "Very common address word.", favorite: false, knownCount: 0 },
+      { id: "r015", region: "Rio/Carioca", category: "Addressing", normal: "meu irmão", spoken: "mermão", soundsLike: "mehr-MOWN", meaning: "bro / man", notes: "Carioca compression of meu irmão.", favorite: false, knownCount: 0 },
+      { id: "r016", region: "Rio/Carioca", category: "Reaction", normal: "não acredito", spoken: "não acredito", soundsLike: "nowm ah-KREH-jee-toh", meaning: "I can’t believe it", notes: "Often emotional.", favorite: false, knownCount: 0 },
+      { id: "r017", region: "Rio/Carioca", category: "Question", normal: "onde você está?", spoken: "cadê tu?", soundsLike: "kah-DEH too", meaning: "where are you?", notes: "Tu appears in Rio speech, often with third-person verbs.", favorite: false, knownCount: 0 },
+      { id: "r018", region: "Rio/Carioca", category: "Question", normal: "você vai?", spoken: "tu vai?", soundsLike: "too VYE", meaning: "are you going?", notes: "Common informal Rio pattern.", favorite: false, knownCount: 0 },
+      { id: "r019", region: "Rio/Carioca", category: "Question", normal: "você está bem?", spoken: "tu tá bem?", soundsLike: "too tah bem", meaning: "are you okay?", notes: "Informal check-in.", favorite: false, knownCount: 0 },
+      { id: "r020", region: "Rio/Carioca", category: "Reaction", normal: "que loucura", spoken: "que parada", soundsLike: "kee pah-RAH-dah", meaning: "what a thing / situation", notes: "Parada is common for thing/situation.", favorite: false, knownCount: 0 },
+      { id: "r021", region: "Rio/Carioca", category: "Place", normal: "vamos para a praia", spoken: "partiu praia", soundsLike: "par-CHEEW PRY-ah", meaning: "beach time / let’s go to the beach", notes: "Rio-relevant planning chunk.", favorite: false, knownCount: 0 },
+      { id: "r022", region: "Rio/Carioca", category: "Social", normal: "vamos sair hoje?", spoken: "qual é a boa hoje?", soundsLike: "kwah LEH ah BOH-ah OH-zhee", meaning: "what’s the move today?", notes: "Common social planning idea.", favorite: false, knownCount: 0 },
+      { id: "r023", region: "Rio/Carioca", category: "Social", normal: "está tudo certo", spoken: "tá suave", soundsLike: "tah SWAH-vee", meaning: "it’s all good", notes: "Chill confirmation.", favorite: false, knownCount: 0 },
+      { id: "r024", region: "Rio/Carioca", category: "Reaction", normal: "muito engraçado", spoken: "mó engraçado", soundsLike: "maw en-grah-SAH-doo", meaning: "really funny", notes: "Mó + adjective pattern.", favorite: false, knownCount: 0 },
+      { id: "r025", region: "Rio/Carioca", category: "Goodbye", normal: "até mais", spoken: "falou", soundsLike: "fah-LOH", meaning: "see ya", notes: "Very common casual goodbye.", favorite: false, knownCount: 0 },
+
+      { id: "rel001", region: "Relationship", category: "Affection", normal: "estou com saudade", spoken: "tô com saudade", soundsLike: "toh kong sow-DAH-jee", meaning: "I miss you", notes: "Essential relationship chunk.", favorite: false, knownCount: 0 },
+      { id: "rel002", region: "Relationship", category: "Affection", normal: "eu te amo", spoken: "te amo", soundsLike: "chee AH-moo", meaning: "I love you", notes: "Eu often drops.", favorite: false, knownCount: 0 },
+      { id: "rel003", region: "Relationship", category: "Attention", normal: "vem aqui", spoken: "vem cá", soundsLike: "veng KAH", meaning: "come here", notes: "Very common intimate/direct phrase.", favorite: false, knownCount: 0 },
+      { id: "rel004", region: "Relationship", category: "Waiting", normal: "me espere", spoken: "me espera", soundsLike: "mee eh-SPEH-rah", meaning: "wait for me", notes: "Daily logistics.", favorite: false, knownCount: 0 },
+      { id: "rel005", region: "Relationship", category: "Affection", normal: "fica comigo", spoken: "fica comigo", soundsLike: "FEE-kah koh-MEE-goo", meaning: "stay with me", notes: "Relationship/emotional chunk.", favorite: false, knownCount: 0 },
+      { id: "rel006", region: "Relationship", category: "Plans", normal: "vamos sair?", spoken: "vamos sair?", soundsLike: "VAH-moos sah-EER", meaning: "shall we go out?", notes: "Planning date/social time.", favorite: false, knownCount: 0 },
+      { id: "rel007", region: "Relationship", category: "Checking", normal: "está tudo bem?", spoken: "tá tudo bem?", soundsLike: "tah TOO-doo bem", meaning: "is everything okay?", notes: "Core check-in.", favorite: false, knownCount: 0 },
+      { id: "rel008", region: "Relationship", category: "Comfort", normal: "não fica assim", spoken: "não fica assim", soundsLike: "nowm FEE-kah ah-SEEM", meaning: "don’t be like that", notes: "Comfort or conflict phrase.", favorite: false, knownCount: 0 },
+      { id: "rel009", region: "Relationship", category: "Attention", normal: "fala comigo", spoken: "fala comigo", soundsLike: "FAH-lah koh-MEE-goo", meaning: "talk to me", notes: "Important emotional chunk.", favorite: false, knownCount: 0 },
+      { id: "rel010", region: "Relationship", category: "Plans", normal: "depois eu te ligo", spoken: "depois te ligo", soundsLike: "deh-POYS chee LEE-goo", meaning: "I’ll call you later", notes: "Eu often drops.", favorite: false, knownCount: 0 }
+    ];
+
+    let chunks = loadChunks();
+    let activeFilter = localStorage.getItem(FILTER_KEY) || "all";
+    let activePracticeChunk = null;
+    let revealState = false;
+    let repeatTimer = null;
+    let currentAudio = null;
+
+    const searchInput = document.querySelector("#searchInput");
+    const rows = document.querySelector("#chunkRows");
+    const emptyState = document.querySelector("#emptyState");
+    const countStat = document.querySelector("#countStat");
+    const visibleStat = document.querySelector("#visibleStat");
+    const chips = document.querySelectorAll(".chip");
+    const editDialog = document.querySelector("#editDialog");
+    const chunkForm = document.querySelector("#chunkForm");
+    const dialogTitle = document.querySelector("#dialogTitle");
+    const deleteChunkButton = document.querySelector("#deleteChunk");
+    const importFile = document.querySelector("#importFile");
+
+    const practiceBadge = document.querySelector("#practiceBadge");
+    const practiceHidden = document.querySelector("#practiceHidden");
+    const revealSpoken = document.querySelector("#revealSpoken");
+    const revealNormal = document.querySelector("#revealNormal");
+    const revealSounds = document.querySelector("#revealSounds");
+    const revealMeaning = document.querySelector("#revealMeaning");
+
+    searchInput.value = localStorage.getItem(SEARCH_KEY) || "";
+
+    function cloneDefaults() {
+      return starterChunks.map((chunk) => ({ ...chunk }));
+    }
+
+    function loadChunks() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (Array.isArray(stored) && stored.length) {
+          return stored.map(normalizeChunk);
+        }
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+      return cloneDefaults();
+    }
+
+    function normalizeChunk(chunk) {
+      return {
+        id: chunk.id || makeId(),
+        region: chunk.region || "Universal BR",
+        category: chunk.category || "Custom",
+        normal: chunk.normal || "",
+        spoken: chunk.spoken || "",
+        soundsLike: chunk.soundsLike || "",
+        meaning: chunk.meaning || "",
+        notes: chunk.notes || "",
+        favorite: Boolean(chunk.favorite),
+        knownCount: Number(chunk.knownCount || 0)
+      };
+    }
+
+    function makeId() {
+      if (globalThis.crypto?.randomUUID) {
+        return globalThis.crypto.randomUUID();
+      }
+      return `custom-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function saveChunks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(chunks));
+    }
+
+    function regionClass(region) {
+      if (region === "Salvador/Bahia") return "bahia";
+      if (region === "Rio/Carioca") return "rio";
+      if (region === "Relationship") return "relationship";
+      return "universal";
+    }
+
+    function stopSpeech() {
+      clearTimeout(repeatTimer);
+      repeatTimer = null;
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
+      }
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    function getPortugueseVoice() {
+      if (!("speechSynthesis" in window)) return null;
+      const voices = window.speechSynthesis.getVoices();
+      return voices.find((voice) => voice.lang === "pt-BR")
+        || voices.find((voice) => voice.lang.toLowerCase().startsWith("pt-br"))
+        || voices.find((voice) => voice.lang.toLowerCase().startsWith("pt"))
+        || null;
+    }
+
+    function speakWithTts(text, options = {}) {
+      if (!("speechSynthesis" in window) || !text) return;
+      stopSpeech();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "pt-BR";
+      utterance.rate = options.slow ? 0.68 : 0.92;
+      utterance.pitch = 1;
+      const voice = getPortugueseVoice();
+      if (voice) utterance.voice = voice;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function repeatWithTts(text, times = 3, options = {}) {
+      if (!("speechSynthesis" in window) || !text) return;
+      stopSpeech();
+      let count = 0;
+      const playNext = () => {
+        if (count >= times) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "pt-BR";
+        utterance.rate = options.slow ? 0.68 : 0.88;
+        const voice = getPortugueseVoice();
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+          count += 1;
+          if (count < times) repeatTimer = window.setTimeout(playNext, 420);
+        };
+        window.speechSynthesis.speak(utterance);
+      };
+      playNext();
+    }
+
+    function audioPathFor(chunk) {
+      return chunk?.id ? `assets/audio/chunks/${chunk.id}.wav` : "";
+    }
+
+    function playChunk(chunk, options = {}) {
+      if (!chunk) return;
+      stopSpeech();
+      const audioPath = audioPathFor(chunk);
+      if (!audioPath) {
+        speakWithTts(chunk.spoken, options);
+        return;
+      }
+
+      currentAudio = new Audio(audioPath);
+      currentAudio.playbackRate = options.slow ? 0.72 : 1;
+      currentAudio.addEventListener("error", () => speakWithTts(chunk.spoken, options), { once: true });
+      currentAudio.play().catch(() => speakWithTts(chunk.spoken, options));
+    }
+
+    function repeatChunk(chunk, times = 3, options = {}) {
+      if (!chunk) return;
+      stopSpeech();
+      let count = 0;
+      const playNext = () => {
+        if (count >= times) return;
+        const audioPath = audioPathFor(chunk);
+        currentAudio = audioPath ? new Audio(audioPath) : null;
+
+        if (!currentAudio) {
+          repeatWithTts(chunk.spoken, times, options);
+          return;
+        }
+
+        currentAudio.playbackRate = options.slow ? 0.72 : 1;
+        currentAudio.addEventListener("ended", () => {
+          count += 1;
+          if (count < times) repeatTimer = window.setTimeout(playNext, 420);
+        }, { once: true });
+        currentAudio.addEventListener("error", () => repeatWithTts(chunk.spoken, times, options), { once: true });
+        currentAudio.play().catch(() => repeatWithTts(chunk.spoken, times, options));
+      };
+      playNext();
+    }
+
+    function filteredChunks() {
+      const query = searchInput.value.trim().toLowerCase();
+      return chunks.filter((chunk) => {
+        const filterMatch = activeFilter === "all"
+          || (activeFilter === "favorites" && chunk.favorite)
+          || chunk.region === activeFilter;
+        const haystack = [
+          chunk.region,
+          chunk.category,
+          chunk.normal,
+          chunk.spoken,
+          chunk.soundsLike,
+          chunk.meaning,
+          chunk.notes
+        ].join(" ").toLowerCase();
+        return filterMatch && (!query || haystack.includes(query));
+      });
+    }
+
+    function render() {
+      const visible = filteredChunks();
+      rows.innerHTML = "";
+      emptyState.hidden = visible.length > 0;
+      countStat.textContent = `${chunks.length} chunks`;
+      visibleStat.textContent = `${visible.length} shown`;
+
+      visible.forEach((chunk) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><button class="icon-button play" type="button" title="Play spoken form">▶</button></td>
+          <td><span class="badge ${regionClass(chunk.region)}">${escapeHtml(chunk.region)}</span></td>
+          <td>${escapeHtml(chunk.category)}</td>
+          <td>${escapeHtml(chunk.normal)}</td>
+          <td class="spoken">${escapeHtml(chunk.spoken)}</td>
+          <td class="sounds">${escapeHtml(chunk.soundsLike)}</td>
+          <td class="meaning">${escapeHtml(chunk.meaning)}</td>
+          <td class="notes">${escapeHtml(chunk.notes)}</td>
+          <td>${chunk.knownCount}</td>
+          <td>
+            <div class="row-actions">
+              <button class="icon-button repeat" type="button" title="Repeat 3x">3×</button>
+              <button class="icon-button slow" type="button" title="Slow mode">🐢</button>
+              <button class="icon-button star ${chunk.favorite ? "active" : ""}" type="button" title="Favorite">★</button>
+              <button class="icon-button edit" type="button" title="Edit">✎</button>
+            </div>
+          </td>
+        `;
+        tr.querySelector(".play").addEventListener("click", () => playChunk(chunk));
+        tr.querySelector(".repeat").addEventListener("click", () => repeatChunk(chunk));
+        tr.querySelector(".slow").addEventListener("click", () => playChunk(chunk, { slow: true }));
+        tr.querySelector(".star").addEventListener("click", () => toggleFavorite(chunk.id));
+        tr.querySelector(".edit").addEventListener("click", () => openEdit(chunk.id));
+        rows.append(tr);
+      });
+
+      chips.forEach((chip) => chip.classList.toggle("active", chip.dataset.filter === activeFilter));
+      if (!activePracticeChunk || !visible.some((chunk) => chunk.id === activePracticeChunk.id)) {
+        nextPractice(false);
+      } else {
+        renderPractice();
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function nextPractice(autoplay = true) {
+      const pool = filteredChunks();
+      if (!pool.length) {
+        activePracticeChunk = null;
+        practiceHidden.textContent = "No chunks in this filter.";
+        [revealSpoken, revealNormal, revealSounds, revealMeaning].forEach((line) => line.classList.remove("show"));
+        return;
+      }
+      activePracticeChunk = pool[Math.floor(Math.random() * pool.length)];
+      revealState = false;
+      renderPractice();
+      if (autoplay) playChunk(activePracticeChunk);
+    }
+
+    function renderPractice() {
+      if (!activePracticeChunk) return;
+      practiceBadge.textContent = activePracticeChunk.region;
+      practiceBadge.className = `badge ${regionClass(activePracticeChunk.region)}`;
+      practiceHidden.textContent = revealState ? "Revealed. Listen again, then move on." : "Text hidden. Listen first, then reveal.";
+      revealSpoken.querySelector("strong").textContent = activePracticeChunk.spoken;
+      revealNormal.querySelector("strong").textContent = activePracticeChunk.normal;
+      revealSounds.querySelector("strong").textContent = activePracticeChunk.soundsLike;
+      revealMeaning.querySelector("strong").textContent = activePracticeChunk.meaning;
+      [revealSpoken, revealNormal, revealSounds, revealMeaning].forEach((line) => {
+        line.classList.toggle("show", revealState);
+      });
+      document.querySelector("#practiceStar").textContent = activePracticeChunk.favorite ? "Unstar" : "Star";
+    }
+
+    function revealPractice() {
+      revealState = true;
+      renderPractice();
+    }
+
+    function markKnown() {
+      if (!activePracticeChunk) return;
+      const chunk = chunks.find((item) => item.id === activePracticeChunk.id);
+      if (!chunk) return;
+      chunk.knownCount += 1;
+      activePracticeChunk = chunk;
+      saveChunks();
+      render();
+    }
+
+    function toggleFavorite(id) {
+      const chunk = chunks.find((item) => item.id === id);
+      if (!chunk) return;
+      chunk.favorite = !chunk.favorite;
+      saveChunks();
+      render();
+    }
+
+    function openEdit(id) {
+      const chunk = id ? chunks.find((item) => item.id === id) : null;
+      dialogTitle.textContent = chunk ? "Edit Chunk" : "Add Chunk";
+      document.querySelector("#chunkId").value = chunk?.id || "";
+      document.querySelector("#regionInput").value = chunk?.region || "Universal BR";
+      document.querySelector("#categoryInput").value = chunk?.category || "";
+      document.querySelector("#normalInput").value = chunk?.normal || "";
+      document.querySelector("#spokenInput").value = chunk?.spoken || "";
+      document.querySelector("#soundsInput").value = chunk?.soundsLike || "";
+      document.querySelector("#meaningInput").value = chunk?.meaning || "";
+      document.querySelector("#notesInput").value = chunk?.notes || "";
+      deleteChunkButton.hidden = !chunk;
+      editDialog.showModal();
+    }
+
+    function saveForm(event) {
+      event.preventDefault();
+      const id = document.querySelector("#chunkId").value || makeId();
+      const existing = chunks.find((chunk) => chunk.id === id);
+      const next = normalizeChunk({
+        id,
+        region: document.querySelector("#regionInput").value,
+        category: document.querySelector("#categoryInput").value.trim(),
+        normal: document.querySelector("#normalInput").value.trim(),
+        spoken: document.querySelector("#spokenInput").value.trim(),
+        soundsLike: document.querySelector("#soundsInput").value.trim(),
+        meaning: document.querySelector("#meaningInput").value.trim(),
+        notes: document.querySelector("#notesInput").value.trim(),
+        favorite: existing?.favorite || false,
+        knownCount: existing?.knownCount || 0
+      });
+
+      if (existing) {
+        chunks = chunks.map((chunk) => chunk.id === id ? next : chunk);
+      } else {
+        chunks = [next, ...chunks];
+      }
+      saveChunks();
+      editDialog.close();
+      render();
+    }
+
+    function deleteCurrentChunk() {
+      const id = document.querySelector("#chunkId").value;
+      if (!id) return;
+      const chunk = chunks.find((item) => item.id === id);
+      if (!chunk || !confirm(`Delete "${chunk.spoken}"?`)) return;
+      chunks = chunks.filter((item) => item.id !== id);
+      saveChunks();
+      editDialog.close();
+      render();
+    }
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(chunks, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "brazilian-portuguese-chunks.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJson(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result));
+          if (!Array.isArray(data)) throw new Error("JSON must be an array.");
+          chunks = data.map(normalizeChunk);
+          saveChunks();
+          render();
+        } catch (error) {
+          alert(`Import failed: ${error.message}`);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDefaults() {
+      if (!confirm("Reset chunks, favorites, edits, and known counts to defaults?")) return;
+      chunks = cloneDefaults();
+      localStorage.removeItem(STORAGE_KEY);
+      render();
+    }
+
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        activeFilter = chip.dataset.filter;
+        localStorage.setItem(FILTER_KEY, activeFilter);
+        render();
+      });
+    });
+
+    searchInput.addEventListener("input", () => {
+      localStorage.setItem(SEARCH_KEY, searchInput.value);
+      render();
+    });
+
+    document.querySelector("#addChunk").addEventListener("click", () => openEdit());
+    document.querySelector("#exportJson").addEventListener("click", exportJson);
+    document.querySelector("#importJson").addEventListener("click", () => importFile.click());
+    document.querySelector("#resetDefaults").addEventListener("click", resetDefaults);
+    document.querySelector("#stopSpeech").addEventListener("click", stopSpeech);
+    document.querySelector("#stopSpeechTop").addEventListener("click", stopSpeech);
+    importFile.addEventListener("change", () => {
+      const file = importFile.files?.[0];
+      if (file) importJson(file);
+      importFile.value = "";
+    });
+
+    chunkForm.addEventListener("submit", saveForm);
+    deleteChunkButton.addEventListener("click", deleteCurrentChunk);
+
+    document.querySelector("#heroPractice").addEventListener("click", () => {
+      document.querySelector("#practiceTitle").scrollIntoView({ behavior: "smooth", block: "center" });
+      if (!activePracticeChunk) nextPractice(false);
+      if (activePracticeChunk) playChunk(activePracticeChunk);
+    });
+    document.querySelector("#practicePlay").addEventListener("click", () => activePracticeChunk && playChunk(activePracticeChunk));
+    document.querySelector("#practiceRepeat").addEventListener("click", () => activePracticeChunk && repeatChunk(activePracticeChunk));
+    document.querySelector("#practiceReveal").addEventListener("click", revealPractice);
+    document.querySelector("#practiceNext").addEventListener("click", () => nextPractice(true));
+    document.querySelector("#practiceKnown").addEventListener("click", markKnown);
+    document.querySelector("#practiceStar").addEventListener("click", () => activePracticeChunk && toggleFavorite(activePracticeChunk.id));
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.addEventListener("voiceschanged", getPortugueseVoice);
+      getPortugueseVoice();
+    }
+
+    render();
+  </script>
+</body>
+</html>
