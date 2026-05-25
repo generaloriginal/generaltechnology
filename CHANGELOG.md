@@ -1,5 +1,17 @@
 # Changelog - General Technology
 
+## 2026-05-25 - Add Lesson Learning launchpad card
+
+**Status:** ✅ Complete
+
+**What changed:**
+- Added a Launchpad card linking to `https://lessonlearning.com/`.
+- Updated README project listings to include Lesson Learning as a parallel project.
+
+**Impact:**
+- Visitors can now reach the Lesson Learning homework portal directly from the General Technology Launchpad.
+- Documentation reflects the new Launchpad entry.
+
 ## 2026-02-24 ✅
 - Added Roblox English slideshow app with video assets and hotspots.
 - Added launchpad card linking to the new slideshow.
@@ -14,6 +26,12 @@ All notable changes to this project will be documented in this file.
 ## Work Log
 
 *Most recent work appears first*
+
+### 2026-05-25
+
+#### Launchpad
+- Added a Launchpad card for Lesson Learning, linking to `https://lessonlearning.com/`.
+- Updated README project lists so the launchpad documentation includes Lesson Learning.
 
 ### 2026-02-24
 

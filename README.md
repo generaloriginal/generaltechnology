@@ -1,6 +1,6 @@
 # General Technology - Web Projects & Games
 
-**Last Updated:** 2026-02-24  
+**Last Updated:** 2026-05-25
 **Status:** ✅ Active  
 **Purpose:** Web-based games, leaderboards, and interactive applications hosted on GitHub Pages
 
@@ -32,6 +32,8 @@ General Technology hosts multiple web-based projects:
 - **Leaderboard System:** Supabase-backed scoring and rankings
 - **Homophone Game:** Word game with accuracy tracking
 - **Snake Game:** Classic snake game implementation
+- **Brazilian Portuguese Chunk Trainer:** Portable listening-comprehension trainer for Salvador/Bahia and Rio/Carioca spoken chunks
+- **Lesson Learning:** English homework portal for Teacher Lara, linked from Launchpad as a parallel project
 - **Static Hosting:** GitHub Pages deployment
 
 ### System Architecture
@@ -212,6 +214,8 @@ graph TB
 - **Homophone Game:** Word matching game with accuracy tracking
 - **Blank Game:** Template for new games
 - **Roblox English Slideshow:** Interactive video slideshow with meme hotspots
+- **Brazilian Portuguese Chunk Trainer:** Audio-first trainer for compressed Brazilian Portuguese chunks with regional Bahia/Rio focus
+- **Lesson Learning:** Teacher-led English homework portal running as a separate app at `lessonlearning.com`
 
 ### Leaderboard Features
 
