@@ -123,6 +123,21 @@
     .score span { display: block; margin-top: 8px; font-weight: 750; }
     .shake { animation: shake .36s ease-in-out; }
     @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    .feedback-effect { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden; }
+    .feedback-effect::before { content: ""; position: absolute; inset: 0; opacity: 0; }
+    .feedback-effect__badge { z-index: 1; width: clamp(110px, 18vw, 175px); aspect-ratio: 1; display: grid; place-items: center; border: 7px solid currentColor; border-radius: 50%; color: white; font-size: clamp(4rem, 9vw, 7rem); font-weight: 900; line-height: 1; transform: scale(.2); }
+    .feedback-effect--wrong { color: #df2a3f; }
+    .feedback-effect--wrong::before { background: rgba(204, 35, 54, .34); animation: red-flash .55s ease-out; }
+    .feedback-effect--wrong .feedback-effect__badge { background: #df2a3f; animation: wrong-badge .62s cubic-bezier(.2,.8,.2,1) both; }
+    .feedback-effect--correct { color: #14824d; }
+    .feedback-effect--correct::before { background: rgba(20, 130, 77, .25); animation: green-flash .72s ease-out; }
+    .feedback-effect--correct .feedback-effect__badge { background: #14824d; box-shadow: 0 0 0 12px rgba(255,255,255,.46), 0 0 56px rgba(20,130,77,.66); animation: correct-badge .86s cubic-bezier(.2,.9,.2,1) both; }
+    .confetti { position: absolute; top: 50%; left: 50%; width: 12px; height: 20px; border-radius: 3px; background: var(--confetti); transform: translate(-50%, -50%) rotate(var(--rotate)); animation: confetti .95s cubic-bezier(.15,.8,.25,1) forwards; }
+    @keyframes red-flash { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes green-flash { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes wrong-badge { 0% { opacity: 0; transform: scale(.2) rotate(-15deg); } 35% { opacity: 1; transform: scale(1.12) rotate(8deg); } 68% { transform: scale(.92) rotate(-4deg); } 100% { opacity: 0; transform: scale(1.1) rotate(0); } }
+    @keyframes correct-badge { 0% { opacity: 0; transform: scale(.25); } 40% { opacity: 1; transform: scale(1.14); } 68% { opacity: 1; transform: scale(.96); } 100% { opacity: 0; transform: scale(1.08); } }
+    @keyframes confetti { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(calc(var(--rotate) + 520deg)); } }
     @media (max-width: 620px) {
       .app-shell { padding-left: 14px; padding-right: 14px; }
       .topbar { align-items: flex-start; }
@@ -146,6 +161,7 @@
       <footer class="actions" id="actions"><span class="attempts" id="attempts">Tentativas nesta pergunta: 0</span><button class="next-button" id="nextButton" type="button" hidden>Próxima pergunta <span aria-hidden="true">→</span></button></footer>
     </section>
   </main>
+  <div id="effects" aria-hidden="true"></div>
 
   <script>
     // Add the supplied photos/videos here later. Use a local path such as
@@ -165,21 +181,48 @@
     const attemptsLabel = document.getElementById("attempts");
     const nextButton = document.getElementById("nextButton");
     const quizCard = document.getElementById("quizCard");
+    const effects = document.getElementById("effects");
     let questionIndex = 0, attempts = 0, totalAttempts = 0, isCorrect = false;
 
     function playTone(type) {
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const context = new AudioContext();
-        const oscillator = context.createOscillator();
-        const gain = context.createGain();
-        oscillator.type = type === "correct" ? "sine" : "triangle";
-        oscillator.frequency.value = type === "correct" ? 660 : 210;
-        gain.gain.setValueAtTime(.09, context.currentTime);
-        gain.gain.exponentialRampToValueAtTime(.001, context.currentTime + (type === "correct" ? .28 : .18));
-        oscillator.connect(gain).connect(context.destination);
-        oscillator.start(); oscillator.stop(context.currentTime + .3);
+        context.resume();
+        const notes = type === "correct" ? [[523, 0], [659, .11], [784, .22]] : [[185, 0], [138, .14]];
+        notes.forEach(([frequency, delay]) => {
+          const oscillator = context.createOscillator();
+          const gain = context.createGain();
+          const start = context.currentTime + delay;
+          oscillator.type = type === "correct" ? "sine" : "sawtooth";
+          oscillator.frequency.setValueAtTime(frequency, start);
+          gain.gain.setValueAtTime(type === "correct" ? .075 : .06, start);
+          gain.gain.exponentialRampToValueAtTime(.001, start + .22);
+          oscillator.connect(gain).connect(context.destination);
+          oscillator.start(start); oscillator.stop(start + .24);
+        });
+        window.setTimeout(() => context.close(), 700);
       } catch (_) { /* Audio feedback is optional and should never block the quiz. */ }
+    }
+
+    function showEffect(type) {
+      effects.replaceChildren();
+      const effect = document.createElement("div");
+      effect.className = `feedback-effect feedback-effect--${type}`;
+      effect.innerHTML = `<span class="feedback-effect__badge">${type === "correct" ? "✓" : "×"}</span>`;
+      if (type === "correct") {
+        ["#f8c84c", "#ff6b6b", "#5b52e8", "#16a66a", "#ff8a35", "#28a8e0", "#e547a0", "#fff"].forEach((color, index) => {
+          const bit = document.createElement("span");
+          bit.className = "confetti";
+          bit.style.setProperty("--confetti", color);
+          bit.style.setProperty("--rotate", `${index * 45}deg`);
+          bit.style.setProperty("--x", `${Math.cos(index * Math.PI / 4) * 48}vw`);
+          bit.style.setProperty("--y", `${Math.sin(index * Math.PI / 4) * 44}vh`);
+          effect.append(bit);
+        });
+      }
+      effects.append(effect);
+      window.setTimeout(() => effect.remove(), type === "correct" ? 980 : 700);
     }
 
     function mediaMarkup(question) {
@@ -215,7 +258,7 @@
       attempts += 1; totalAttempts += 1;
       attemptsLabel.textContent = `Tentativas nesta pergunta: ${attempts}`;
       if (choice === question.correct) {
-        isCorrect = true; playTone("correct");
+        isCorrect = true; playTone("correct"); showEffect("correct");
         buttons.forEach(button => button.disabled = true);
         buttons[choice].classList.add("correct");
         feedback.dataset.state = "correct";
@@ -224,7 +267,7 @@
         nextButton.hidden = false;
         nextButton.focus();
       } else {
-        playTone("wrong");
+        playTone("wrong"); showEffect("wrong");
         buttons[choice].disabled = true;
         buttons[choice].classList.add("wrong");
         feedback.dataset.state = "wrong";
