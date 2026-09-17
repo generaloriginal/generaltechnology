@@ -121,6 +121,8 @@
     .score { width: min(100%, 360px); margin: 28px auto; padding: 24px; border-radius: 20px; color: #172d25; background: var(--success-pale); }
     .score strong { display: block; color: var(--success); font-size: clamp(2.5rem, 8vw, 4.2rem); line-height: 1; }
     .score span { display: block; margin-top: 8px; font-weight: 750; }
+    .failure-score { color: #751923; background: var(--danger-pale); }
+    .failure-score strong { color: var(--danger); }
     .shake { animation: shake .36s ease-in-out; }
     @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
     .feedback-effect { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden; }
@@ -271,9 +273,23 @@
         buttons[choice].disabled = true;
         buttons[choice].classList.add("wrong");
         feedback.dataset.state = "wrong";
-        feedback.innerHTML = `<span class="feedback-icon" aria-hidden="true">↻</span><span><strong>Ainda não.</strong> Tente outra resposta.</span>`;
+        if (attempts >= 2) {
+          feedback.innerHTML = `<span class="feedback-icon" aria-hidden="true">×</span><span><strong>Duas tentativas erradas.</strong> A rodada terminou.</span>`;
+          window.setTimeout(showFailure, 480);
+          return;
+        }
+        feedback.innerHTML = `<span class="feedback-icon" aria-hidden="true">↻</span><span><strong>Ainda não.</strong> Você tem mais uma tentativa.</span>`;
         quizCard.classList.remove("shake"); void quizCard.offsetWidth; quizCard.classList.add("shake");
       }
+    }
+
+    function showFailure() {
+      progressLabel.textContent = "Rodada encerrada";
+      progressFill.style.width = `${((questionIndex + 1) / questions.length) * 100}%`;
+      content.className = "summary";
+      content.innerHTML = `<p class="question-number">Fim de jogo</p><h2>Você perdeu esta rodada.</h2><p>Foram duas tentativas incorretas nesta pergunta. Comece novamente para tentar chegar ao final.</p><div class="score failure-score"><strong>2 erros</strong><span>A rodada foi encerrada</span></div><button class="restart-button" id="restartButton" type="button">Tentar novamente</button>`;
+      document.getElementById("actions").hidden = true;
+      document.getElementById("restartButton").addEventListener("click", () => { questionIndex = 0; totalAttempts = 0; content.className = "quiz-content"; document.getElementById("actions").hidden = false; renderQuestion(); });
     }
 
     function showSummary() {
