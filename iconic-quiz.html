@@ -141,6 +141,12 @@
     .level-up__eyebrow { margin: 0 0 5px; font-size: .9rem; font-weight: 900; letter-spacing: .16em; }
     .level-up strong { display: block; font-size: clamp(2rem, 8vw, 4rem); line-height: 1; }
     .level-up p:last-child { margin: 14px 0 0; font-size: 1.1rem; font-weight: 700; opacity: .9; }
+    .finale { position: fixed; z-index: 22; inset: 0; display: grid; place-items: center; overflow: hidden; color: white; text-align: center; background: radial-gradient(circle at center, rgba(123, 105, 255, .95), rgba(31, 27, 111, .97)); }
+    .finale__content { z-index: 1; padding: 24px; animation: finale-content 1.3s cubic-bezier(.18,.9,.2,1) both; }
+    .finale__trophy { display: block; margin-bottom: 8px; font-size: clamp(5rem, 15vw, 9rem); filter: drop-shadow(0 12px 16px rgba(0,0,0,.25)); }
+    .finale strong { display: block; font-size: clamp(2.3rem, 8vw, 4.8rem); line-height: 1; }
+    .finale p { margin: 14px 0 0; font-size: clamp(1.1rem, 3vw, 1.45rem); font-weight: 800; }
+    .summary-celebration { margin-bottom: 8px; color: #f3b919; font-size: clamp(2.3rem, 7vw, 4rem); letter-spacing: .12em; animation: star-dance 1s ease-in-out infinite alternate; text-shadow: 0 5px 10px rgba(172,120,0,.22); }
     @keyframes red-flash { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes green-flash { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes wrong-badge { 0% { opacity: 0; transform: scale(.2) rotate(-15deg); } 35% { opacity: 1; transform: scale(1.12) rotate(8deg); } 68% { transform: scale(.92) rotate(-4deg); } 100% { opacity: 0; transform: scale(1.1) rotate(0); } }
@@ -148,6 +154,8 @@
     @keyframes confetti { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(calc(var(--rotate) + 520deg)); } }
     @keyframes level-backdrop { 0% { opacity: 0; } 12%, 82% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes level-panel { 0% { opacity: 0; transform: translateY(42px) scale(.75); } 28%, 78% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-24px) scale(1.04); } }
+    @keyframes finale-content { 0% { opacity: 0; transform: scale(.5) translateY(32px); } 32%, 76% { opacity: 1; transform: scale(1) translateY(0); } 100% { opacity: 0; transform: scale(1.12) translateY(-24px); } }
+    @keyframes star-dance { from { transform: rotate(-3deg) scale(.96); } to { transform: rotate(3deg) scale(1.06); } }
     @media (max-width: 620px) {
       .app-shell { padding-left: 14px; padding-right: 14px; }
       .topbar { align-items: flex-start; }
@@ -199,7 +207,7 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const context = new AudioContext();
         context.resume();
-        const notes = type === "correct" ? [[523, 0], [659, .11], [784, .22]] : type === "level" ? [[392, 0], [523, .1], [659, .2], [784, .3]] : [[185, 0], [138, .14]];
+        const notes = type === "correct" ? [[523, 0], [659, .11], [784, .22]] : type === "level" ? [[392, 0], [523, .1], [659, .2], [784, .3]] : type === "finale" ? [[523, 0], [659, .1], [784, .2], [1046, .34], [1318, .48]] : [[185, 0], [138, .14]];
         notes.forEach(([frequency, delay]) => {
           const oscillator = context.createOscillator();
           const gain = context.createGain();
@@ -211,7 +219,7 @@
           oscillator.connect(gain).connect(context.destination);
           oscillator.start(start); oscillator.stop(start + .24);
         });
-        window.setTimeout(() => context.close(), 700);
+        window.setTimeout(() => context.close(), type === "finale" ? 1050 : 700);
       } catch (_) { /* Audio feedback is optional and should never block the quiz. */ }
     }
 
@@ -243,6 +251,25 @@
       effects.append(levelUp);
       playTone("level");
       window.setTimeout(() => levelUp.remove(), 1280);
+    }
+
+    function showFinale() {
+      effects.replaceChildren();
+      const finale = document.createElement("div");
+      finale.className = "finale";
+      finale.innerHTML = `<div class="finale__content"><span class="finale__trophy" aria-hidden="true">🏆</span><strong>VOCÊ CONSEGUIU!</strong><p>Seis respostas certas!</p></div>`;
+      ["#f8c84c", "#ff6b6b", "#5b52e8", "#32d583", "#ff8a35", "#28a8e0", "#e547a0", "#fff"].forEach((color, index) => {
+        const bit = document.createElement("span");
+        bit.className = "confetti";
+        bit.style.setProperty("--confetti", color);
+        bit.style.setProperty("--rotate", `${index * 45}deg`);
+        bit.style.setProperty("--x", `${Math.cos(index * Math.PI / 4) * 55}vw`);
+        bit.style.setProperty("--y", `${Math.sin(index * Math.PI / 4) * 50}vh`);
+        finale.append(bit);
+      });
+      effects.append(finale);
+      playTone("finale");
+      window.setTimeout(() => { finale.remove(); showSummary(); }, 1360);
     }
 
     function mediaMarkup(question) {
@@ -314,13 +341,13 @@
       progressLabel.textContent = "Rodada concluída";
       progressFill.style.width = "100%";
       content.className = "summary";
-      content.innerHTML = `<p class="question-number">Muito bem!</p><h2>Você completou o desafio.</h2><p>O grupo encontrou as seis respostas. Agora é um bom momento para comentar as imagens e os comerciais antes da próxima rodada.</p><div class="score"><strong>6 / 6</strong><span>${totalAttempts} tentativa${totalAttempts === 1 ? "" : "s"} no total</span></div><button class="restart-button" id="restartButton" type="button">Começar nova rodada</button>`;
+      content.innerHTML = `<div class="summary-celebration" aria-hidden="true">★ 🎉 ★</div><p class="question-number">Muito bem!</p><h2>Você completou o desafio.</h2><p>O grupo encontrou as seis respostas. Agora é um bom momento para comentar as imagens e os comerciais antes da próxima rodada.</p><div class="score"><strong>6 / 6</strong><span>${totalAttempts} tentativa${totalAttempts === 1 ? "" : "s"} no total</span></div><button class="restart-button" id="restartButton" type="button">Começar nova rodada</button>`;
       document.getElementById("actions").hidden = true;
       document.getElementById("restartButton").addEventListener("click", () => { questionIndex = 0; totalAttempts = 0; content.className = "quiz-content"; document.getElementById("actions").hidden = false; renderQuestion(); });
     }
 
     nextButton.addEventListener("click", () => {
-      if (questionIndex === questions.length - 1) { showSummary(); return; }
+      if (questionIndex === questions.length - 1) { showFinale(); return; }
       nextButton.disabled = true;
       showLevelUp(questionIndex + 2);
       window.setTimeout(() => { questionIndex += 1; nextButton.disabled = false; renderQuestion(); }, 1280);
