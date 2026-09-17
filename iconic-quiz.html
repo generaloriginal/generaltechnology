@@ -141,14 +141,17 @@
     .level-up__eyebrow { margin: 0 0 5px; font-size: .9rem; font-weight: 900; letter-spacing: .16em; }
     .level-up strong { display: block; font-size: clamp(2rem, 8vw, 4rem); line-height: 1; }
     .level-up p:last-child { margin: 14px 0 0; font-size: 1.1rem; font-weight: 700; opacity: .9; }
-    .finale { position: fixed; z-index: 22; inset: 0; display: grid; place-items: center; overflow: hidden; color: white; text-align: center; background: radial-gradient(circle at center, rgba(123, 105, 255, .95), rgba(31, 27, 111, .97)); }
-    .finale__content { z-index: 1; padding: 24px; animation: finale-content 1.3s cubic-bezier(.18,.9,.2,1) both; }
-    .finale__trophy { display: block; margin-bottom: 8px; font-size: clamp(5rem, 15vw, 9rem); filter: drop-shadow(0 12px 16px rgba(0,0,0,.25)); }
-    .finale strong { display: block; font-size: clamp(2.3rem, 8vw, 4.8rem); line-height: 1; }
+    .finale { position: fixed; z-index: 22; inset: 0; display: grid; place-items: center; overflow: hidden; color: white; text-align: center; background: radial-gradient(circle at center, rgba(148, 121, 255, .98), rgba(31, 27, 111, .98)); }
+    .finale::before { content: ""; position: absolute; width: min(115vw, 1050px); aspect-ratio: 1; border: 22px solid rgba(248,200,76,.7); border-radius: 50%; box-shadow: 0 0 0 45px rgba(255,255,255,.08), 0 0 115px 35px rgba(248,200,76,.6); animation: victory-halo 2.95s ease-out both; }
+    .finale__content { z-index: 1; padding: 24px; animation: finale-content 2.95s cubic-bezier(.18,.9,.2,1) both; }
+    .finale__trophy { display: block; margin-bottom: 8px; font-size: clamp(6rem, 17vw, 10rem); filter: drop-shadow(0 14px 18px rgba(0,0,0,.28)); animation: trophy-bounce .7s ease-in-out infinite alternate; }
+    .finale strong { display: block; font-size: clamp(2.55rem, 9vw, 5.6rem); line-height: 1; text-shadow: 0 5px 0 rgba(54,35,133,.55); }
     .finale p { margin: 14px 0 0; font-size: clamp(1.1rem, 3vw, 1.45rem); font-weight: 800; }
-    .finale__score { margin-top: 8px; color: #f8c84c; font-size: clamp(3.4rem, 12vw, 6rem); font-weight: 950; line-height: 1; text-shadow: 0 6px 0 rgba(89,65,0,.32); }
+    .finale__score { margin-top: 8px; color: #f8c84c; font-size: clamp(4rem, 14vw, 7rem); font-weight: 950; line-height: 1; text-shadow: 0 7px 0 rgba(89,65,0,.32), 0 0 30px rgba(255,240,145,.7); }
     .finale__prize { display: inline-block; margin-top: 18px; padding: 10px 16px; border: 2px solid rgba(255,255,255,.66); border-radius: 999px; background: rgba(255,255,255,.16); font-size: clamp(.9rem, 2.8vw, 1.1rem); font-weight: 900; letter-spacing: .04em; }
     .finale-star { position: absolute; top: 50%; left: 50%; color: var(--star-color); font-size: clamp(1.4rem, 4vw, 2.7rem); line-height: 1; text-shadow: 0 0 16px currentColor; transform: translate(-50%, -50%); animation: finale-star 1.25s cubic-bezier(.12,.8,.25,1) forwards; }
+    .firework { position: absolute; left: var(--firework-x); top: var(--firework-y); width: 10px; height: 10px; border-radius: 50%; color: var(--firework-color); background: currentColor; box-shadow: 0 -58px 0 -2px currentColor, 41px -41px 0 -2px currentColor, 58px 0 0 -2px currentColor, 41px 41px 0 -2px currentColor, 0 58px 0 -2px currentColor, -41px 41px 0 -2px currentColor, -58px 0 0 -2px currentColor, -41px -41px 0 -2px currentColor; animation: firework 1.3s ease-out both; }
+    .finale__ribbon { margin: 15px auto 0; padding: 9px 15px; border-radius: 999px; color: #402700; background: #f8c84c; box-shadow: 0 4px 0 #a55e00; font-weight: 950; letter-spacing: .05em; }
     .summary-celebration { margin-bottom: 8px; color: #f3b919; font-size: clamp(2.3rem, 7vw, 4rem); letter-spacing: .12em; animation: star-dance 1s ease-in-out infinite alternate; text-shadow: 0 5px 10px rgba(172,120,0,.22); }
     .prize-button { margin: 0 8px 14px; background: #c97a00; box-shadow: 0 4px 0 #7d4600; }
     .prize-message { width: min(100%, 430px); margin: 0 auto 20px; padding: 14px 18px; border-radius: 14px; color: #654100; background: #fff3bf; font-weight: 800; }
@@ -159,8 +162,11 @@
     @keyframes confetti { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(calc(var(--rotate) + 520deg)); } }
     @keyframes level-backdrop { 0% { opacity: 0; } 12%, 82% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes level-panel { 0% { opacity: 0; transform: translateY(42px) scale(.75); } 28%, 78% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-24px) scale(1.04); } }
-    @keyframes finale-content { 0% { opacity: 0; transform: scale(.5) translateY(32px); } 32%, 76% { opacity: 1; transform: scale(1) translateY(0); } 100% { opacity: 0; transform: scale(1.12) translateY(-24px); } }
+    @keyframes finale-content { 0% { opacity: 0; transform: scale(.5) translateY(32px); } 16%, 82% { opacity: 1; transform: scale(1) translateY(0); } 100% { opacity: 0; transform: scale(1.12) translateY(-24px); } }
     @keyframes finale-star { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.1) rotate(0); } 22% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.25) rotate(420deg); } }
+    @keyframes victory-halo { 0% { opacity: 0; transform: scale(.15); } 20%, 78% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.35); } }
+    @keyframes trophy-bounce { from { transform: translateY(-6px) rotate(-3deg) scale(.98); } to { transform: translateY(7px) rotate(3deg) scale(1.04); } }
+    @keyframes firework { 0% { opacity: 0; transform: scale(.15); } 26%, 74% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.35); } }
     @keyframes star-dance { from { transform: rotate(-3deg) scale(.96); } to { transform: rotate(3deg) scale(1.06); } }
     @media (max-width: 620px) {
       .app-shell { padding-left: 14px; padding-right: 14px; }
@@ -213,7 +219,7 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const context = new AudioContext();
         context.resume();
-        const notes = type === "correct" ? [[523, 0], [659, .11], [784, .22]] : type === "level" ? [[392, 0], [523, .1], [659, .2], [784, .3]] : type === "finale" ? [[523, 0], [659, .1], [784, .2], [1046, .34], [1318, .48]] : [[185, 0], [138, .14]];
+        const notes = type === "correct" ? [[523, 0], [659, .11], [784, .22]] : type === "level" ? [[392, 0], [523, .1], [659, .2], [784, .3]] : type === "finale" ? [[523, 0], [659, .1], [784, .2], [1046, .34], [1318, .48], [1046, .64], [1318, .77], [1568, .91]] : [[185, 0], [138, .14]];
         notes.forEach(([frequency, delay]) => {
           const oscillator = context.createOscillator();
           const gain = context.createGain();
@@ -225,7 +231,7 @@
           oscillator.connect(gain).connect(context.destination);
           oscillator.start(start); oscillator.stop(start + .24);
         });
-        window.setTimeout(() => context.close(), type === "finale" ? 1050 : 700);
+        window.setTimeout(() => context.close(), type === "finale" ? 1500 : 700);
       } catch (_) { /* Audio feedback is optional and should never block the quiz. */ }
     }
 
@@ -263,7 +269,7 @@
       effects.replaceChildren();
       const finale = document.createElement("div");
       finale.className = "finale";
-      finale.innerHTML = `<div class="finale__content"><span class="finale__trophy" aria-hidden="true">🏆</span><strong>PARABÉNS!</strong><div class="finale__score">6 / 6</div><p>Você venceu o desafio!</p><span class="finale__prize">🎁 PRÊMIO DESBLOQUEADO</span></div>`;
+      finale.innerHTML = `<div class="finale__content"><span class="finale__trophy" aria-hidden="true">🏆</span><strong>VOCÊ ACERTOU TODAS!</strong><div class="finale__score">6 / 6 PERFEITO!</div><p>PARABÉNS, CAMPEÃO!</p><span class="finale__prize">🎁 PRÊMIO DESBLOQUEADO</span><div class="finale__ribbon">★ CAMPEÃO DO QUIZ ★</div></div>`;
       ["#f8c84c", "#ff6b6b", "#5b52e8", "#32d583", "#ff8a35", "#28a8e0", "#e547a0", "#fff"].forEach((color, index) => {
         const bit = document.createElement("span");
         bit.className = "confetti";
@@ -273,7 +279,7 @@
         bit.style.setProperty("--y", `${Math.sin(index * Math.PI / 4) * 50}vh`);
         finale.append(bit);
       });
-      Array.from({ length: 28 }, (_, index) => {
+      Array.from({ length: 72 }, (_, index) => {
         const star = document.createElement("span");
         const angle = index * (Math.PI * 2 / 28);
         star.className = "finale-star";
@@ -283,9 +289,17 @@
         star.style.setProperty("--y", `${Math.sin(angle) * (24 + (index % 5) * 7)}vh`);
         finale.append(star);
       });
+      [["15%", "22%", "#f8c84c"], ["83%", "18%", "#ff7a5d"], ["10%", "75%", "#79f5c4"], ["86%", "74%", "#8ca7ff"], ["50%", "12%", "#fff"]].forEach(([x, y, color]) => {
+        const firework = document.createElement("span");
+        firework.className = "firework";
+        firework.style.setProperty("--firework-x", x);
+        firework.style.setProperty("--firework-y", y);
+        firework.style.setProperty("--firework-color", color);
+        finale.append(firework);
+      });
       effects.append(finale);
       playTone("finale");
-      window.setTimeout(() => { finale.remove(); showSummary(); }, 1360);
+      window.setTimeout(() => { finale.remove(); showSummary(); }, 3050);
     }
 
     function mediaMarkup(question) {
