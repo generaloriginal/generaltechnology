@@ -88,9 +88,9 @@
       cursor: pointer;
       transition: transform .15s ease, border-color .15s ease, background .15s ease;
     }
-    .answer:not(:disabled):hover { transform: translateY(-2px); border-color: var(--violet); }
     .answer:disabled { cursor: default; }
     .answer-letter { flex: 0 0 auto; width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; color: var(--violet); background: #eeeefe; font-size: .92rem; }
+    .answer:not(.wrong):not(.correct) { border-color: var(--line); color: var(--ink); background: white; }
     .answer.wrong { border-color: var(--danger); color: #7f1826; background: var(--danger-pale); }
     .answer.wrong .answer-letter { color: white; background: var(--danger); }
     .answer.correct { border-color: var(--success); color: #075f35; background: var(--success-pale); }
@@ -311,6 +311,7 @@
     function renderQuestion() {
       const question = questions[questionIndex];
       attempts = 0; isCorrect = false;
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
       progressLabel.textContent = `Pergunta ${questionIndex + 1} de ${questions.length}`;
       progressFill.style.width = `${((questionIndex + 1) / questions.length) * 100}%`;
       attemptsLabel.textContent = "Tentativas nesta pergunta: 0";
