@@ -146,7 +146,12 @@
     .finale__trophy { display: block; margin-bottom: 8px; font-size: clamp(5rem, 15vw, 9rem); filter: drop-shadow(0 12px 16px rgba(0,0,0,.25)); }
     .finale strong { display: block; font-size: clamp(2.3rem, 8vw, 4.8rem); line-height: 1; }
     .finale p { margin: 14px 0 0; font-size: clamp(1.1rem, 3vw, 1.45rem); font-weight: 800; }
+    .finale__score { margin-top: 8px; color: #f8c84c; font-size: clamp(3.4rem, 12vw, 6rem); font-weight: 950; line-height: 1; text-shadow: 0 6px 0 rgba(89,65,0,.32); }
+    .finale__prize { display: inline-block; margin-top: 18px; padding: 10px 16px; border: 2px solid rgba(255,255,255,.66); border-radius: 999px; background: rgba(255,255,255,.16); font-size: clamp(.9rem, 2.8vw, 1.1rem); font-weight: 900; letter-spacing: .04em; }
+    .finale-star { position: absolute; top: 50%; left: 50%; color: var(--star-color); font-size: clamp(1.4rem, 4vw, 2.7rem); line-height: 1; text-shadow: 0 0 16px currentColor; transform: translate(-50%, -50%); animation: finale-star 1.25s cubic-bezier(.12,.8,.25,1) forwards; }
     .summary-celebration { margin-bottom: 8px; color: #f3b919; font-size: clamp(2.3rem, 7vw, 4rem); letter-spacing: .12em; animation: star-dance 1s ease-in-out infinite alternate; text-shadow: 0 5px 10px rgba(172,120,0,.22); }
+    .prize-button { margin: 0 8px 14px; background: #c97a00; box-shadow: 0 4px 0 #7d4600; }
+    .prize-message { width: min(100%, 430px); margin: 0 auto 20px; padding: 14px 18px; border-radius: 14px; color: #654100; background: #fff3bf; font-weight: 800; }
     @keyframes red-flash { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes green-flash { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes wrong-badge { 0% { opacity: 0; transform: scale(.2) rotate(-15deg); } 35% { opacity: 1; transform: scale(1.12) rotate(8deg); } 68% { transform: scale(.92) rotate(-4deg); } 100% { opacity: 0; transform: scale(1.1) rotate(0); } }
@@ -155,6 +160,7 @@
     @keyframes level-backdrop { 0% { opacity: 0; } 12%, 82% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes level-panel { 0% { opacity: 0; transform: translateY(42px) scale(.75); } 28%, 78% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-24px) scale(1.04); } }
     @keyframes finale-content { 0% { opacity: 0; transform: scale(.5) translateY(32px); } 32%, 76% { opacity: 1; transform: scale(1) translateY(0); } 100% { opacity: 0; transform: scale(1.12) translateY(-24px); } }
+    @keyframes finale-star { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.1) rotate(0); } 22% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.25) rotate(420deg); } }
     @keyframes star-dance { from { transform: rotate(-3deg) scale(.96); } to { transform: rotate(3deg) scale(1.06); } }
     @media (max-width: 620px) {
       .app-shell { padding-left: 14px; padding-right: 14px; }
@@ -257,7 +263,7 @@
       effects.replaceChildren();
       const finale = document.createElement("div");
       finale.className = "finale";
-      finale.innerHTML = `<div class="finale__content"><span class="finale__trophy" aria-hidden="true">🏆</span><strong>VOCÊ CONSEGUIU!</strong><p>Seis respostas certas!</p></div>`;
+      finale.innerHTML = `<div class="finale__content"><span class="finale__trophy" aria-hidden="true">🏆</span><strong>PARABÉNS!</strong><div class="finale__score">6 / 6</div><p>Você venceu o desafio!</p><span class="finale__prize">🎁 PRÊMIO DESBLOQUEADO</span></div>`;
       ["#f8c84c", "#ff6b6b", "#5b52e8", "#32d583", "#ff8a35", "#28a8e0", "#e547a0", "#fff"].forEach((color, index) => {
         const bit = document.createElement("span");
         bit.className = "confetti";
@@ -266,6 +272,16 @@
         bit.style.setProperty("--x", `${Math.cos(index * Math.PI / 4) * 55}vw`);
         bit.style.setProperty("--y", `${Math.sin(index * Math.PI / 4) * 50}vh`);
         finale.append(bit);
+      });
+      Array.from({ length: 28 }, (_, index) => {
+        const star = document.createElement("span");
+        const angle = index * (Math.PI * 2 / 28);
+        star.className = "finale-star";
+        star.textContent = index % 3 === 0 ? "✦" : "★";
+        star.style.setProperty("--star-color", ["#f8c84c", "#fff", "#ff9a3c", "#a8ffdc"][index % 4]);
+        star.style.setProperty("--x", `${Math.cos(angle) * (28 + (index % 4) * 9)}vw`);
+        star.style.setProperty("--y", `${Math.sin(angle) * (24 + (index % 5) * 7)}vh`);
+        finale.append(star);
       });
       effects.append(finale);
       playTone("finale");
@@ -347,8 +363,9 @@
       progressLabel.textContent = "Rodada concluída";
       progressFill.style.width = "100%";
       content.className = "summary";
-      content.innerHTML = `<div class="summary-celebration" aria-hidden="true">★ 🎉 ★</div><p class="question-number">Muito bem!</p><h2>Você completou o desafio.</h2><p>O grupo encontrou as seis respostas. Agora é um bom momento para comentar as imagens e os comerciais antes da próxima rodada.</p><div class="score"><strong>6 / 6</strong><span>${totalAttempts} tentativa${totalAttempts === 1 ? "" : "s"} no total</span></div><button class="restart-button" id="restartButton" type="button">Começar nova rodada</button>`;
+      content.innerHTML = `<div class="summary-celebration" aria-hidden="true">★ 🎉 🏆 🎉 ★</div><p class="question-number">Vitória!</p><h2>Parabéns, você conquistou 6 / 6!</h2><p>Você chegou até o fim do desafio. Seu prêmio está desbloqueado!</p><div class="score"><strong>6 / 6</strong><span>${totalAttempts} tentativa${totalAttempts === 1 ? "" : "s"} no total</span></div><button class="next-button prize-button" id="prizeButton" type="button">Quero meu prêmio! 🎁</button><p class="prize-message" id="prizeMessage" hidden>🎉 Prêmio desbloqueado! Mostre esta tela ao apresentador para receber sua recompensa.</p><button class="restart-button" id="restartButton" type="button">Começar nova rodada</button>`;
       document.getElementById("actions").hidden = true;
+      document.getElementById("prizeButton").addEventListener("click", () => { document.getElementById("prizeMessage").hidden = false; document.getElementById("prizeButton").disabled = true; });
       document.getElementById("restartButton").addEventListener("click", () => { questionIndex = 0; totalAttempts = 0; content.className = "quiz-content"; document.getElementById("actions").hidden = false; renderQuestion(); });
     }
 
