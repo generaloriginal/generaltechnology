@@ -1,5 +1,28 @@
 # Changelog - General Technology
 
+## 2026-09-16 - Add iPad-first iconic media quiz
+
+**Status:** ✅ Complete - presentation-ready
+
+**What changed:**
+- Added `iconic-quiz.html`, a six-question Portuguese interactive quiz for iconic images and commercials.
+- Added immediate visual and optional sound feedback, retry-on-wrong-answer behavior, presenter-controlled question advancement, and a restartable end-of-round summary.
+- Added a `Quiz de Ícones` card to the Launchpad.
+- Added supplied local imagery for Questions 1, 2, 3, and 6, plus local MP4 playback for the two commercial questions.
+
+**Media:**
+- All six questions now have local media. The two commercial clips are MP4 files, so the quiz can work without a live YouTube connection once the site is loaded.
+
+## 2026-08-13 - Label PT Learning launchpad card
+
+**Status:** ✅ Complete
+
+**What changed:**
+- Added a visible `PT Learning` label and accessible name to the existing Brazilian Portuguese Launchpad card.
+
+**Impact:**
+- The Portuguese learning page is now recognizable without relying on the Brazilian flag or hover tooltip alone.
+
 ## 2026-05-25 - Add Lesson Learning launchpad card
 
 **Status:** ✅ Complete

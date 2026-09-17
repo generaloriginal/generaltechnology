@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#26256f">
+  <title>Quiz: Imagens e Comerciais Icônicos</title>
+  <style>
+    :root {
+      --ink: #171936;
+      --indigo: #33308d;
+      --violet: #5b52e8;
+      --paper: #fbfaf7;
+      --mist: #edf0f8;
+      --line: #d7dbea;
+      --success: #147447;
+      --success-pale: #ddf5e7;
+      --danger: #b42332;
+      --danger-pale: #fff0f1;
+      --shadow: 0 18px 50px rgba(24, 24, 67, .16);
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--indigo); }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background: radial-gradient(circle at 15% 5%, #857eff 0, transparent 28rem), var(--indigo);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { font: inherit; }
+    button:focus-visible { outline: 4px solid #f8c84c; outline-offset: 4px; }
+
+    .app-shell {
+      width: min(100%, 1080px);
+      min-height: 100vh;
+      margin: auto;
+      padding: max(20px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 22px;
+    }
+    .topbar { color: white; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .eyebrow { margin: 0 0 4px; font-size: .82rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+    h1 { margin: 0; font-size: clamp(1.35rem, 3vw, 2rem); line-height: 1.08; }
+    .progress-wrap { min-width: min(35vw, 220px); text-align: right; }
+    .progress-label { display: block; margin-bottom: 7px; font-size: .86rem; font-weight: 700; }
+    .progress-track { height: 10px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.28); }
+    .progress-fill { height: 100%; width: 16.67%; border-radius: inherit; background: #f8c84c; transition: width .35s ease; }
+
+    .quiz-card { align-self: center; overflow: hidden; border-radius: 28px; background: var(--paper); box-shadow: var(--shadow); }
+    .quiz-content { padding: clamp(24px, 5vw, 52px); }
+    .question-number { margin: 0 0 10px; color: var(--violet); font-size: 1rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    h2 { max-width: 920px; margin: 0; font-size: clamp(1.55rem, 4.2vw, 2.7rem); line-height: 1.13; }
+    .prompt { max-width: 920px; margin: 18px 0 0; font-size: clamp(1.1rem, 2.5vw, 1.42rem); font-weight: 650; line-height: 1.42; }
+    .media-frame {
+      min-height: clamp(180px, 32vw, 310px);
+      margin: 26px 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 2px dashed #bfc7dc;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #e8ebf5, #f5f6fb);
+    }
+    .media-frame img, .media-frame video { width: 100%; height: 100%; max-height: 310px; object-fit: contain; background: #101020; }
+    .media-frame iframe { width: min(100%, 550px); aspect-ratio: 16 / 9; border: 0; background: #101020; }
+    .media-placeholder { max-width: 32rem; padding: 24px; color: #51607c; text-align: center; }
+    .media-placeholder strong { display: block; margin-bottom: 8px; color: var(--ink); font-size: 1.08rem; }
+    .media-placeholder p { margin: 0; line-height: 1.45; }
+    .answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .answer {
+      min-height: 76px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 2px solid var(--line);
+      border-radius: 15px;
+      color: var(--ink);
+      background: white;
+      font-size: clamp(1rem, 2.25vw, 1.25rem);
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .answer:not(:disabled):hover { transform: translateY(-2px); border-color: var(--violet); }
+    .answer:disabled { cursor: default; }
+    .answer-letter { flex: 0 0 auto; width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; color: var(--violet); background: #eeeefe; font-size: .92rem; }
+    .answer.wrong { border-color: var(--danger); color: #7f1826; background: var(--danger-pale); }
+    .answer.wrong .answer-letter { color: white; background: var(--danger); }
+    .answer.correct { border-color: var(--success); color: #075f35; background: var(--success-pale); }
+    .answer.correct .answer-letter { color: white; background: var(--success); }
+    .feedback { min-height: 66px; margin-top: 20px; padding: 15px 18px; display: flex; align-items: center; gap: 12px; border-radius: 14px; color: #43526d; background: var(--mist); font-size: 1rem; font-weight: 650; line-height: 1.35; }
+    .feedback[data-state="wrong"] { color: #841a29; background: var(--danger-pale); }
+    .feedback[data-state="correct"] { color: #075f35; background: var(--success-pale); }
+    .feedback-icon { font-size: 1.35rem; }
+    .actions { min-height: 78px; padding: 16px clamp(24px, 5vw, 52px); display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); background: #f5f6fb; }
+    .attempts { color: #59647b; font-size: .95rem; font-weight: 650; }
+    .next-button, .restart-button {
+      min-height: 52px;
+      padding: 13px 24px;
+      border: 0;
+      border-radius: 13px;
+      color: white;
+      background: var(--indigo);
+      box-shadow: 0 4px 0 #1d1a5a;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .next-button:active, .restart-button:active { transform: translateY(3px); box-shadow: 0 1px 0 #1d1a5a; }
+    .next-button[hidden] { display: none; }
+    .summary { padding: clamp(32px, 8vw, 76px); text-align: center; }
+    .summary h2 { margin: 8px auto 16px; }
+    .summary p { max-width: 42rem; margin: 0 auto 28px; color: #56627b; font-size: 1.12rem; line-height: 1.5; }
+    .score { width: min(100%, 360px); margin: 28px auto; padding: 24px; border-radius: 20px; color: #172d25; background: var(--success-pale); }
+    .score strong { display: block; color: var(--success); font-size: clamp(2.5rem, 8vw, 4.2rem); line-height: 1; }
+    .score span { display: block; margin-top: 8px; font-weight: 750; }
+    .shake { animation: shake .36s ease-in-out; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    @media (max-width: 620px) {
+      .app-shell { padding-left: 14px; padding-right: 14px; }
+      .topbar { align-items: flex-start; }
+      .progress-wrap { min-width: 112px; }
+      .quiz-card { border-radius: 20px; }
+      .answers { grid-template-columns: 1fr; }
+      .actions { align-items: flex-start; flex-direction: column; }
+      .next-button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div><p class="eyebrow">Desafio em grupo</p><h1>Imagens e Comerciais Icônicos</h1></div>
+      <div class="progress-wrap" aria-label="Progresso"><span class="progress-label" id="progressLabel">Pergunta 1 de 6</span><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div>
+    </header>
+    <section class="quiz-card" aria-labelledby="questionTitle" id="quizCard">
+      <div class="quiz-content" id="quizContent"></div>
+      <footer class="actions" id="actions"><span class="attempts" id="attempts">Tentativas nesta pergunta: 0</span><button class="next-button" id="nextButton" type="button" hidden>Próxima pergunta <span aria-hidden="true">→</span></button></footer>
+    </section>
+  </main>
+
+  <script>
+    // Add the supplied photos/videos here later. Use a local path such as
+    // "iconic-quiz-media/vj-day.jpg" or "iconic-quiz-media/apple-1984.mp4".
+    const questions = [
+      { title: "O Beijo da Vitória", prompt: 'Qual é o ano exato em que esta icônica fotografia ("V-J Day in Times Square") foi registrada?', media: "iconic-quiz-media/vj-day-times-square.jpeg", mediaLabel: "Foto do Beijo na Times Square", answers: ["1939 (Início da Guerra)", "1945 (Fim da Segunda Guerra)", "1950 (Guerra da Coreia)", "1942 (Batalha de Midway)"], correct: 1, hint: "Pense no momento exato da comemoração do fim da Segunda Guerra Mundial nas ruas de Nova York." },
+      { title: "A Selfie Histórica", prompt: "Em qual evento cultural mundial ocorreu esta famosa selfie coletiva tirada por Bradley Cooper?", media: "iconic-quiz-media/oscar-selfie-2014.jpg", mediaLabel: "Selfie do Oscar de 2014", answers: ["Festival de Cinema de Cannes", "Baile do Met Gala", "Cerimônia de Entrega do Oscar", "Grammy Awards"], correct: 2, hint: "A premiação mais famosa de Hollywood reuniu as maiores estrelas do cinema." },
+      { title: "A Era da IA Generativa", prompt: "Qual o título desta obra gerada por Inteligência Artificial (Midjourney) que venceu um concurso de artes em 2022?", media: "iconic-quiz-media/theatre-opera-spatial.jpg", mediaLabel: "Obra premiada de IA", answers: ["Théâtre D'Opéra Spatial", "The Digital Renaissance", "Artificial Dreamscape", "Cybernetic Canvas"], correct: 0, hint: "O nome da obra faz referência a um teatro de ópera com temática espacial em francês." },
+      { title: "Comerciais de Natal", prompt: "Qual icônica campanha publicitária global de refrigerante marcou gerações ao introduzir os ursos polares animados nas festas de fim de ano?", media: "iconic-quiz-media/coca-cola-polar-bears.mp4", mediaLabel: "Comercial de Natal Coca-Cola com ursos polares", answers: ["Ursos Polares da Coca-Cola", "Comercial de Natal da Pepsi", "Campanha dos pinguins da Antarctica", "Comercial de fim de ano da Fanta"], correct: 0, hint: "A marca associada a essa campanha icônica possui identidade visual vermelha e branca." },
+      { title: "O Slogan Publicitário", prompt: "O lendário comercial lançado em 1984 pela Apple (dirigido por Ridley Scott) introduziu qual produto revolucionário?", media: "iconic-quiz-media/apple-1984-macintosh.mp4", mediaLabel: 'Comercial Apple "1984"', answers: ["O primeiro iPhone", "O computador Macintosh", "O tocador de música iPod", "O tablet iPad"], correct: 1, hint: "Foi transmitido uma única vez durante o Super Bowl e revolucionou a computação pessoal." },
+      { title: "Fotografia Documental", prompt: 'A famosa foto "Migrant Mother" (Mãe Migrante), capturada por Dorothea Lange em 1936, retrata uma mãe durante qual período histórico?', media: "iconic-quiz-media/migrant-mother-1936.jpg", mediaLabel: 'Foto "Migrant Mother"', answers: ["A Corrida do Ouro", "A Grande Depressão (Crise de 1929)", "O Pós-Segunda Guerra Mundial", "A Guerra do Vietnã"], correct: 1, hint: "Foi a maior e mais profunda crise econômica do século XX nos Estados Unidos." }
+    ];
+
+    const content = document.getElementById("quizContent");
+    const progressLabel = document.getElementById("progressLabel");
+    const progressFill = document.getElementById("progressFill");
+    const attemptsLabel = document.getElementById("attempts");
+    const nextButton = document.getElementById("nextButton");
+    const quizCard = document.getElementById("quizCard");
+    let questionIndex = 0, attempts = 0, totalAttempts = 0, isCorrect = false;
+
+    function playTone(type) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const context = new AudioContext();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = type === "correct" ? "sine" : "triangle";
+        oscillator.frequency.value = type === "correct" ? 660 : 210;
+        gain.gain.setValueAtTime(.09, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001, context.currentTime + (type === "correct" ? .28 : .18));
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start(); oscillator.stop(context.currentTime + .3);
+      } catch (_) { /* Audio feedback is optional and should never block the quiz. */ }
+    }
+
+    function mediaMarkup(question) {
+      if (!question.media) return `<div class="media-placeholder"><strong>Imagem ou vídeo será adicionado aqui</strong><p>${question.mediaLabel}</p></div>`;
+      const isVideo = /\.(mp4|mov|webm)$/i.test(question.media);
+      return isVideo ? `<video controls playsinline preload="metadata" src="${question.media}" aria-label="${question.mediaLabel}"></video>` : `<img src="${question.media}" alt="${question.mediaLabel}">`;
+    }
+
+    function renderQuestion() {
+      const question = questions[questionIndex];
+      attempts = 0; isCorrect = false;
+      progressLabel.textContent = `Pergunta ${questionIndex + 1} de ${questions.length}`;
+      progressFill.style.width = `${((questionIndex + 1) / questions.length) * 100}%`;
+      attemptsLabel.textContent = "Tentativas nesta pergunta: 0";
+      nextButton.hidden = true;
+      content.innerHTML = `
+        <p class="question-number">Ficha ${String(questionIndex + 1).padStart(2, "0")}</p>
+        <h2 id="questionTitle">${question.title}</h2>
+        <p class="prompt">${question.prompt}</p>
+        <div class="media-frame">${mediaMarkup(question)}</div>
+        <div class="answers" role="group" aria-label="Respostas possíveis">
+          ${question.answers.map((answer, index) => `<button class="answer" type="button" data-index="${index}"><span class="answer-letter">${"ABCD"[index]}</span><span>${answer}</span></button>`).join("")}
+        </div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"><span class="feedback-icon" aria-hidden="true">💡</span><span>Escolha uma resposta. A dica aparece depois de uma tentativa incorreta.</span></div>`;
+      content.querySelectorAll(".answer").forEach(button => button.addEventListener("click", () => selectAnswer(Number(button.dataset.index))));
+    }
+
+    function selectAnswer(choice) {
+      if (isCorrect) return;
+      const question = questions[questionIndex];
+      const feedback = document.getElementById("feedback");
+      const buttons = [...content.querySelectorAll(".answer")];
+      attempts += 1; totalAttempts += 1;
+      attemptsLabel.textContent = `Tentativas nesta pergunta: ${attempts}`;
+      if (choice === question.correct) {
+        isCorrect = true; playTone("correct");
+        buttons.forEach(button => button.disabled = true);
+        buttons[choice].classList.add("correct");
+        feedback.dataset.state = "correct";
+        feedback.innerHTML = `<span class="feedback-icon" aria-hidden="true">✓</span><span><strong>Isso mesmo!</strong> ${question.answers[choice]} é a resposta certa.</span>`;
+        nextButton.textContent = questionIndex === questions.length - 1 ? "Ver resultado" : "Próxima pergunta →";
+        nextButton.hidden = false;
+        nextButton.focus();
+      } else {
+        playTone("wrong");
+        buttons[choice].disabled = true;
+        buttons[choice].classList.add("wrong");
+        feedback.dataset.state = "wrong";
+        feedback.innerHTML = `<span class="feedback-icon" aria-hidden="true">↻</span><span><strong>Ainda não.</strong> ${question.hint} Tente outra resposta.</span>`;
+        quizCard.classList.remove("shake"); void quizCard.offsetWidth; quizCard.classList.add("shake");
+      }
+    }
+
+    function showSummary() {
+      progressLabel.textContent = "Rodada concluída";
+      progressFill.style.width = "100%";
+      content.className = "summary";
+      content.innerHTML = `<p class="question-number">Muito bem!</p><h2>Você completou o desafio.</h2><p>O grupo encontrou as seis respostas. Agora é um bom momento para comentar as imagens e os comerciais antes da próxima rodada.</p><div class="score"><strong>6 / 6</strong><span>${totalAttempts} tentativa${totalAttempts === 1 ? "" : "s"} no total</span></div><button class="restart-button" id="restartButton" type="button">Começar nova rodada</button>`;
+      document.getElementById("actions").hidden = true;
+      document.getElementById("restartButton").addEventListener("click", () => { questionIndex = 0; totalAttempts = 0; content.className = "quiz-content"; document.getElementById("actions").hidden = false; renderQuestion(); });
+    }
+
+    nextButton.addEventListener("click", () => { if (questionIndex === questions.length - 1) showSummary(); else { questionIndex += 1; renderQuestion(); } });
+    renderQuestion();
+  </script>
+</body>
+</html>
