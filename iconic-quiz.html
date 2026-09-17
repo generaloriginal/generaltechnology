@@ -294,7 +294,12 @@
           ${question.answers.map((answer, index) => `<button class="answer" type="button" data-index="${index}"><span class="answer-letter">${"ABCD"[index]}</span><span>${answer}</span></button>`).join("")}
         </div>
         <div class="feedback" id="feedback" role="status" aria-live="polite"><span class="feedback-icon" aria-hidden="true">💡</span><span>Escolha uma resposta.</span></div>`;
-      content.querySelectorAll(".answer").forEach(button => button.addEventListener("click", () => selectAnswer(Number(button.dataset.index))));
+      content.querySelectorAll(".answer").forEach(button => {
+        button.classList.remove("wrong", "correct");
+        button.disabled = false;
+        button.setAttribute("aria-pressed", "false");
+        button.addEventListener("click", () => selectAnswer(Number(button.dataset.index)));
+      });
     }
 
     function selectAnswer(choice) {
@@ -304,6 +309,7 @@
       const buttons = [...content.querySelectorAll(".answer")];
       attempts += 1; totalAttempts += 1;
       attemptsLabel.textContent = `Tentativas nesta pergunta: ${attempts}`;
+      buttons[choice].setAttribute("aria-pressed", "true");
       if (choice === question.correct) {
         isCorrect = true; playTone("correct"); showEffect("correct");
         buttons.forEach(button => button.disabled = true);
