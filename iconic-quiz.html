@@ -331,10 +331,11 @@
         buttons.forEach(button => button.disabled = true);
         buttons[choice].classList.add("correct");
         feedback.dataset.state = "correct";
-        feedback.innerHTML = `<span class="feedback-icon" aria-hidden="true">✓</span><span><strong>Isso mesmo!</strong> ${question.answers[choice]} é a resposta certa.</span>`;
-        nextButton.textContent = questionIndex === questions.length - 1 ? "Ver resultado" : "Próxima pergunta →";
-        nextButton.hidden = false;
-        nextButton.focus();
+        feedback.innerHTML = `<span class="feedback-icon" aria-hidden="true">✓</span><span><strong>Isso mesmo!</strong> ${question.answers[choice]} é a resposta certa. Próximo nível desbloqueado!</span>`;
+        window.setTimeout(() => {
+          if (questionIndex === questions.length - 1) showFinale();
+          else advanceToNextQuestion();
+        }, 960);
       } else {
         playTone("wrong"); showEffect("wrong");
         buttons[choice].disabled = true;
@@ -369,12 +370,10 @@
       document.getElementById("restartButton").addEventListener("click", () => { questionIndex = 0; totalAttempts = 0; content.className = "quiz-content"; document.getElementById("actions").hidden = false; renderQuestion(); });
     }
 
-    nextButton.addEventListener("click", () => {
-      if (questionIndex === questions.length - 1) { showFinale(); return; }
-      nextButton.disabled = true;
+    function advanceToNextQuestion() {
       showLevelUp(questionIndex + 2);
-      window.setTimeout(() => { questionIndex += 1; nextButton.disabled = false; renderQuestion(); }, 1280);
-    });
+      window.setTimeout(() => { questionIndex += 1; renderQuestion(); }, 1280);
+    }
     renderQuestion();
   </script>
 </body>
