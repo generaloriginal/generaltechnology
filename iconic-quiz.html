@@ -135,11 +135,19 @@
     .feedback-effect--correct::before { background: rgba(20, 130, 77, .25); animation: green-flash .72s ease-out; }
     .feedback-effect--correct .feedback-effect__badge { background: #14824d; box-shadow: 0 0 0 12px rgba(255,255,255,.46), 0 0 56px rgba(20,130,77,.66); animation: correct-badge .86s cubic-bezier(.2,.9,.2,1) both; }
     .confetti { position: absolute; top: 50%; left: 50%; width: 12px; height: 20px; border-radius: 3px; background: var(--confetti); transform: translate(-50%, -50%) rotate(var(--rotate)); animation: confetti .95s cubic-bezier(.15,.8,.25,1) forwards; }
+    .level-up { position: fixed; z-index: 21; inset: 0; display: grid; place-items: center; padding: 24px; color: white; text-align: center; background: rgba(27, 24, 104, .82); backdrop-filter: blur(7px); animation: level-backdrop 1.25s ease both; }
+    .level-up__panel { width: min(100%, 480px); padding: clamp(30px, 6vw, 54px) 28px; border: 3px solid rgba(255,255,255,.78); border-radius: 28px; background: linear-gradient(135deg, #6a5cff, #322d9a); box-shadow: 0 24px 65px rgba(0,0,0,.36); animation: level-panel 1.05s cubic-bezier(.18,.9,.2,1) both; }
+    .level-up__stars { margin-bottom: 10px; color: #f8c84c; font-size: clamp(2rem, 6vw, 3.5rem); letter-spacing: .22em; text-shadow: 0 0 18px rgba(248,200,76,.85); }
+    .level-up__eyebrow { margin: 0 0 5px; font-size: .9rem; font-weight: 900; letter-spacing: .16em; }
+    .level-up strong { display: block; font-size: clamp(2rem, 8vw, 4rem); line-height: 1; }
+    .level-up p:last-child { margin: 14px 0 0; font-size: 1.1rem; font-weight: 700; opacity: .9; }
     @keyframes red-flash { 0%, 55% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes green-flash { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes wrong-badge { 0% { opacity: 0; transform: scale(.2) rotate(-15deg); } 35% { opacity: 1; transform: scale(1.12) rotate(8deg); } 68% { transform: scale(.92) rotate(-4deg); } 100% { opacity: 0; transform: scale(1.1) rotate(0); } }
     @keyframes correct-badge { 0% { opacity: 0; transform: scale(.25); } 40% { opacity: 1; transform: scale(1.14); } 68% { opacity: 1; transform: scale(.96); } 100% { opacity: 0; transform: scale(1.08); } }
     @keyframes confetti { 0% { opacity: 1; } 100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(calc(var(--rotate) + 520deg)); } }
+    @keyframes level-backdrop { 0% { opacity: 0; } 12%, 82% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes level-panel { 0% { opacity: 0; transform: translateY(42px) scale(.75); } 28%, 78% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-24px) scale(1.04); } }
     @media (max-width: 620px) {
       .app-shell { padding-left: 14px; padding-right: 14px; }
       .topbar { align-items: flex-start; }
@@ -191,14 +199,14 @@
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const context = new AudioContext();
         context.resume();
-        const notes = type === "correct" ? [[523, 0], [659, .11], [784, .22]] : [[185, 0], [138, .14]];
+        const notes = type === "correct" ? [[523, 0], [659, .11], [784, .22]] : type === "level" ? [[392, 0], [523, .1], [659, .2], [784, .3]] : [[185, 0], [138, .14]];
         notes.forEach(([frequency, delay]) => {
           const oscillator = context.createOscillator();
           const gain = context.createGain();
           const start = context.currentTime + delay;
-          oscillator.type = type === "correct" ? "sine" : "sawtooth";
+          oscillator.type = type === "wrong" ? "sawtooth" : "sine";
           oscillator.frequency.setValueAtTime(frequency, start);
-          gain.gain.setValueAtTime(type === "correct" ? .075 : .06, start);
+          gain.gain.setValueAtTime(type === "wrong" ? .06 : .075, start);
           gain.gain.exponentialRampToValueAtTime(.001, start + .22);
           oscillator.connect(gain).connect(context.destination);
           oscillator.start(start); oscillator.stop(start + .24);
@@ -225,6 +233,16 @@
       }
       effects.append(effect);
       window.setTimeout(() => effect.remove(), type === "correct" ? 980 : 700);
+    }
+
+    function showLevelUp(level) {
+      effects.replaceChildren();
+      const levelUp = document.createElement("div");
+      levelUp.className = "level-up";
+      levelUp.innerHTML = `<div class="level-up__panel"><div class="level-up__stars" aria-hidden="true">★ ★ ★</div><p class="level-up__eyebrow">DESAFIO DESBLOQUEADO</p><strong>NÍVEL ${level}</strong><p>Você avançou para a próxima fase!</p></div>`;
+      effects.append(levelUp);
+      playTone("level");
+      window.setTimeout(() => levelUp.remove(), 1280);
     }
 
     function mediaMarkup(question) {
@@ -301,7 +319,12 @@
       document.getElementById("restartButton").addEventListener("click", () => { questionIndex = 0; totalAttempts = 0; content.className = "quiz-content"; document.getElementById("actions").hidden = false; renderQuestion(); });
     }
 
-    nextButton.addEventListener("click", () => { if (questionIndex === questions.length - 1) showSummary(); else { questionIndex += 1; renderQuestion(); } });
+    nextButton.addEventListener("click", () => {
+      if (questionIndex === questions.length - 1) { showSummary(); return; }
+      nextButton.disabled = true;
+      showLevelUp(questionIndex + 2);
+      window.setTimeout(() => { questionIndex += 1; nextButton.disabled = false; renderQuestion(); }, 1280);
+    });
     renderQuestion();
   </script>
 </body>
